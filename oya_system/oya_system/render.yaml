@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: oya-system
+    env: python
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+      python manage.py migrate
+    startCommand: gunicorn oya_system.wsgi:application
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
