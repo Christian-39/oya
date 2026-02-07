@@ -1,0 +1,290 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Expenses – OYA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #0a7c5b;
+      --bg: #f5f7f6;
+      --card: #ffffff;
+      --text: #1f2933;
+      --muted: #6b7280;
+      --shadow: 0 10px 25px rgba(0,0,0,.08);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      padding: 20px;
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .header h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: var(--primary);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      box-shadow: var(--shadow);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform .2s, opacity .2s;
+    }
+
+    .btn:hover { transform: translateY(-1px); opacity: .95; }
+
+    .btn.secondary {
+      background: #fff;
+      color: var(--primary);
+      border: 1px solid rgba(10,124,91,.25);
+    }
+
+    /* Summary Cards */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      padding: 16px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .stat-card small { color: var(--muted); }
+
+    .stat-card strong {
+      display: block;
+      font-size: 20px;
+      margin-top: 4px;
+      color: var(--primary);
+    }
+
+    /* Filters */
+    .filters {
+      background: var(--card);
+      padding: 14px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .filters input {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      font-size: 13px;
+      outline: none;
+      min-width: 160px;
+    }
+
+    .filters button {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* Table */
+    .table-wrap {
+      overflow-x: auto;
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 13px;
+      border-bottom: 1px solid #e5e7eb;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #f0fdf9;
+      color: #065f46;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: .04em;
+    }
+
+    tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 20px;
+    }
+
+    /* Export */
+    .export {
+      margin: 14px 0;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .export button {
+      background: #111827;
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 12px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h2>Expenses</h2>
+    <div class="header-actions">
+      <a href="{% url 'dashboard' %}" class="btn secondary">← Dashboard</a>
+      {% if request.session.member_role == 'admin' %}
+      <a href="{% url 'add_expense' %}" class="btn">➕ Add New Expense</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="stats">
+  <div class="stat-card">
+    <small>Total Income</small>
+    <strong>₦{{ total_income|intcomma |default:"0"}}</strong>
+  </div>
+
+  <div class="stat-card">
+    <small>Total Expenses</small>
+    <strong>₦{{ total_expenses|intcomma |default:"0" }}</strong>
+  </div>
+
+  <div class="stat-card">
+    <small>Balance</small>
+    <strong>₦{{ net_balance|intcomma |default:"0"}}</strong>
+  </div>
+</div>
+
+  <!-- Export -->
+  <div class="export">
+    <button onclick="window.print()">🖨 Print</button>
+    <button onclick="exportTable()">⬇ Export CSV</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table id="expensesTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Title</th>
+          <th>Description</th>
+          <th>Amount</th>
+          <th>Recorded By</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for expense in expenses %}
+        <tr>
+          <td>{{ expense.date }}</td>
+          <td>{{ expense.title }}</td>
+          <td>{% if expense.project %}{{ expense.project.title }}{% else %}{{ expense.description }}{% endif %}</td>
+          <td>₦{{ expense.amount|intcomma }}</td>
+          <td>{{ expense.recorded_by.full_name }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="empty">No expenses recorded yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+function exportTable() {
+  let table = document.getElementById("expensesTable");
+  let rows = table.querySelectorAll("tr");
+  let csv = [];
+
+  rows.forEach(row => {
+    let cols = row.querySelectorAll("th, td");
+    let rowData = [];
+    cols.forEach(col => rowData.push('"' + col.innerText + '"'));
+    csv.push(rowData.join(","));
+  });
+
+  let blob = new Blob([csv.join("\n")], { type: "text/csv" });
+  let url = window.URL.createObjectURL(blob);
+  let a = document.createElement("a");
+  a.href = url;
+  a.download = "expenses.csv";
+  a.click();
+}
+</script>
+
+</body>
+</html>

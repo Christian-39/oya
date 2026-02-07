@@ -1,0 +1,249 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Contributions – OYA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top, #e6f5f1, #f5f7f6, #ffffff);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      background: rgba(255,255,255,0.96);
+      padding: 20px;
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+      border: 1px solid #eef2f7;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .header h2 {
+      margin: 0;
+      color: #0a7c5b;
+      font-weight: 600;
+      font-size: 20px;
+    }
+
+    .header p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #111827;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: 0 6px 16px rgba(17, 24, 39, 0.25);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      background: #f0fdf9;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid #ccfbf1;
+    }
+
+    .stat-card small {
+      font-size: 11px;
+      color: #065f46;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat-card strong {
+      display: block;
+      font-size: 18px;
+      color: #064e3b;
+      margin-top: 4px;
+    }
+
+    .section {
+      margin-top: 18px;
+    }
+
+    .section h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: #065f46;
+      font-weight: 600;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      margin-bottom: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 650px;
+      background: #fff;
+    }
+
+    thead {
+      background: #f0fdf9;
+    }
+
+    th {
+      padding: 10px;
+      text-align: left;
+      font-size: 12px;
+      color: #065f46;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    td {
+      padding: 10px;
+      font-size: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      color: #111827;
+      white-space: nowrap;
+    }
+
+    tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 16px;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    @media (max-width: 640px) {
+      .header h2 { font-size: 18px; }
+      .btn { font-size: 11px; padding: 7px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="header">
+      <div>
+        <h2>My Contributions</h2>
+        <p>Yearly dues & donations</p>
+      </div>
+      <a href="{% url 'dashboard' %}" class="btn">← Dashboard</a>
+    </div>
+
+    <!-- Totals -->
+    <div class="stats">
+      <div class="stat-card">
+        <small>Total Yearly Dues</small>
+        <strong>₦{{ total_dues|intcomma }}</strong>
+      </div>
+      <div class="stat-card">
+        <small>Total Donations</small>
+        <strong>₦{{ total_income|intcomma }}</strong>
+      </div>
+      <div class="stat-card">
+        <small>Total Paid</small>
+        <strong>₦{{ total_money|intcomma }}</strong>
+      </div>
+    </div>
+
+    <!-- Contributions -->
+    <div class="section">
+      <h3>Yearly Dues</h3>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th>Amount Paid (₦)</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in contributions %}
+              <tr>
+                <td>{{ c.year }}</td>
+                <td>₦{{ c.amount_paid|intcomma }}</td>
+                <td>{{ c.payment_date }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="3" class="empty">No yearly dues recorded yet.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Incomes -->
+<div class="section">
+  <h3>Donations / Income</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Amount (₦)</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in incomes %}
+          <tr>
+            <td>{{ i.title }}</td>
+            <td>₦{{ i.amount|intcomma }}</td>
+            <td>{{ i.date }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="3" class="empty">No donations recorded yet.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Members List – OYA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top, #e6f5f1, #f5f7f6, #ffffff);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(6px);
+      padding: 20px;
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+      border: 1px solid #eef2f7;
+    }
+
+    h2 {
+      margin: 0;
+      color: #0a7c5b;
+      font-weight: 600;
+      font-size: 20px;
+    }
+
+    .tagline {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 14px;
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .nav a {
+      padding: 7px 12px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 12px;
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #bbf7d0;
+      transition: 0.2s ease;
+    }
+
+    .nav a:hover {
+      background: #0a7c5b;
+      color: #ffffff;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 9px 12px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      outline: none;
+      font-size: 13px;
+    }
+
+    .search-box button {
+      padding: 9px 14px;
+      border-radius: 10px;
+      border: none;
+      background: #0a7c5b;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .search-box button:hover {
+      background: #08624a;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+    }
+
+    th {
+      background: #0a7c5b;
+      color: white;
+      padding: 10px;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    td {
+      padding: 10px;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 12px;
+      color: #111827;
+    }
+
+    tr:hover {
+      background: #f0fdfa;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .badge-admin {
+      background: #111827;
+      color: white;
+    }
+
+    .badge-member {
+      background: #e0f2fe;
+      color: #075985;
+    }
+
+    .badge-active {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge-inactive {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .view-btn {
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #ecfdf5;
+      color: #065f46;
+      font-size: 11px;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid #bbf7d0;
+    }
+
+    .view-btn:hover {
+      background: #0a7c5b;
+      color: white;
+    }
+
+    @media (max-width: 600px) {
+      h2 { font-size: 18px; }
+      .container { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Members – Okpo Youths Association (OYA)</h2>
+    <div class="tagline">Peace and Progress</div>
+
+    <div class="nav">
+      {% if logged_in_member.role == "Admin" %}
+      <a href="{% url 'admin_dashboard' %}">Admin Dashboard</a>{% endif %}
+      <a href="{% url 'dashboard' %}">My Dashboard</a>
+    </div>
+
+    <form method="get" class="search-box">
+      <input type="text" name="q" placeholder="Search by name, serial or phone" value="{{ query }}">
+      <button type="submit">Search</button>
+    </form>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Serial No</th>
+            <th>Full Name</th>
+            <th>Role</th>
+            <th>Executive Post</th>
+            <th>Status</th>
+            <th>Year Joined</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for member in members %}
+          <tr>
+            <td>{{ member.serial_number }}</td>
+            <td>{{ member.full_name }}</td>
+            <td>
+              <span class="badge {% if member.role == 'admin' %}badge-admin{% else %}badge-member{% endif %}">
+                {{ member.role|title }}
+              </span>
+            </td>
+            <td>
+              {% if member.executive_position %}
+                {{ member.executive_position }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge badge-{{ member.status }}">
+                {{ member.status|title }}
+              </span>
+            </td>
+            <td>{{ member.year_joined }}</td>
+            <td>
+  {% if logged_in_member.role == "Admin" %}
+    <a href="{% url 'member_profile' member.id %}" class="view-btn">View</a>
+  {% endif %}
+</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" style="text-align:center; padding:16px; color:#6b7280;">
+              No members found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</body>
+</html>

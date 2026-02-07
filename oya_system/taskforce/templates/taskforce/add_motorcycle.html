@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Motorcycle – OYA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #e6f5f1, #f5f7f6);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 26px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.1);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .header h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+      color: #0a7c5b;
+    }
+
+    .sub {
+      font-size: 13px;
+      color: #6b7280;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    form {
+      margin-top: 10px;
+    }
+
+    form p {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: 0.15s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #0a7c5b;
+      box-shadow: 0 0 0 3px rgba(10, 124, 91, 0.15);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      background: linear-gradient(135deg, #0a7c5b, #0fb38a);
+      color: white;
+      border: none;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(10, 124, 91, 0.25);
+      transition: 0.15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    .btn.secondary {
+      background: #111827;
+      box-shadow: 0 6px 16px rgba(17, 24, 39, 0.25);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @media (max-width: 640px) {
+      .header h2 {
+        font-size: 18px;
+      }
+      .btn {
+        font-size: 11px;
+        padding: 9px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="header">
+      <div>
+        <h2>Add Motorcycle</h2>
+        <div class="sub">OYA Inventory • Peace and Progress</div>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+
+      <div class="actions">
+        <button type="submit" class="btn">💾 Save Motorcycle</button>
+        <a href="{% url 'motorcycles_list' %}" class="btn secondary">← Back to Motorcycles</a>
+      </div>
+    </form>
+
+  </div>
+
+</body>
+</html>

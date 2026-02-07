@@ -1,0 +1,281 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard – OYA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #e6f5f1, #f5f7f6);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: auto;
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .title h2 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      color: #0a7c5b;
+    }
+
+    .title p {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      background: linear-gradient(135deg, #0a7c5b, #0fb38a);
+      color: white;
+      text-decoration: none;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 6px 16px rgba(10, 124, 91, 0.25);
+      transition: 0.15s ease;
+    }
+
+    .btn.secondary {
+      background: #111827;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      margin-top: 10px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 18px 16px 16px;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
+      transition: 0.2s ease;
+      border-left: 5px solid #0a7c5b;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 140px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .card .value {
+      margin: 10px 0 8px;
+      font-size: 28px;
+      font-weight: 700;
+      color: #0a7c5b;
+    }
+
+    .card .links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: auto;
+    }
+
+    .card .links a {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0a7c5b;
+      text-decoration: none;
+      background: #ecfdf5;
+      padding: 6px 10px;
+      border-radius: 999px;
+      transition: 0.15s ease;
+    }
+
+    .card .links a:hover {
+      background: #d1fae5;
+    }
+
+    .income { border-left-color: #16a34a; }
+    .expense { border-left-color: #dc2626; }
+    .info { border-left-color: #2563eb; }
+
+    @media (max-width: 640px) {
+      .title h2 { font-size: 20px; }
+      .card .value { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="header">
+      <div class="title">
+        <h2>Okpo Youths Association (OYA)</h2>
+        <p>Admin Control Panel – Peace & Progress</p>
+      </div>
+
+      <div class="actions">
+        <a href="{% url 'dashboard' %}" class="btn secondary">← User Dashboard</a>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <div class="card">
+        <h3>Members</h3>
+        <div class="value">{{ total_members }}</div>
+        <div class="links">
+          <a href="{% url 'members_list' %}">👁 View</a>
+          <a href="{% url 'add_member' %}">+ Add</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Executives</h3>
+        <div class="value">{{ total_executives }}</div>
+        <div class="links">
+          <a href="{% url 'executives_list' %}">👁 View</a>
+          <a href="{% url 'assign_executive' %}">+ Assign</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Task Force</h3>
+        <div class="value">{{ total_taskforce }}</div>
+        <div class="links">
+          <a href="{% url 'taskforce_list' %}">👁 View</a>
+          <a href="{% url 'add_taskforce' %}">+ Add</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Yearly Dues</h3>
+        <div class="value">₦{{ total_contribution|intcomma }}</div>
+        <div class="links">
+          <a href="{% url 'contributions_list' %}">👁 View</a>
+          <a href="{% url 'add_contribution' %}">+ Add</a>
+        </div>
+      </div>
+
+      <div class="card income">
+        <h3>Donations / Income</h3>
+        <div class="value">₦{{ total_income|intcomma }}</div>
+        <div class="links">
+          <a href="{% url 'income_list' %}">👁 View</a>
+          <a href="{% url 'add_income' %}">+ Add</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Projects</h3>
+        <div class="links">
+          <a href="{% url 'projects_list' %}">👁 View</a>
+          <a href="{% url 'add_project' %}">+ Add</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Cases</h3>
+        <div class="value">{{ cases_list}}</div>
+        <div class="links">
+          <a href="{% url 'cases_list' %}">👁 View</a>
+          <a href="{% url 'add_case' %}">+ Add</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Motorcycles</h3>
+        <div class="value">{{ motorcycles_list }}</div>
+        <div class="links">
+          <a href="{% url 'motorcycles_list' %}">👁 View</a>
+          <a href="{% url 'add_motorcycle' %}">+ Add</a>
+        </div>
+      </div>
+
+      <div class="card info">
+        <h3>Executive Tenure</h3>
+        <div class="value">{{ tenures_list }}</div>
+        <div class="links">
+          <a href="{% url 'tenures_list' %}">👁 View</a>
+          <a href="{% url 'add_tenure' %}">+ Add</a>
+        </div>
+      </div>
+
+      <div class="card expense">
+        <h3>Expenses</h3>
+        <div class="value">₦{{ total_expense|intcomma }}</div>
+        <div class="links">
+          <a href="{% url 'expenses_list' %}">👁 View</a>
+          <a href="{% url 'add_expense' %}">+ Add</a>
+        </div>
+      </div>
+
+      <div class="card income">
+        <h3>Total Income</h3>
+        <div class="value">₦{{ total_income|intcomma }}</div>
+      </div>
+
+      <div class="card expense">
+        <h3>Total Expenses</h3>
+        <div class="value">₦{{ total_expense|intcomma }}</div>
+      </div>
+
+    </div>
+
+
+  </div>
+
+</body>
+</html>

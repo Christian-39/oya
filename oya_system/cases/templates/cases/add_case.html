@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Case – OYA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top, #e6f5f1, #f5f7f6, #ffffff);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(6px);
+      padding: 24px;
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+      border: 1px solid #eef2f7;
+    }
+
+    .header {
+      margin-bottom: 16px;
+    }
+
+    .header h2 {
+      margin: 0;
+      color: #0a7c5b;
+      font-weight: 600;
+      font-size: 20px;
+    }
+
+    .header p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    form p {
+      margin-bottom: 14px;
+      font-size: 13px;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #065f46;
+      font-size: 12px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      background: #ffffff;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: #0a7c5b;
+      box-shadow: 0 0 0 3px rgba(10,124,91,0.15);
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #0a7c5b, #0fb38a);
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(10, 124, 91, 0.25);
+      transition: 0.15s ease;
+    }
+
+    .btn.secondary {
+      background: #111827;
+      box-shadow: 0 6px 16px rgba(17, 24, 39, 0.25);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    @media (max-width: 500px) {
+      .header h2 { font-size: 18px; }
+      .btn { font-size: 11px; padding: 8px 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="header">
+      <h2>Add New Case</h2>
+      <p>Peace and Progress</p>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+
+      <div class="actions">
+        <button type="submit" class="btn">Save Case</button>
+        <a href="{% url 'cases_list' %}" class="btn secondary">← Back to Cases</a>
+      </div>
+    </form>
+
+  </div>
+
+</body>
+</html>

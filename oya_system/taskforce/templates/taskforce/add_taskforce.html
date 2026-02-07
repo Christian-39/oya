@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Task Force – OYA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top, #e6f5f1, #f5f7f6, #ffffff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 520px;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(6px);
+      padding: 26px;
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.12);
+      border: 1px solid #eef2f7;
+    }
+
+    h2 {
+      margin-top: 0;
+      margin-bottom: 14px;
+      color: #0a7c5b;
+      font-weight: 600;
+      font-size: 20px;
+    }
+
+    form p {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 5px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      outline: none;
+      font-size: 13px;
+      background: #f9fafb;
+      transition: 0.15s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #0a7c5b;
+      background: #fff;
+      box-shadow: 0 0 0 2px rgba(10,124,91,0.15);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #0a7c5b, #0fb38a);
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 6px 16px rgba(10,124,91,0.25);
+      transition: 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 14px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 20px;
+        border-radius: 14px;
+      }
+
+      h2 {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Add Task Force Member</h2>
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+
+      <div class="actions">
+        <button type="submit">Save</button>
+      </div>
+    </form>
+
+    <a href="{% url 'taskforce_list' %}" class="back-link">← Back to Task Force</a>
+  </div>
+
+</body>
+</html>

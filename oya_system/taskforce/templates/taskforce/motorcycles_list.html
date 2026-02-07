@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Motorcycles – OYA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #e6f5f1, #f5f7f6);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.1);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .title h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+      color: #0a7c5b;
+    }
+
+    .title p {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      background: linear-gradient(135deg, #0a7c5b, #0fb38a);
+      color: white;
+      text-decoration: none;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 6px 16px rgba(10, 124, 91, 0.25);
+      transition: 0.15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    .btn.secondary {
+      background: #111827;
+      box-shadow: 0 6px 16px rgba(17, 24, 39, 0.25);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      margin-top: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+      background: #fff;
+    }
+
+    thead {
+      background: #f0fdf9;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 13px;
+      border-bottom: 1px solid #e5e7eb;
+      white-space: nowrap;
+    }
+
+    th {
+      color: #065f46;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    .status {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .status.active {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status.inactive {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status.assigned {
+      background: #e0f2fe;
+      color: #075985;
+    }
+
+    .status.unassigned {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .empty {
+      text-align: center;
+      color: #6b7280;
+      padding: 20px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 640px) {
+      .title h2 {
+        font-size: 18px;
+      }
+      .btn {
+        font-size: 11px;
+        padding: 8px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="header">
+      <div class="title">
+        <h2>OYA Motorcycles Inventory</h2>
+        <p>Peace and Progress</p>
+      </div>
+
+      <div class="actions">
+        <a href="{% url 'dashboard' %}" class="btn secondary">← Dashboard</a>
+
+        {% if request.session.member_role == 'admin' %}
+          <a href="{% url 'add_motorcycle' %}" class="btn">➕ Add Motorcycle</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Bike No</th>
+            <th>Plate No</th>
+            <th>Condition</th>
+            <th>Status</th>
+            <th>Assigned To</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for bike in bikes %}
+          <tr>
+            <td>{{ bike.bike_number }}</td>
+            <td>{{ bike.plate_number }}</td>
+            <td>{{ bike.condition|title }}</td>
+            <td>
+              <span class="status {% if bike.status == 'active' %}active{% else %}inactive{% endif %}">
+                {{ bike.status|title }}
+              </span>
+            </td>
+            <td>
+              {% if bike.assigned_to %}
+                <span class="status assigned">{{ bike.assigned_to.member.full_name }}</span>
+              {% else %}
+                <span class="status unassigned">Not Assigned</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="empty">No motorcycles added yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</body>
+</html>

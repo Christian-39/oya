@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Executive Tenures – OYA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top, #e6f5f1, #f5f7f6, #ffffff);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(6px);
+      padding: 22px;
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+      border: 1px solid #eef2f7;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .title h2 {
+      margin: 0;
+      color: #0a7c5b;
+      font-weight: 600;
+      font-size: 20px;
+    }
+
+    .title p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #111827;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: 0 6px 16px rgba(17, 24, 39, 0.25);
+      transition: 0.15s ease;
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, #0a7c5b, #0fb38a);
+      box-shadow: 0 6px 16px rgba(10, 124, 91, 0.25);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 500px;
+      background: #fff;
+    }
+
+    thead {
+      background: #f0fdf9;
+    }
+
+    th {
+      padding: 10px;
+      text-align: left;
+      font-size: 12px;
+      color: #065f46;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    td {
+      padding: 10px;
+      font-size: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      color: #111827;
+      white-space: nowrap;
+    }
+
+    tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #ecfdf5;
+      color: #065f46;
+    }
+
+    .badge.inactive {
+      background: #fef2f2;
+      color: #991b1b;
+    }
+
+    .actions a {
+      margin-right: 8px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .actions .edit { color: #2563eb; }
+    .actions .delete { color: #dc2626; }
+
+    .empty {
+      text-align: center;
+      padding: 16px;
+      color: #6b7280;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="header">
+      <div class="title">
+        <h2>Executive Tenures</h2>
+        <p>Okpo Youths Association (OYA)</p>
+      </div>
+
+      <div>
+        <a href="{% url 'add_tenure' %}" class="btn primary">＋ Add Tenure</a>
+        <a href="{% url 'admin_dashboard' %}" class="btn">← Admin Dashboard</a>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Tenure Period</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for t in tenures %}
+          <tr>
+            <td>{{ t.name }}</td>
+            <td>
+              {{ t.start_year }} –
+              {% if t.end_year %}
+                {{ t.end_year }}
+              {% else %}
+                Present
+              {% endif %}
+            </td>
+            <td>
+              {% if t.is_active %}
+                <span class="badge">Active</span>
+              {% else %}
+                <span class="badge inactive">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="actions">
+              <a href="{% url 'edit_tenure' t.id %}" class="edit">✏️ Edit</a>
+              <a href="{% url 'delete_tenure' t.id %}" class="delete">🗑 Delete</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="empty">No tenure records yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,43 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Contribution Receipt</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .receipt {
+      max-width: 600px;
+      margin: auto;
+      border: 1px dashed #999;
+      padding: 20px;
+    }
+    h2 { text-align: center; color: #0a7c5b; }
+    .row { margin-bottom: 10px; }
+    .label { font-weight: bold; }
+    .print-btn {
+      margin-top: 20px;
+      text-align: center;
+    }
+    @media print {
+      .print-btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="receipt">
+  <h2>OYA Yearly Dues Receipt</h2>
+
+  <div class="row"><span class="label">Member:</span> {{ contribution.member.full_name }}</div>
+  <div class="row"><span class="label">Year:</span> {{ contribution.year }}</div>
+  <div class="row"><span class="label">Amount Paid:</span> ₦{{ contribution.amount_paid|intcomma }}</div>
+  <div class="row"><span class="label">Payment Date:</span> {{ contribution.payment_date }}</div>
+  <div class="row"><span class="label">Recorded By:</span> {{ contribution.recorded_by.full_name }}</div>
+
+  <div class="print-btn">
+    <button onclick="window.print()">🖨 Print Receipt</button>
+  </div>
+</div>
+
+</body>
+</html>

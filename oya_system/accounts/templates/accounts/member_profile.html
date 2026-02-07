@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Member Profile – OYA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top, #e6f5f1, #f5f7f6, #ffffff);
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 13px;
+      color: #0a7c5b;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(6px);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.1);
+      border: 1px solid #eef2f7;
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+      font-weight: 600;
+      color: #0a7c5b;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px dashed #e5e7eb;
+      font-size: 13px;
+    }
+
+    .row:last-child {
+      border-bottom: none;
+    }
+
+    .label {
+      color: #6b7280;
+      font-weight: 600;
+    }
+
+    .value {
+      color: #111827;
+      font-weight: 500;
+      text-align: right;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #ecfdf5;
+      color: #065f46;
+    }
+
+    .badge.role-admin {
+      background: #111827;
+      color: #ffffff;
+    }
+
+    .badge.status-active {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge.status-inactive {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 12px;
+      }
+      .card {
+        padding: 18px;
+        border-radius: 14px;
+      }
+      .card h2 {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+    <a href="{% url 'members_list' %}" class="back-link">← Back to Members</a>
+
+    <div class="card">
+      <h2>{{ member.full_name }}</h2>
+
+      <div class="row">
+        <span class="label">Serial Number</span>
+        <span class="value">{{ member.serial_number }}</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Phone</span>
+        <span class="value">{{ member.phone_number }}</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Gender</span>
+        <span class="value">{{ member.gender }}</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Age</span>
+        <span class="value">{{ member.age }}</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Role</span>
+        <span class="value">
+          <span class="badge {% if member.role == 'admin' %}role-admin{% endif %}">
+            {{ member.role|title }}
+          </span>
+        </span>
+      </div>
+
+      {% if member.executive_position %}
+      <div class="row">
+        <span class="label">Post</span>
+        <span class="value">{{ member.executive_position }}</span>
+      </div>
+      {% endif %}
+
+      <div class="row">
+        <span class="label">Status</span>
+        <span class="value">
+          <span class="badge status-{{ member.status }}">
+            {{ member.status|title }}
+          </span>
+        </span>
+      </div>
+
+      <div class="row">
+        <span class="label">Year Joined</span>
+        <span class="value">{{ member.year_joined }}</span>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

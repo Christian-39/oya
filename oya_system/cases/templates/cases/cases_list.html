@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cases – OYA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top, #e6f5f1, #f5f7f6, #ffffff);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(6px);
+      padding: 20px;
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+      border: 1px solid #eef2f7;
+    }
+
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .title h2 {
+      margin: 0;
+      color: #0a7c5b;
+      font-weight: 600;
+      font-size: 20px;
+    }
+
+    .title p {
+      margin: 2px 0 0;
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #0a7c5b;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(10, 124, 91, 0.25);
+      transition: 0.15s ease;
+    }
+
+    .btn.secondary {
+      background: #111827;
+      box-shadow: 0 6px 16px rgba(17, 24, 39, 0.25);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+      background: #fff;
+    }
+
+    thead {
+      background: #f0fdf9;
+    }
+
+    th {
+      padding: 10px;
+      text-align: left;
+      font-size: 12px;
+      color: #065f46;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    td {
+      padding: 10px;
+      font-size: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      color: #111827;
+      white-space: nowrap;
+    }
+
+    tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .badge-open { background: #dcfce7; color: #166534; }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-closed { background: #fee2e2; color: #991b1b; }
+
+    .link-btn {
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid #bbf7d0;
+      background: #ecfdf5;
+      color: #065f46;
+      transition: 0.15s ease;
+    }
+
+    .link-btn:hover {
+      background: #0a7c5b;
+      color: white;
+    }
+
+    .footer {
+      margin-top: 14px;
+    }
+
+    @media (max-width: 600px) {
+      .title h2 { font-size: 18px; }
+      .btn { font-size: 11px; padding: 7px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="header">
+      <div class="title">
+        <h2>Community Cases – OYA</h2>
+        <p>Peace and Progress</p>
+      </div>
+
+      <div class="actions">
+        {% if request.session.member_role == 'admin' %}
+          <a href="{% url 'add_case' %}" class="btn">+ Add New Case</a>
+        {% endif %}
+        <a href="{% url 'dashboard' %}" class="btn secondary">← Dashboard</a>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Presented By</th>
+            <th>Date</th>
+            <th>Handled By</th>
+            <th>Status</th>
+            {% if request.session.member_role == 'admin' %}
+              <th>Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for case in cases %}
+          <tr>
+            <td>{{ case.title }}</td>
+            <td>{{ case.presented_by.full_name }}</td>
+            <td>{{ case.date_presented }}</td>
+            <td>{{ case.handled_by|title }}</td>
+            <td>
+              <span class="badge badge-{{ case.status }}">
+                {{ case.status|title }}
+              </span>
+            </td>
+            {% if request.session.member_role == 'admin' %}
+            <td>
+              <a href="{% url 'update_case_status' case.id %}" class="link-btn">Update</a>
+            </td>
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" style="text-align:center; padding:16px; color:#6b7280;">
+              No cases yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</body>
+</html>

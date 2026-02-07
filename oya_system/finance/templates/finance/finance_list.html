@@ -1,0 +1,41 @@
+<h2>Finance Records</h2>
+
+<p>
+    <strong>Total Income:</strong> ₦{{ total_income }} |
+    <strong>Total Expense:</strong> ₦{{ total_expense }}
+</p>
+
+<table border="1" cellpadding="5">
+    <tr>
+        <th>Title</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Project</th>
+        <th>Recorded By</th>
+    </tr>
+    {% for f in finances %}
+    <tr>
+        <td>{{ f.title }}</td>
+        <td>{{ f.type }}</td>
+        <td>₦{{ f.amount }}</td>
+        <td>{{ f.date }}</td>
+        <td>
+            {% if f.project %}
+                {{ f.project.title }}
+            {% else %}
+                General
+            {% endif %}
+        </td>
+        <td>{{ f.recorded_by.full_name }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p>
+    {% if request.session.member_role == 'admin' %}
+        <a href="{% url 'add_finance' %}">+ Add Finance</a>
+    {% endif %}
+</p>
+
+<a href="{% url 'dashboard' %}">Back to Dashboard</a>

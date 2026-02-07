@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Income</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: #f4f6f9;
+      padding: 20px;
+    }
+
+    .card {
+      max-width: 480px;
+      background: white;
+      padding: 24px;
+      margin: auto;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #0a7c5b;
+      margin-bottom: 10px;
+    }
+
+    .sub {
+      text-align: center;
+      font-size: 13px;
+      color: #777;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: bold;
+      font-size: 14px;
+      margin-top: 12px;
+      display: block;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      margin-top: 6px;
+      font-size: 14px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #0a7c5b;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .search-box input {
+      flex: 1;
+    }
+
+    .search-box button {
+      background: #0a7c5b;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .found {
+      background: #ecfdf5;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 12px;
+      color: #065f46;
+    }
+
+    .btn {
+      width: 100%;
+      background: #0a7c5b;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      margin-top: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .btn:hover {
+      background: #096b4f;
+    }
+
+    .back {
+      display: block;
+      text-align: center;
+      margin-top: 14px;
+      color: #0a7c5b;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Add Income</h2>
+    <div class="sub">Search member to auto-fill sender details</div>
+
+    <!-- Search -->
+    <form method="get" class="search-box">
+      <input type="text" name="q" placeholder="Search by name or ID..." value="{{ query }}">
+      <button type="submit">Search</button>
+    </form>
+
+    {% if found_member %}
+      <div class="found">
+        ✔ Found: <strong>{{ found_member.full_name }}</strong> ({{ found_member.serial_number }})
+      </div>
+    {% elif query %}
+      <div class="found" style="background:#fef2f2;color:#991b1b;">
+        ✖ No member found
+      </div>
+    {% endif %}
+
+    <!-- Form -->
+    <form method="post">
+      {% csrf_token %}
+
+      <label>Title</label>
+      {{ form.title }}
+
+      <label>Sender Name</label>
+      {{ form.sender_name }}
+
+      <label>Sender ID</label>
+      {{ form.sender_id }}
+
+      <label>Amount</label>
+      {{ form.amount }}
+
+      {% if found_member %}
+        <input type="hidden" name="member_id" value="{{ found_member.id }}">
+      {% endif %}
+
+      <button class="btn" type="submit">Save Income</button>
+    </form>
+
+    <a href="{% url 'income_list' %}" class="back">← Back to Income</a>
+  </div>
+
+</body>
+</html>

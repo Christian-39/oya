@@ -1,0 +1,84 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Income</title>
+  <style>
+    body { font-family: Arial; background: #f4f6f9; padding: 20px; }
+    h2, h3 { color: #0a7c5b; }
+    .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; }
+    .btn { background:#0a7c5b; color:white; padding:8px 14px; border-radius:6px; text-decoration:none; }
+    .btn.secondary { background:#555; }
+    table { width:100%; border-collapse:collapse; background:white; margin-top:10px; }
+    th { background:#0a7c5b; color:white; padding:10px; text-align:left; }
+    td { padding:10px; border-bottom:1px solid #ddd; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h2>Income & Contributions</h2>
+  <div>
+    <a href="{% url 'dashboard' %}" class="btn secondary">← Dashboard</a>
+    {% if request.session.member_role == 'admin' %}
+    <a href="{% url 'add_income' %}" class="btn">➕ Add Income</a>
+    {% endif %}
+  </div>
+
+</div>
+
+<h3>💰 Donations / Income</h3>
+<p><strong>Total Donations:</strong> ₦{{ total_income|intcomma }}</p>
+<table>
+<tr>
+  <th>Date</th>
+  <th>Title</th>
+  <th>Sender Name</th>
+  <th>Sender ID</th>
+  <th>Linked Member</th>
+  <th>Amount</th>
+  <th>Receipt</th>
+</tr>
+{% for income in incomes %}
+<tr>
+  <td>{{ income.date }}</td>
+  <td>{{ income.title }}</td>
+  <td>{{ income.sender_name }}</td>
+  <td>{{ income.sender_id }}</td>
+  <td>{% if income.member %}{{ income.member.full_name }}{% else %}-{% endif %}</td>
+  <td>₦{{ income.amount|intcomma }}</td>
+  <td>
+  <a href="{% url 'income_receipt' income.id %}" target="_blank">🧾 Receipt</a>
+</td>
+</tr>
+{% endfor %}
+</table>
+
+<br><br>
+
+<h3>📌 Yearly Contributions</h3>
+<p><strong>Total Contributions:</strong> ₦{{ total_contributions|intcomma }}</p>
+<table>
+<tr>
+  <th>Date</th>
+  <th>Member</th>
+  <th>Year</th>
+  <th>Amount</th>
+  <th>Receipt</th>
+
+</tr>
+{% for c in contributions %}
+<tr>
+  <td>{{ c.payment_date }}</td>
+  <td>{{ c.member.full_name }}</td>
+  <td>{{ c.year }}</td>
+  <td>₦{{ c.amount_paid|intcomma }}</td>
+  <td>
+  <a href="{% url 'contribution_receipt' c.id %}" target="_blank">🧾 Receipt</a>
+</td>
+</tr>
+{% endfor %}
+</table>
+<h3>Total Income: ₦{{ total_money|intcomma|default:"0" }}</h3>
+</body>
+</html>

@@ -1,0 +1,34 @@
+from django.shortcuts import render, redirect
+from .models import Case
+from .forms import CaseForm
+from accounts.decorators import login_required, admin_required
+
+@login_required
+def cases_list(request):
+    cases = Case.objects.select_related('presented_by').all().order_by('-date_presented')
+    return render(request, 'cases/cases_list.html', {'cases': cases})
+
+
+@login_required
+@admin_required
+def add_case(request):
+    if request.method == 'POST':
+        form = CaseForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('cases_list')
+    else:
+        form = CaseForm()
+    return render(request, 'cases/add_case.html', {'form': form})
+
+
+@login_required
+@admin_required
+def update_case_status(request, case_id):
+    case = Case.objects.get(id=case_id)
+    if request.method == 'POST':
+        status = request.POST.get('status')
+        case.status = status
+        case.save()
+        return redirect('cases_list')
+    return render(request, 'cases/update_case.html', {'case': case})

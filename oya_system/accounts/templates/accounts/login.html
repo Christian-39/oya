@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>OYA Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #e6f5f1, #f5f7f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 30px 26px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 600;
+      color: #0a7c5b;
+      margin-bottom: 4px;
+    }
+
+    .tagline {
+      font-size: 13px;
+      color: #6b7280;
+      font-weight: 500;
+      margin-bottom: 18px;
+    }
+
+    form {
+      text-align: left;
+      margin-top: 10px;
+    }
+
+    form p {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+      outline: none;
+      transition: 0.15s ease;
+      font-family: inherit;
+    }
+
+    input:focus {
+      border-color: #0a7c5b;
+      box-shadow: 0 0 0 3px rgba(10, 124, 91, 0.15);
+    }
+
+    .btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #0a7c5b, #0fb38a);
+      color: white;
+      font-weight: 600;
+      font-size: 13px;
+      box-shadow: 0 8px 20px rgba(10, 124, 91, 0.25);
+      transition: 0.15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    .messages {
+      margin-top: 14px;
+    }
+
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 24px 18px;
+      }
+      .logo {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="logo">Okpo Youths Association (OYA)</div>
+    <div class="tagline">Peace and Progress</div>
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn">Login</button>
+    </form>
+
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="error">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+</body>
+</html>

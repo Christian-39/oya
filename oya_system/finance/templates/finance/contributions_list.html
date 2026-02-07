@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>All Contributions – OYA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top, #e6f5f1, #f5f7f6, #ffffff);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(6px);
+      padding: 20px;
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+      border: 1px solid #eef2f7;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .title h2 {
+      margin: 0;
+      color: #0a7c5b;
+      font-weight: 600;
+      font-size: 20px;
+    }
+
+    .title p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #0a7c5b, #0fb38a);
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(10, 124, 91, 0.25);
+      transition: 0.15s ease;
+    }
+
+    .btn.secondary {
+      background: #111827;
+      box-shadow: 0 6px 16px rgba(17, 24, 39, 0.25);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
+      background: #fff;
+    }
+
+    thead {
+      background: #f0fdf9;
+    }
+
+    th {
+      padding: 10px;
+      text-align: left;
+      font-size: 12px;
+      color: #065f46;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    td {
+      padding: 10px;
+      font-size: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      color: #111827;
+      white-space: nowrap;
+    }
+
+    tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    .footer {
+      margin-top: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .title h2 { font-size: 18px; }
+      .btn { font-size: 11px; padding: 7px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="header">
+      <div class="title">
+        <h2>All Contributions</h2>
+        <p><strong>(OYA)</strong>
+          Peace and Progress</p>
+      </div>
+
+      <div class="actions">
+        <a href="{% url 'dashboard' %}" class="btn secondary">← Dashboard</a>
+        {% if request.session.member_role == 'admin' %}
+        <a href="{% url 'add_contribution' %}" class="btn">➕ Add Contribution</a>
+        {% endif %}
+
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Member</th>
+            <th>Year</th>
+            <th>Amount Paid (₦)</th>
+            <th>Date</th>
+            <th>Recorded By</th>
+            <th>Receipt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in contributions %}
+          <tr>
+            <td>{{ c.member.full_name }}</td>
+            <td>{{ c.year }}</td>
+            <td>₦{{ c.amount_paid }}</td>
+            <td>{{ c.payment_date }}</td>
+            <td>{{ c.recorded_by.full_name }}</td>
+            <td>
+  <a href="{% url 'contribution_receipt' c.id %}" target="_blank">🧾 Receipt</a>
+</td>
+
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" style="text-align:center; padding:16px; color:#6b7280;">
+              No contributions recorded yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</body>
+</html>

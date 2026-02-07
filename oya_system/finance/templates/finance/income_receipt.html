@@ -1,0 +1,43 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Income Receipt</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .receipt {
+      max-width: 600px;
+      margin: auto;
+      border: 1px dashed #999;
+      padding: 20px;
+    }
+    h2 { text-align: center; color: #0a7c5b; }
+    .row { margin-bottom: 10px; }
+    .label { font-weight: bold; }
+    .print-btn {
+      margin-top: 20px;
+      text-align: center;
+    }
+    @media print {
+      .print-btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="receipt">
+  <h2>OYA Income Receipt</h2>
+
+  <div class="row"><span class="label">Title:</span> {{ income.title }}</div>
+  <div class="row"><span class="label">Amount:</span> ₦{{ income.amount|intcomma }}</div>
+  <div class="row"><span class="label">Sender:</span> {{ income.sender_name }} ({{ income.sender_id }})</div>
+  <div class="row"><span class="label">Date:</span> {{ income.date }}</div>
+  <div class="row"><span class="label">Recorded By:</span> {{ income.recorded_by.full_name }}</div>
+
+  <div class="print-btn">
+    <button onclick="window.print()">🖨 Print Receipt</button>
+  </div>
+</div>
+
+</body>
+</html>

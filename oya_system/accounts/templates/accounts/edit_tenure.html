@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Tenure</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #e6f5f1, #f5f7f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 480px;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 26px 22px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 600;
+      color: #0a7c5b;
+    }
+
+    form p {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      transition: border 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus, select:focus {
+      border-color: #0a7c5b;
+      box-shadow: 0 0 0 3px rgba(10, 124, 91, 0.15);
+    }
+
+    .actions {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      background: linear-gradient(135deg, #0a7c5b, #0fb38a);
+      color: white;
+      box-shadow: 0 6px 16px rgba(10, 124, 91, 0.25);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(10, 124, 91, 0.35);
+      opacity: 0.95;
+    }
+
+    .back {
+      display: inline-block;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0a7c5b;
+      padding: 10px 12px;
+      border-radius: 10px;
+      transition: background 0.15s ease;
+    }
+
+    .back:hover {
+      background: rgba(10, 124, 91, 0.08);
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 20px 16px;
+      }
+
+      h2 {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Edit Tenure</h2>
+
+    <form method="POST">
+      {% csrf_token %}
+      {{ form.as_p }}
+
+      <div class="actions">
+        <button type="submit" class="btn">Save Changes</button>
+        <a href="{% url 'tenures_list' %}" class="back">← Back</a>
+      </div>
+    </form>
+  </div>
+
+</body>
+</html>
