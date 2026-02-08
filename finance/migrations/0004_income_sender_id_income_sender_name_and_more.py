@@ -16,13 +16,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='income',
             name='sender_id',
-            field=models.CharField(default=django.utils.timezone.now, max_length=50),
+            field=models.CharField(max_length=50, blank=True, null=True),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='income',
             name='sender_name',
-            field=models.CharField(default=django.utils.timezone.now, max_length=200),
+            field=models.CharField(max_length=200, blank=True, null=True),
             preserve_default=False,
         ),
         migrations.AlterField(
