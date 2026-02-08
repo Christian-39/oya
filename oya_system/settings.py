@@ -17,7 +17,20 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-)=kn+x8=l8m#6nzo5i2a$
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
+# In production, it's safer to use ["oya-1.onrender.com"] instead of ["*"]
 ALLOWED_HOSTS = ["*"]
+
+# Fix for Render Login/CSRF issues
+CSRF_TRUSTED_ORIGINS = ['https://oya-1.onrender.com']
+
+# Crucial for Render: Tells Django it is behind a proxy and can trust HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
 
 
 # =====================
@@ -55,7 +68,7 @@ ROOT_URLCONF = 'oya_system.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # optional
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -71,7 +84,7 @@ WSGI_APPLICATION = 'oya_system.wsgi.application'
 
 
 # =====================
-# DATABASE (SQLite local, MySQL on Render)
+# DATABASE (SQLite local, MySQL/MariaDB on Render)
 # =====================
 DATABASES = {
     'default': dj_database_url.config(
@@ -80,6 +93,12 @@ DATABASES = {
         ssl_require=False
     )
 }
+
+# Fix for MariaDB Strict Mode warning (mysql.W002)
+if DATABASES['default'].get('ENGINE') == 'django.db.backends.mysql':
+    DATABASES['default'].setdefault('OPTIONS', {})
+    DATABASES['default']['OPTIONS']['init_command'] = "SET sql_mode='STRICT_TRANS_TABLES'"
+
 
 # =====================
 # PASSWORD VALIDATION
