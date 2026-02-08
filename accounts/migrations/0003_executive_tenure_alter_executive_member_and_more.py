@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='executive',
             name='tenure',
-            field=models.ForeignKey((null=True, blank=True, on_delete=django.db.models.deletion.CASCADE, related_name='executives', to='accounts.executivetenure'),
+            field=models.ForeignKey(null=True, blank=True, on_delete=django.db.models.deletion.CASCADE, related_name='executives', to='accounts.executivetenure'),
             preserve_default=False,
         ),
         migrations.AlterField(
