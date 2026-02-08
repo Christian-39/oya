@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Member, ExecutiveTenure
-from django.contrib.auth.hashers import check_password, make_password
 from .forms import PinLoginForm, ExecutiveTenureForm
 import hashlib
 from .forms import MemberForm
@@ -25,21 +24,16 @@ def login_view(request):
     if request.method == 'POST':
         form = PinLoginForm(request.POST)
         if form.is_valid():
-            serial_number = form.cleaned_data['serial_number'].strip()
-            pin = form.cleaned_data['pin'].strip()
+            serial_number = form.cleaned_data['serial_number']
+            pin = form.cleaned_data['pin']
+            hashed_pin = hash_pin(pin)
 
             try:
-                member = Member.objects.get(serial_number=serial_number)
-
-                if not check_password(pin, member.password):
-                    messages.error(request, "Invalid serial number or PIN.")
-                    return redirect('login')
-
+                member = Member.objects.get(serial_number=serial_number, password=hashed_pin)
                 # save session
                 request.session['member_id'] = member.id
                 request.session['member_role'] = member.role
                 return redirect('dashboard')
-
             except Member.DoesNotExist:
                 messages.error(request, "Invalid serial number or PIN.")
     else:
@@ -204,13 +198,7 @@ def add_member(request):
     if request.method == 'POST':
         form = MemberForm(request.POST)
         if form.is_valid():
-            member = form.save(commit=False)
-
-            # Hash the PIN before saving
-            raw_pin = form.cleaned_data.get('pin')  # or 'pin' if that’s your field name
-            member.password = make_password(raw_pin)
-
-            member.save()
+            form.save()
             return redirect('members_list')
     else:
         form = MemberForm()
@@ -241,4 +229,3 @@ def delete_tenure(request, tenure_id):
         return redirect('tenures_list')
 
     return render(request, 'accounts/delete_tenure.html', {'tenure': tenure})
-
