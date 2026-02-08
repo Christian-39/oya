@@ -13,6 +13,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # =====================
 # SECURITY
 # =====================
+
+# Add these to ensure the session follows the redirect
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Ensure Django knows it's on a secure site even if the proxy says otherwise
+SECURE_SSL_REDIRECT = True
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-)=kn+x8=l8m#6nzo5i2a$k5!jtu3zx0llyy=g+lt03!dx-+yaw")
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
@@ -139,3 +146,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # DEFAULT PK
 # =====================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Force Django to go to your dashboard after login
+LOGIN_REDIRECT_URL = 'dashboard' 
+LOGOUT_REDIRECT_URL = 'login'
