@@ -1,6 +1,6 @@
 from django import forms
 import re
-from .models import ExecutiveTenure, Member
+from .models import ExecutiveTenure, Member, Announcement, MeetingMinute
 
 
 class ExecutiveTenureForm(forms.ModelForm):
@@ -31,3 +31,15 @@ class MemberForm(forms.ModelForm):
     class Meta:
         model = Member
         fields = ['full_name', 'serial_number', 'phone_number', 'age', 'year_joined', 'status', 'password', 'role']
+
+
+class AnnouncementForm(forms.ModelForm):
+    class Meta:
+        model = Announcement
+        fields = ['title', 'message', 'is_active']
+
+
+class MeetingMinuteForm(forms.ModelForm):
+    class Meta:
+        model = MeetingMinute
+        fields = ['title', 'content', 'meeting_date']

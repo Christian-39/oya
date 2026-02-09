@@ -192,6 +192,24 @@
       </div>
 
       <div class="card">
+        <h3>Announcement</h3>
+        <div class="value">{{ announcements_count }}</div>
+        <div class="links">
+          <a href="{% url 'announcements_list' %}">👁 View</a>
+          <a href="{% url 'add_announcement' %}">+ Add</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Minutes of last meeting</h3>
+        <div class="value">{{ minutes_count }}</div>
+        <div class="links">
+          <a href="{% url 'minutes_list' %}">👁 View</a>
+          <a href="{% url 'add_minutes' %}">+ Add</a>
+        </div>
+      </div>
+
+      <div class="card">
         <h3>Task Force</h3>
         <div class="value">{{ total_taskforce }}</div>
         <div class="links">
@@ -202,7 +220,7 @@
 
       <div class="card">
         <h3>Yearly Dues</h3>
-        <div class="value">₦{{ total_contribution|intcomma }}</div>
+        <div class="value">₦{{ total_contributions|intcomma }}</div>
         <div class="links">
           <a href="{% url 'contributions_list' %}">👁 View</a>
           <a href="{% url 'add_contribution' %}">+ Add</a>
@@ -213,13 +231,14 @@
         <h3>Donations / Income</h3>
         <div class="value">₦{{ total_income|intcomma }}</div>
         <div class="links">
-          <a href="{% url 'income_list' %}">👁 View</a>
+          <a href="{% url 'donation_list' %}">👁 View</a>
           <a href="{% url 'add_income' %}">+ Add</a>
         </div>
       </div>
 
       <div class="card">
         <h3>Projects</h3>
+        <div class="value">{{ total_projects|default:"0" }}</div>
         <div class="links">
           <a href="{% url 'projects_list' %}">👁 View</a>
           <a href="{% url 'add_project' %}">+ Add</a>
@@ -228,7 +247,7 @@
 
       <div class="card">
         <h3>Cases</h3>
-        <div class="value">{{ cases_list}}</div>
+        <div class="value">{{ total_cases|default:"0" }}</div>
         <div class="links">
           <a href="{% url 'cases_list' %}">👁 View</a>
           <a href="{% url 'add_case' %}">+ Add</a>
@@ -237,7 +256,7 @@
 
       <div class="card">
         <h3>Motorcycles</h3>
-        <div class="value">{{ motorcycles_list }}</div>
+        <div class="value">{{ total_motorcycles|default:"0" }}</div>
         <div class="links">
           <a href="{% url 'motorcycles_list' %}">👁 View</a>
           <a href="{% url 'add_motorcycle' %}">+ Add</a>

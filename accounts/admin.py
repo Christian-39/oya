@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Member
+from .models import Member, Announcement, MeetingMinute
 import hashlib
 
 
@@ -13,3 +13,14 @@ class MemberAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
+@admin.register(Announcement)
+class AnnouncementAdmin(admin.ModelAdmin):
+    list_display = ('title', 'created_by', 'created_at', 'is_active')
+    list_filter = ('is_active',)
+    search_fields = ('title', 'message')
+
+
+@admin.register(MeetingMinute)
+class MeetingMinuteAdmin(admin.ModelAdmin):
+    list_display = ('title', 'meeting_date', 'created_by', 'created_at')
+    search_fields = ('title', 'content')

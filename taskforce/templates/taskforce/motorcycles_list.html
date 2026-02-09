@@ -194,6 +194,7 @@
             <th>Condition</th>
             <th>Status</th>
             <th>Assigned To</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -214,6 +215,12 @@
                 <span class="status unassigned">Not Assigned</span>
               {% endif %}
             </td>
+            {% if request.session.member_role == 'admin' %}
+            <td>
+                <a href="{% url 'edit_motorcycle' bike.id %}">Edit</a> |
+                 <a href="{% url 'delete_motorcycle' bike.id %}">Delete</a>
+            </td>
+            {% endif %}
           </tr>
           {% empty %}
           <tr>

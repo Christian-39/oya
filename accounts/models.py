@@ -1,11 +1,12 @@
 from django.db import models
+from django.utils import timezone
 
 
 class Member(models.Model):
     ROLE_CHOICES = [
         ('admin', 'Admin'),
         ('executive', 'Executive'),
-        ('floor', 'Floor Member'),
+        ('member', 'Floor Member'),
     ]
 
     STATUS_CHOICES = [
@@ -65,3 +66,25 @@ class ExecutiveTenure(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.start_year} - {self.end_year or 'Present'})"
+
+
+class Announcement(models.Model):
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    created_by = models.ForeignKey(Member, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.title
+
+
+class MeetingMinute(models.Model):
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    meeting_date = models.DateField()
+    created_by = models.ForeignKey(Member, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.title} ({self.meeting_date})"

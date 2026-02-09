@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Sum
 from .models import Contribution, Finance, Income
 from .forms import ContributionForm, ExpenseForm, IncomeForm
@@ -177,3 +177,60 @@ def contribution_receipt(request, contribution_id):
 def donation_list(request):
     donation = Income.objects.select_related('member').order_by('-date')
     return render(request, 'finance/donation_list.html', {'donation': donation})
+
+
+@login_required
+@admin_required
+def edit_contribution(request, contribution_id):
+    contribution = Contribution.objects.get(id=contribution_id)
+    form = ContributionForm(instance=contribution)
+
+    if request.method == 'POST':
+        form = ContributionForm(request.POST, instance=contribution)
+        if form.is_valid():
+            form.save()
+            return redirect('contributions_list')
+
+    return render(request, 'finance/edit_contribution.html', {'form': form})
+
+
+# DELETE
+@login_required
+@admin_required
+def delete_contribution(request, contribution_id):
+    contribution = Contribution.objects.get(id=contribution_id)
+    contribution.delete()
+    return redirect('contributions_list')
+
+
+@login_required
+@admin_required
+def edit_expenses(request, expenses_id):
+    expenses = Finance.objects.get(id=expenses_id)
+
+    if request.method == 'POST':
+        form = ExpenseForm(request.POST, instance=expenses)
+        if form.is_valid():
+            form.save()
+            return redirect('expenses_list')
+    else:
+        form = ExpenseForm(instance=expenses)
+
+    return render(request, 'finance/edit_expenses.html', {
+        'form': form,
+        'expenses': expenses,
+    })
+
+
+@login_required
+@admin_required
+def delete_expenses(request, expenses_id):
+    expenses = Finance.objects.get(id=expenses_id)
+
+    if request.method == 'POST':
+        expenses.delete()
+        return redirect('expenses_list')
+
+    return render(request, 'finance/delete_expenses.html', {
+        'expenses': expenses,
+    })

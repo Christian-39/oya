@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Member, ExecutiveTenure
+from .models import Member, ExecutiveTenure, Announcement, MeetingMinute
 from .forms import PinLoginForm, ExecutiveTenureForm
 import hashlib
-from .forms import MemberForm
+from .forms import MemberForm, AnnouncementForm, MeetingMinuteForm
 from .decorators import admin_required, login_required
 from django.db.models import Sum
 from taskforce.models import TaskForce
@@ -14,6 +14,8 @@ from finance.models import Contribution, Income, Finance
 from taskforce.models import Motorcycle
 from decimal import Decimal
 from django.utils.timezone import now
+
+from projects.models import Project
 
 
 def hash_pin(pin: str) -> str:
@@ -52,6 +54,9 @@ def dashboard(request):
     member = Member.objects.get(id=request.session['member_id'])
     total_members = Member.objects.count()
 
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
+
     total_contributions = Contribution.objects.aggregate(total=Sum('amount_paid'))['total'] or 0
     total_income = Income.objects.aggregate(total=Sum('amount'))['total'] or 0
     total_expenses = Finance.objects.filter(type='expense').aggregate(total=Sum('amount'))['total'] or 0
@@ -64,6 +69,8 @@ def dashboard(request):
 
     return render(request, 'accounts/dashboard.html', {
         'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
         'total_income': total_income,
         'total_money': total_money,
         'total_expenses': total_expenses,
@@ -83,6 +90,9 @@ def admin_dashboard(request):
     total_executives = Member.objects.filter(role='executive').count()
     total_taskforce = TaskForce.objects.count()
 
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
+
     total_expense = Finance.objects.filter(type='expense').aggregate(total=Sum('amount'))['total'] or 0
 
     total_income = Income.objects.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
@@ -90,14 +100,23 @@ def admin_dashboard(request):
 
     total_money = total_income + total_contributions
 
+    total_motorcycles = Motorcycle.objects.count()
+    total_cases = Case.objects.count()
+    total_projects = Project.objects.count()
+
     return render(request, 'accounts/admin_dashboard.html', context={
         'total_members': total_members,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
         'total_executives': total_executives,
         'total_taskforce': total_taskforce,
         'total_income': total_income,
         'total_expense': total_expense,
         'total_contributions': total_contributions,
         'total_money': total_money,
+        'total_motorcycles': total_motorcycles,
+        'total_cases': total_cases,
+        'total_projects': total_projects,
     })
 
 
@@ -229,3 +248,145 @@ def delete_tenure(request, tenure_id):
         return redirect('tenures_list')
 
     return render(request, 'accounts/delete_tenure.html', {'tenure': tenure})
+
+
+@login_required
+def announcements_list(request):
+    announcements = Announcement.objects.filter(is_active=True).order_by('-created_at')
+    return render(request, 'accounts/announcements_list.html', {'announcements': announcements})
+
+
+
+@admin_required
+@login_required
+def add_announcement(request):
+    if request.method == 'POST':
+        form = AnnouncementForm(request.POST)
+        if form.is_valid():
+            ann = form.save(commit=False)
+            ann.recorded_by = Member.objects.get(id=request.session['member_id'])
+            ann.save()
+            return redirect('announcements_list')
+    else:
+        form = AnnouncementForm()
+    return render(request, 'accounts/add_announcement.html', {'form': form})
+
+
+@login_required
+def minutes_list(request):
+    minutes = MeetingMinute.objects.order_by('-meeting_date')
+    return render(request, 'accounts/minutes_list.html', {'minutes': minutes})
+
+
+@login_required
+@admin_required
+def add_minutes(request):
+    if request.method == 'POST':
+        form = MeetingMinuteForm(request.POST)
+        if form.is_valid():
+            minute = form.save(commit=False)
+            minute.recorded_by = Member.objects.get(id=request.session['member_id'])
+            minute.save()
+            return redirect('minutes_list')
+    else:
+        form = MeetingMinuteForm()
+    return render(request, 'accounts/add_minutes.html', {'form': form})
+
+@login_required
+@admin_required
+def edit_announcement(request, announcement_id):
+    announcement = Announcement.objects.get(id=announcement_id)
+
+    if request.method == 'POST':
+        form = AnnouncementForm(request.POST, instance=announcement)
+        if form.is_valid():
+            form.save()
+            return redirect('announcements_list')
+    else:
+        form = AnnouncementForm(instance=announcement)
+
+    return render(request, 'accounts/edit_announcement.html', {
+        'form': form,
+        'announcement': announcement
+    })
+
+@login_required
+@admin_required
+def delete_announcement(request, announcement_id):
+    announcement = Announcement.objects.get(id=announcement_id)
+
+    if request.method == 'POST':
+        announcement.delete()
+        return redirect('announcements_list')
+
+    return render(request, 'accounts/delete_announcement.html', {
+        'announcement': announcement
+    })
+
+
+# ===== MEETING MINUTES =====
+@login_required
+@admin_required
+def edit_minutes(request, minutes_id):
+    minute = MeetingMinute.objects.get(id=minutes_id)
+
+    if request.method == 'POST':
+        form = MeetingMinuteForm(request.POST, instance=minute)
+        if form.is_valid():
+            form.save()
+            return redirect('minutes_list')
+    else:
+        form = MeetingMinuteForm(instance=minute)
+
+    return render(request, 'accounts/edit_minutes.html', {
+        'form': form,
+        'minute': minute
+    })
+
+
+@login_required
+@admin_required
+def delete_minutes(request, minutes_id):
+    minute = MeetingMinute.objects.get(id=minutes_id)
+
+    if request.method == 'POST':
+        minute.delete()
+        return redirect('minutes_list')
+
+    return render(request, 'accounts/delete_minutes.html', {
+        'minute': minute
+    })
+
+
+ #===== MEETING MINUTES =====
+@login_required
+@admin_required
+def edit_executive(request, executive_id):
+    executive = Executive.objects.get(id=executive_id)
+
+    if request.method == 'POST':
+        form = ExecutiveTenureForm(request.POST, instance=executive)
+        if form.is_valid():
+            form.save()
+            return redirect('executive_list')
+    else:
+        form = ExecutiveTenureForm(instance=executive)
+
+    return render(request, 'accounts/edit_executive.html', {
+        'form': form,
+        'executive': executive
+    })
+
+
+@login_required
+@admin_required
+def delete_executive(request, executive_id):
+    executive = Executive.objects.get(id=executive_id)
+
+    if request.method == 'POST':
+        executive.delete()
+        return redirect('executive_list')
+
+    return render(request, 'accounts/delete_executive.html', {
+        'executive': executive
+    })

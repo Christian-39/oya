@@ -13,10 +13,15 @@ class ExecutiveTenureForm(forms.ModelForm):
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
-        fields = "__all__"
-        widgets = {
-            'description': forms.Textarea(attrs={'rows': 4}),
-        }
+        fields = [
+            'title',
+            'description',
+            'status',
+            'started_by_tenure',
+            'completed_by_tenure',
+            'start_date',
+            'end_date',
+        ]
 
 
 class ProjectExpenseForm(forms.ModelForm):

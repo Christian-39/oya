@@ -154,10 +154,9 @@
 
       <div class="actions">
         <a href="{% url 'dashboard' %}" class="btn secondary">← Dashboard</a>
-        <a href="{% url 'logout' %}" class="btn">Logout</a>
 
         {% if request.session.member_role == 'admin' %}
-          <a href="{% url 'assign_executive' %}" class="btn">➕ Assign Executive</a>
+          <a href="{% url 'assign_executive' %}" class="btn">➕ Add Executive</a>
         {% endif %}
       </div>
     </div>
@@ -166,17 +165,28 @@
       <table>
         <thead>
           <tr>
-            <th>Post</th>
+
             <th>Full Name</th>
+            <th>Post</th>
             <th>Phone</th>
+            {% if request.session.member_role == 'admin' %}
+            <th>Actions</th>
+            {% endif %}
           </tr>
         </thead>
         <tbody>
           {% for ex in executives %}
           <tr>
-            <td>{{ ex.position }}</td>
+
             <td>{{ ex.member.full_name }}</td>
+            <td>{{ ex.position }}</td>
             <td>{{ ex.member.phone_number }}</td>
+            {% if request.session.member_role == 'admin' %}
+            <td>
+                <a href="{% url 'edit_executive' ex.id %}">Edit</a> |
+                 <a href="{% url 'delete_executive' ex.id %}">Delete</a>
+            </td>
+            {% endif %}
           </tr>
           {% empty %}
           <tr>

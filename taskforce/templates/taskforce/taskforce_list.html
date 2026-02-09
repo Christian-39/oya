@@ -162,6 +162,7 @@
             <th>Role in Task Force</th>
             <th>Phone</th>
             <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -173,6 +174,12 @@
             <td>
               <span class="status">{{ tf.status|title }}</span>
             </td>
+            {% if request.session.member_role == 'admin' %}
+            <td>
+                <a href="{% url 'edit_taskforce' tf.id %}">Edit</a> |
+                 <a href="{% url 'delete_taskforce' tf.id %}">Delete</a>
+            </td>
+            {% endif %}
           </tr>
           {% empty %}
           <tr>

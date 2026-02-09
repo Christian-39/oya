@@ -263,14 +263,15 @@
 
         <button class="icon-btn" onclick="toggleNotify()">
           <i class="fa fa-bell"></i>
-          <span class="badge">3</span>
+          <span class="badge">{{ announcements_count|add:minutes_count }}</span>
         </button>
         <div class="dropdown" id="notifyDrop">
           <p><strong>Notifications</strong></p>
-          <a href="#">New contribution received</a>
-          <a href="#">Project updated</a>
-          <a href="#">New case reported</a>
-        </div>
+
+            <a href="{% url 'announcements_list' %}">📢 Announcements ({{ announcements_count }})</a>
+            <a href="{% url 'minutes_list' %}">📝 Minutes ({{ minutes_count }})</a>
+          </div>
+
 
         <div class="profile" onclick="toggleProfile()">
           <div class="avatar">{{ member.full_name|slice:":1" }}</div>

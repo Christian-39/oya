@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Add Project – OYA</title>
+  <title>Edit Project – OYA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Fonts -->
@@ -16,22 +16,18 @@
     --text: #1f2933;
     --muted: #6b7280;
     --error: #ef4444;
-  }
-  body.dark {
-    --bg: #0b1220;
-    --card: #0f172a;
-    --text: #e5e7eb;
-    --muted: #94a3b8;
+    --ring: rgba(10,124,91,.14);
   }
 
   body {
     margin: 0;
     min-height: 100vh;
-    background: var(--bg);
+    background: linear-gradient(135deg, #e6f5f1, #f5f7f6);
     font-family: 'Poppins', sans-serif;
     color: var(--text);
     display: flex;
     justify-content: center;
+    align-items: center;
     padding: 20px;
   }
 
@@ -39,28 +35,81 @@
     width: 100%;
     max-width: 900px;
     background: var(--card);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 12px 30px rgba(0,0,0,.08);
+    border-radius: 18px;
+    padding: 22px 22px 80px;
+    box-shadow: 0 16px 36px rgba(0,0,0,.1);
   }
 
-  h2 { color: var(--primary); margin-top: 0; }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
 
-  form p { margin: 0 0 12px; display: flex; flex-direction: column; gap: 6px; }
-  label { font-size: 13px; font-weight: 500; }
+  .header h2 {
+    margin: 0;
+    font-size: 22px;
+    color: var(--primary);
+  }
+
+  .header .sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .back-link {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 16px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-full {
+    grid-column: 1 / -1;
+  }
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #065f46;
+  }
 
   input, textarea, select {
     padding: 10px 12px;
-    border-radius: 10px;
+    border-radius: 12px;
     border: 1px solid #d1e5df;
     background: transparent;
     color: inherit;
+    font-size: 13px;
   }
+
+  textarea { min-height: 90px; resize: vertical; }
 
   input:focus, textarea:focus, select:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(10,124,91,.12);
+    box-shadow: 0 0 0 4px var(--ring);
     outline: none;
+    background: #f8fffc;
+  }
+
+  .help {
+    font-size: 11px;
+    color: var(--muted);
   }
 
   .errorlist li {
@@ -69,83 +118,112 @@
     margin: 4px 0 0;
   }
 
+  .actions {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,.75), #fff);
+    backdrop-filter: blur(6px);
+    padding-top: 14px;
+    margin-top: 16px;
+    display: flex;
+    gap: 10px;
+    border-top: 1px dashed #e5e7eb;
+  }
+
   .btn {
     background: linear-gradient(135deg, #0a7c5b, #0fb38a);
     color: #fff;
     border: none;
-    border-radius: 10px;
-    padding: 10px 16px;
+    border-radius: 12px;
+    padding: 10px 18px;
     font-weight: 600;
     cursor: pointer;
+    font-size: 13px;
   }
 
-  .link { color: var(--primary); text-decoration: none; font-weight: 500; }
-
-  .toast {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #0a7c5b;
-    color: #fff;
-    padding: 12px 16px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,.2);
-    animation: slideIn .4s ease, fadeOut .4s ease 3s forwards;
+  .btn.secondary {
+    background: #111827;
   }
 
-  @keyframes slideIn {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-  @keyframes fadeOut {
-    to { opacity: 0; transform: translateY(10px); }
-  }
-
-  .projects-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 14px;
-  }
-
-  .project-card {
-    background: var(--card);
-    border-radius: 14px;
-    box-shadow: 0 8px 20px rgba(0,0,0,.08);
-    overflow: hidden;
-    transition: transform .2s ease, box-shadow .2s ease;
-  }
-  .project-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 14px 28px rgba(0,0,0,.12);
-  }
-  .project-card img {
-    width: 100%;
-    height: 140px;
-    object-fit: cover;
-  }
-  .project-body { padding: 12px; }
-  .badge {
-    display: inline-block;
-    font-size: 11px;
-    padding: 4px 8px;
-    border-radius: 999px;
-    background: rgba(10,124,91,.12);
-    color: var(--primary);
+  @media (max-width: 640px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .header h2 { font-size: 18px; }
   }
 </style>
-
 </head>
+
 <body>
 
-<h2>Edit Project – {{ project.title }}</h2>
+  <div class="container">
 
-<form method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button class="btn">Update Project</button>
-  <a href="{% url 'projects_list' %}" class="link">← Back</a>
-</form>
+    <div class="header">
+      <div>
+        <h2>Edit Project – {{ project.title }}</h2>
+        <div class="sub">Update project details and current status</div>
+      </div>
+      <a href="{% url 'projects_list' %}" class="back-link">← Back to Projects</a>
+    </div>
 
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.title.id_for_label }}">Project Title</label>
+          {{ form.title }}
+          {{ form.title.errors }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.status.id_for_label }}">Project Status</label>
+          {{ form.status }}
+          <span class="help">Choose current state of this project</span>
+          {{ form.status.errors }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.started_by_tenure.id_for_label }}">Started By (Tenure)</label>
+          {{ form.started_by_tenure }}
+          {{ form.started_by_tenure.errors }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.completed_by_tenure.id_for_label }}">Completed By (Tenure)</label>
+          {{ form.completed_by_tenure }}
+          <span class="help">Leave empty if not completed yet</span>
+          {{ form.completed_by_tenure.errors }}
+        </div>
+
+        <div class="form-group form-full">
+          <label for="{{ form.description.id_for_label }}">Project Description</label>
+          {{ form.description }}
+          {{ form.description.errors }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.start_date.id_for_label }}">Start Date</label>
+          {{ form.start_date }}
+          {{ form.start_date.errors }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.end_date.id_for_label }}">End Date</label>
+          {{ form.end_date }}
+          <span class="help">Optional (only if completed)</span>
+          {{ form.end_date.errors }}
+        </div>
+
+      </div>
+
+      <div class="actions">
+        <button class="btn" type="submit">💾 Save Changes</button>
+        <a href="{% url 'projects_list' %}" class="btn secondary">Cancel</a>
+      </div>
+    </form>
+
+  </div>
 
 </body>
 </html>

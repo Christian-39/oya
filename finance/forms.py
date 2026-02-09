@@ -1,5 +1,5 @@
 from django import forms
-from .models import Contribution, Finance, Income
+from .models import Contribution, Finance, Income, DetailedExpense
 
 
 class ContributionForm(forms.ModelForm):
@@ -18,3 +18,9 @@ class ExpenseForm(forms.ModelForm):
     class Meta:
         model = Finance
         fields = ['title', 'description', 'amount', 'date']
+
+
+class DetailedExpenseForm(forms.ModelForm):
+    class Meta:
+        model = DetailedExpense
+        fields = '__all__'

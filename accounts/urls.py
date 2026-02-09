@@ -1,11 +1,12 @@
 from django.conf import settings
 from django.urls import path
+
+from . import views
 from .views import login_view, logout_view, dashboard, admin_dashboard, members_list, tenures_list, add_member, \
-    add_tenure, delete_tenure, edit_tenure
+    add_tenure, delete_tenure, edit_tenure, announcements_list, add_announcement, edit_announcement, delete_announcement
 from .views import member_profile
 from .views import executives_list, assign_executive
 from django.conf.urls.static import static
-
 
 urlpatterns = [
     path('login/', login_view, name='login'),
@@ -22,5 +23,18 @@ urlpatterns = [
     path('executives/', executives_list, name='executives_list'),
     path('executives/assign/', assign_executive, name='assign_executive'),
     path('members/add/', add_member, name='add_member'),
+
+    path('announcements/', announcements_list, name='announcements_list'),
+    path('announcements/add/', add_announcement, name='add_announcement'),
+    path('announcements/edit/<int:announcement_id>/', edit_announcement, name='edit_announcement'),
+    path('announcements/delete/<int:announcement_id>/', delete_announcement, name='delete_announcement'),
+
+    path('minutes/', views.minutes_list, name='minutes_list'),
+    path('minutes/add/', views.add_minutes, name='add_minutes'),
+    path('minutes/edit/<int:minutes_id>/', views.edit_minutes, name='edit_minutes'),
+    path('minutes/delete/<int:minutes_id>/', views.delete_minutes, name='delete_minutes'),
+    path('executive/edit/<int:executive_id>/', views.edit_executive, name='edit_executive'),
+    path('executive/delete/<int:executive_id>/', views.delete_executive, name='delete_executive'),
+
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

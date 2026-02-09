@@ -162,6 +162,9 @@
             <th>Date</th>
             <th>Recorded By</th>
             <th>Receipt</th>
+              {% if request.session.member_role == 'admin' %}
+            <th>Edit | Delete</th>
+              {% endif %}
           </tr>
         </thead>
         <tbody>
@@ -173,8 +176,15 @@
             <td>{{ c.payment_date }}</td>
             <td>{{ c.recorded_by.full_name }}</td>
             <td>
-  <a href="{% url 'contribution_receipt' c.id %}" target="_blank">🧾 Receipt</a>
-</td>
+                 <a href="{% url 'contribution_receipt' c.id %}" target="_blank">🧾 Receipt</a>
+            </td>
+
+            {% if request.session.member_role == 'admin' %}
+            <td>
+                <a href="{% url 'edit_contribution' c.id %}">Edit</a> |
+                 <a href="{% url 'delete_contribution' c.id %}">Delete</a>
+            </td>
+            {% endif %}
 
           </tr>
           {% empty %}

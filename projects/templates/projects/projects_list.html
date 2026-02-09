@@ -16,7 +16,8 @@
       min-height: 100vh;
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #e6f5f1, #f5f7f6);
-      padding: 20px;
+      padding: 16px;
+      color: #111827;
     }
 
     .container {
@@ -24,68 +25,58 @@
       margin: auto;
       background: #ffffff;
       border-radius: 16px;
-      padding: 24px;
+      padding: 16px;
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
     }
 
     .header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       flex-wrap: wrap;
-      gap: 14px;
-      margin-bottom: 20px;
+      gap: 12px;
+      margin-bottom: 16px;
     }
 
     .title h2 {
       margin: 0;
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 600;
       color: #0a7c5b;
+      line-height: 1.2;
     }
 
     .title p {
-      margin: 4px 0 0;
+      margin: 6px 0 0;
       font-size: 13px;
       color: #6b7280;
     }
 
     .actions {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
     }
 
     .btn {
-      padding: 10px 16px;
+      padding: 9px 12px;
       background: linear-gradient(135deg, #0a7c5b, #0fb38a);
       color: white;
       text-decoration: none;
       border-radius: 10px;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 12px;
       display: inline-flex;
       align-items: center;
       gap: 6px;
       box-shadow: 0 6px 16px rgba(10, 124, 91, 0.25);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
-    }
-
-    .btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 24px rgba(10, 124, 91, 0.35);
-      opacity: 0.95;
     }
 
     .btn.secondary {
       background: #111827;
-      box-shadow: 0 6px 16px rgba(17, 24, 39, 0.25);
     }
 
-    .btn.secondary:hover {
-      box-shadow: 0 10px 24px rgba(17, 24, 39, 0.35);
-    }
-
+    /* ===== DESKTOP TABLE ===== */
     .table-wrap {
       overflow-x: auto;
       border-radius: 12px;
@@ -95,13 +86,11 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 700px;
+      min-width: 780px;
       background: #fff;
     }
 
-    thead {
-      background: #f0fdf9;
-    }
+    thead { background: #f0fdf9; }
 
     th, td {
       padding: 12px 14px;
@@ -109,6 +98,7 @@
       font-size: 13px;
       border-bottom: 1px solid #e5e7eb;
       white-space: nowrap;
+      vertical-align: middle;
     }
 
     th {
@@ -119,89 +109,161 @@
       letter-spacing: 0.04em;
     }
 
-    tbody tr:hover {
-      background: #f9fafb;
-    }
-
-    td a {
-      color: #0a7c5b;
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
       font-weight: 600;
-      text-decoration: none;
+      text-transform: capitalize;
     }
 
-    td a:hover {
-      text-decoration: underline;
+    .badge.ongoing { background: #e0f2fe; color: #0369a1; }
+    .badge.completed { background: #dcfce7; color: #166534; }
+    .badge.suspended { background: #fef3c7; color: #92400e; }
+    .badge.abandoned { background: #fee2e2; color: #991b1b; }
+    .badge.handed_over { background: #ede9fe; color: #5b21b6; }
+
+    .muted { color: #6b7280; font-size: 12px; }
+
+    /* ===== MOBILE CARDS ===== */
+    .mobile-list {
+      display: none;
+      gap: 12px;
     }
 
-    .empty {
-      text-align: center;
-      color: #6b7280;
-      padding: 20px;
+    .project-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 6px 16px rgba(0,0,0,.06);
+      background: #fff;
+    }
+
+    .project-title {
+      font-weight: 600;
+      color: #0a7c5b;
+      margin-bottom: 6px;
       font-size: 14px;
     }
 
-    @media (max-width: 640px) {
-      .title h2 {
-        font-size: 18px;
-      }
-      .btn {
-        font-size: 12px;
-        padding: 8px 12px;
-      }
+    .project-meta {
+      font-size: 12px;
+      margin-bottom: 6px;
+      color: #374151;
+    }
+
+    .project-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .project-actions a {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0a7c5b;
+      text-decoration: none;
+    }
+
+    /* ===== MOBILE SWITCH ===== */
+    @media (max-width: 768px) {
+      .table-wrap { display: none; }
+      .mobile-list { display: grid; }
+
+      .title h2 { font-size: 17px; }
+      .container { padding: 14px; }
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
+<div class="container">
 
-    <div class="header">
-      <div class="title">
-        <h2>Okpo Youths Association (OYA) – Projects</h2>
-        <p><strong>Theme:</strong> Peace and Progress</p>
-      </div>
-
-      <div class="actions">
-        <a href="{% url 'dashboard' %}" class="btn secondary">← Back to Dashboard</a>
-
-        {% if request.session.member_role == 'admin' %}
-          <a href="{% url 'add_project' %}" class="btn">➕ Add New Project</a>
-        {% endif %}
-      </div>
+  <div class="header">
+    <div class="title">
+      <h2>Okpo Youths Association (OYA) – Projects</h2>
+      <p><strong>Theme:</strong> Peace and Progress</p>
     </div>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Status</th>
-            <th>Started By (Tenure)</th>
-            <th>Completed By (Tenure)</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for project in projects %}
-          <tr>
-            <td>{{ project.title }}</td>
-            <td>{{ project.get_status_display }}</td>
-            <td>{{ project.started_by_tenure }}</td>
-            <td>{{ project.completed_by_tenure|default:"—" }}</td>
-            <td>
-              <a href="{% url 'project_detail' project.id %}">View</a>
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="5" class="empty">No projects yet.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+    <div class="actions">
+      <a href="{% url 'dashboard' %}" class="btn secondary">← Dashboard</a>
 
+      {% if request.session.member_role == 'admin' %}
+        <a href="{% url 'add_project' %}" class="btn">➕ Add Project</a>
+      {% endif %}
+    </div>
   </div>
+
+  <!-- DESKTOP TABLE -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Status</th>
+          <th>Started By</th>
+          <th>Completed By</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for project in projects %}
+        <tr>
+          <td>{{ project.title }}</td>
+          <td><span class="badge {{ project.status }}">{{ project.get_status_display }}</span></td>
+          <td>{{ project.started_by_tenure }}</td>
+          <td>
+            {% if project.completed_by_tenure %}
+              {{ project.completed_by_tenure }}
+            {% else %}
+              <span class="muted">Not completed</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'project_detail' project.id %}">View</a>
+            {% if request.session.member_role == 'admin' %}
+              | <a href="{% url 'edit_project' project.id %}">Edit</a>
+              | <a href="{% url 'delete_project' project.id %}" onclick="return confirm('Delete this project?')">Delete</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MOBILE CARDS -->
+  <div class="mobile-list">
+    {% for project in projects %}
+      <div class="project-card">
+        <div class="project-title">{{ project.title }}</div>
+        <div class="project-meta">Status:
+          <span class="badge {{ project.status }}">{{ project.get_status_display }}</span>
+        </div>
+        <div class="project-meta">Started By: {{ project.started_by_tenure }}</div>
+        <div class="project-meta">
+          Completed By:
+          {% if project.completed_by_tenure %}
+            {{ project.completed_by_tenure }}
+          {% else %}
+            <span class="muted">Not completed</span>
+          {% endif %}
+        </div>
+
+        <div class="project-actions">
+          <a href="{% url 'project_detail' project.id %}">View</a>
+          {% if request.session.member_role == 'admin' %}
+            <a href="{% url 'edit_project' project.id %}">Edit</a>
+            <a href="{% url 'delete_project' project.id %}" onclick="return confirm('Delete this project?')">Delete</a>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
 
 </body>
 </html>

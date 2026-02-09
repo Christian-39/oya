@@ -57,3 +57,9 @@ class Finance(models.Model):
 
     def __str__(self):
         return f"{self.title} - ₦{self.amount}"
+
+
+class DetailedExpense(models.Model):
+    expense = models.ForeignKey(Finance, on_delete=models.CASCADE)
+    description = models.TextField()
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
