@@ -30,4 +30,4 @@ class PinLoginForm(forms.Form):
 class MemberForm(forms.ModelForm):
     class Meta:
         model = Member
-        fields = ['full_name', 'serial_number', 'phone_number', 'password', 'role']
+        fields = ['full_name', 'serial_number', 'phone_number', 'age', 'year_joined', 'status', 'password', 'role']
