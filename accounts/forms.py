@@ -1,5 +1,8 @@
 from django import forms
 import re
+
+from django.contrib.auth.hashers import make_password
+
 from .models import ExecutiveTenure, Member, Announcement, MeetingMinute
 
 
@@ -28,9 +31,33 @@ class PinLoginForm(forms.Form):
 
 
 class MemberForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput, label="6-digit PIN")
+
     class Meta:
         model = Member
-        fields = ['full_name', 'serial_number', 'phone_number', 'age', 'year_joined', 'status', 'password', 'role']
+        fields = [
+            'full_name',
+            'serial_number',
+            'phone_number',
+            'age',
+            'year_joined',
+            'status',
+            'password',
+            'role'
+        ]
+
+    def clean_password(self):
+        pin = self.cleaned_data.get('password')
+        if not re.fullmatch(r"\d{6}", pin):
+            raise forms.ValidationError("PIN must be exactly 6 digits.")
+        return pin
+
+    def save(self, commit=True):
+        member = super().save(commit=False)
+        member.password = make_password(self.cleaned_data['password'])  # 🔐 hash PIN
+        if commit:
+            member.save()
+        return member
 
 
 class AnnouncementForm(forms.ModelForm):

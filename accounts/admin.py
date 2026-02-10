@@ -1,15 +1,16 @@
 from django.contrib import admin
+from django.contrib.auth.hashers import make_password
+
 from .models import Member, Announcement, MeetingMinute
 import hashlib
 
-
 @admin.register(Member)
 class MemberAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'serial_number', 'role')
+    list_display = ('full_name', 'serial_number', 'role', 'status')
 
     def save_model(self, request, obj, form, change):
-        if len(obj.password) == 6:
-            obj.password = hashlib.sha256(obj.password.encode()).hexdigest()
+        if not obj.password.startswith('pbkdf2_sha256$'):
+            obj.password = make_password(obj.password)
         super().save_model(request, obj, form, change)
 
 

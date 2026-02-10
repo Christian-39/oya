@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Sum
 from .models import Contribution, Finance, Income
 from .forms import ContributionForm, ExpenseForm, IncomeForm
-from accounts.models import Member
+from accounts.models import Member, Announcement, MeetingMinute
 from accounts.decorators import login_required, admin_required
 from django.db import IntegrityError
 from django.contrib import messages
@@ -14,6 +14,10 @@ YEARLY_DUES = 5000
 
 @login_required
 def income_list(request):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     incomes = Income.objects.select_related('member').order_by('-date')
     contributions = Contribution.objects.select_related('member').order_by('-payment_date')
 
@@ -27,14 +31,19 @@ def income_list(request):
         'total_income': total_income,
         'total_contributions': total_contributions,
         'total_money': total_money,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
     })
 
 
 def add_income(request):
     if not request.session.get('member_id'):
         return redirect('login')
-
     member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
 
     query = request.GET.get('q', '')
     found_member = None
@@ -72,13 +81,20 @@ def add_income(request):
     return render(request, 'finance/add_income.html', {
         'form': form,
         'query': query,
-        'found_member': found_member
+        'found_member': found_member,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
     })
 
 
 @login_required
 @admin_required
 def add_contribution(request):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     if request.method == 'POST':
         form = ContributionForm(request.POST)
         if form.is_valid():
@@ -93,18 +109,35 @@ def add_contribution(request):
     else:
         form = ContributionForm()
 
-    return render(request, 'finance/add_contribution.html', {'form': form})
+    return render(request, 'finance/add_contribution.html', {
+        'form': form,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 @login_required
 def contributions_list(request):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     contributions = Contribution.objects.select_related('member').order_by('-payment_date')
-    return render(request, 'finance/contributions_list.html', {'contributions': contributions})
+    return render(request, 'finance/contributions_list.html', {
+        'contributions': contributions,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 @login_required
 def my_contributions(request):
     member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
 
     contributions = Contribution.objects.filter(member=member)
     incomes = Income.objects.filter(member=member).order_by('-date')
@@ -120,12 +153,19 @@ def my_contributions(request):
         'total_dues': total_dues,
         'total_income': total_income,
         'total_money': total_money,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
     })
 
 
 @login_required
 @admin_required
 def add_expense(request):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     if request.method == 'POST':
         form = ExpenseForm(request.POST)
         if form.is_valid():
@@ -137,11 +177,20 @@ def add_expense(request):
     else:
         form = ExpenseForm()
 
-    return render(request, 'finance/add_expenses.html', {'form': form})
+    return render(request, 'finance/add_expenses.html', {
+        'form': form,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 @login_required
 def expenses_list(request):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     expenses = Finance.objects.filter(type='expense').order_by('-date')
     incomes = Income.objects.select_related('member').order_by('-date')
     contributions = Contribution.objects.select_related('member').order_by('-payment_date')
@@ -158,30 +207,64 @@ def expenses_list(request):
         'total_expenses': total_expenses,
         'total_income': total_income,
         'net_balance': net_balance,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
     })
 
 
 @login_required
 def income_receipt(request, income_id):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     income = Income.objects.select_related('member', 'recorded_by').get(id=income_id)
-    return render(request, 'finance/income_receipt.html', {'income': income})
+    return render(request, 'finance/income_receipt.html', {
+        'income': income,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 @login_required
 def contribution_receipt(request, contribution_id):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     contribution = Contribution.objects.select_related('member', 'recorded_by').get(id=contribution_id)
-    return render(request, 'finance/contribution_receipt.html', {'contribution': contribution})
+    return render(request, 'finance/contribution_receipt.html', {
+        'contribution': contribution,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 @login_required
 def donation_list(request):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     donation = Income.objects.select_related('member').order_by('-date')
-    return render(request, 'finance/donation_list.html', {'donation': donation})
+    return render(request, 'finance/donation_list.html', {
+        'donation': donation,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 @login_required
 @admin_required
 def edit_contribution(request, contribution_id):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     contribution = Contribution.objects.get(id=contribution_id)
     form = ContributionForm(instance=contribution)
 
@@ -191,7 +274,12 @@ def edit_contribution(request, contribution_id):
             form.save()
             return redirect('contributions_list')
 
-    return render(request, 'finance/edit_contribution.html', {'form': form})
+    return render(request, 'finance/edit_contribution.html', {
+        'form': form,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 # DELETE
@@ -206,6 +294,10 @@ def delete_contribution(request, contribution_id):
 @login_required
 @admin_required
 def edit_expenses(request, expenses_id):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     expenses = Finance.objects.get(id=expenses_id)
 
     if request.method == 'POST':
@@ -219,6 +311,9 @@ def edit_expenses(request, expenses_id):
     return render(request, 'finance/edit_expenses.html', {
         'form': form,
         'expenses': expenses,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
     })
 
 

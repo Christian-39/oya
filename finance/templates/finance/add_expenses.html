@@ -1,83 +1,228 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Add Expense</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Expenses – OYA – OYA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{% static 'finance/css/styles.css' %}">
 
-  <style>
+<style>
+    * { box-sizing: border-box; }
+
     body {
-      font-family: 'Poppins', sans-serif;
-      background: #f5f7f6;
-      min-height: 100vh;
       margin: 0;
-      display: grid;
-      place-items: center;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top, #e6f5f1, #f5f7f6, #ffffff);
+      padding: 20px;
     }
 
-    .card {
-      background: #fff;
-      width: 100%;
-      max-width: 480px;
+    .container {
+      max-width: 1050px;
+      margin: auto;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(6px);
       padding: 24px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,.08);
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+      border: 1px solid #eef2f7;
     }
 
-    h2 {
-      margin-bottom: 10px;
+    .header h2 {
+      margin: 0;
       color: #0a7c5b;
+      font-weight: 600;
+      font-size: 20px;
     }
 
-    .hint {
+    .header p {
+      margin: 6px 0 14px;
+      font-size: 12px;
       color: #6b7280;
-      font-size: 14px;
-      margin-bottom: 16px;
+      font-weight: 500;
     }
 
     form p {
+      margin-bottom: 14px;
+      font-size: 13px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #065f46;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: 0.15s ease;
+      background: white;
+    }
+
+    input:focus, select:focus {
+      border-color: #0a7c5b;
+      box-shadow: 0 0 0 3px rgba(10,124,91,0.15);
+    }
+
+    .note {
+      background: #ecfdf5;
+      border: 1px solid #bbf7d0;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      color: #065f46;
       margin-bottom: 12px;
     }
 
-    input, select, textarea {
-      width: 100%;
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-      outline: none;
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 6px;
     }
 
-    button {
-      width: 100%;
-      background: #0a7c5b;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 12px;
+    .btn {
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #0a7c5b, #0fb38a);
+      color: white;
+      font-size: 12px;
       font-weight: 600;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    button:hover {
-      opacity: .9;
-    }
-
-    .links {
-      margin-top: 12px;
-      text-align: center;
-    }
-
-    .links a {
       text-decoration: none;
-      color: #0a7c5b;
-      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(10, 124, 91, 0.25);
+      transition: 0.15s ease;
+    }
+
+    .btn.secondary {
+      background: #111827;
+      box-shadow: 0 6px 16px rgba(17, 24, 39, 0.25);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    @media (max-width: 480px) {
+      .header h2 { font-size: 18px; }
+      .btn { font-size: 11px; padding: 8px 14px; }
     }
   </style>
 </head>
 <body>
+<!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+          <div class="avatar">{{ member.full_name|slice:":1" }}</div>
+    </div>
+    <strong>welcome, {{ member.full_name }}</strong>
+          <div class="sub">
+            {% if member.executive_position %}
+        <p>Post: {{ member.executive_position }}</p>
+    {% endif %}
+          </div>
+
+    <button class="close-btn" onclick="toggleSidebar()">
+      <i class="fa fa-times"></i>
+    </button>
+
+    <nav class="menu">
+      <a href="{% url 'my_contributions' %}"><i class="fa fa-wallet"></i> Contributions</a>
+      <a href="{% url 'executives_list' %}"><i class="fa fa-users"></i> Executives</a>
+      <a href="{% url 'taskforce_list' %}"><i class="fa fa-user-shield"></i> Task Force</a>
+      <a href="{% url 'motorcycles_list' %}"><i class="fa fa-motorcycle"></i> Motorcycles</a>
+      <a href="{% url 'cases_list' %}"><i class="fa fa-folder-open"></i> Community Cases</a>
+      <a href="{% url 'projects_list' %}"><i class="fa fa-diagram-project"></i> Projects</a>
+      {% if request.session.member_role == 'admin' %}
+      <a href="{% url 'admin_dashboard' %}"><i class="fa fa-user-cog"></i> Admin Panel</a>
+      {% endif %}
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <!-- Topbar -->
+   <div class="topbar">
+  <div class="left-top">
+    <button class="hamburger" onclick="toggleSidebar()">
+      <i class="fa fa-bars"></i>
+    </button>
+
+    <div class="brand">
+      <img src="{% static 'finance/images/oya logo.jpeg' %}" alt="OYA Logo">
+      <span>
+        OYA<br>
+        <small>Peace & Progress</small>
+      </span>
+    </div>
+  </div>
+
+  <div class="actions">
+
+    <!-- Notifications / Profile Trigger -->
+    <div class="profile" onclick="toggleProfile()">
+      <span class="badge-noty">
+        {{ announcements_count|add:minutes_count }}
+      </span>
+      <i class="fa fa-cog"></i>
+    </div>
+
+    <!-- Dropdown -->
+    <div class="dropdown" id="profileDrop">
+      <p>
+        <i class="fa fa-user-circle"></i>
+        <strong>{{ member_id.full_name }}</strong>
+      </p>
+
+      <button class="icon-btn" onclick="toggleDark()">
+        <i class="fa fa-moon"></i>
+        Dark Mode
+      </button>
+
+      <a href="{% url 'member_profile' request.session.member_id %}">
+        <i class="fa fa-id-badge"></i>
+        My Profile
+      </a>
+
+      <a href="{% url 'announcements_list' %}">
+        <i class="fa fa-bullhorn"></i>
+        Announcements ({{ announcements_count }})
+      </a>
+
+      <a href="{% url 'minutes_list' %}">
+        <i class="fa fa-file-lines"></i>
+        Minutes ({{ minutes_count }})
+      </a>
+
+      <a href="#" onclick="window.print()">
+        <i class="fa fa-print"></i>
+        Print Report
+      </a>
+
+      <a href="{% url 'logout' %}">
+        <i class="fa fa-right-from-bracket"></i>
+        Logout
+      </a>
+    </div>
+
+  </div>
+</div>
 
   <div class="card">
     <h2>Add New Expense</h2>
@@ -93,6 +238,9 @@
       <a href="{% url 'expenses_list' %}">← Back to Expenses</a>
     </div>
   </div>
+
+    </main>
+<script src="{% static 'finance/js/scripts.js' %}"></script>
 
 </body>
 </html>

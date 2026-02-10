@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+
+from . import forms
 from .models import Member, ExecutiveTenure, Announcement, MeetingMinute
 from .forms import PinLoginForm, ExecutiveTenureForm
 import hashlib
@@ -13,6 +15,7 @@ from cases.models import Case
 from finance.models import Contribution, Income, Finance
 from taskforce.models import Motorcycle
 from decimal import Decimal
+from django.contrib.auth.hashers import check_password
 from django.utils.timezone import now
 
 from projects.models import Project
@@ -28,14 +31,17 @@ def login_view(request):
         if form.is_valid():
             serial_number = form.cleaned_data['serial_number']
             pin = form.cleaned_data['pin']
-            hashed_pin = hash_pin(pin)
 
             try:
-                member = Member.objects.get(serial_number=serial_number, password=hashed_pin)
-                # save session
-                request.session['member_id'] = member.id
-                request.session['member_role'] = member.role
-                return redirect('dashboard')
+                member = Member.objects.get(serial_number=serial_number)
+
+                if check_password(pin, member.password):
+                    request.session['member_id'] = member.id
+                    request.session['member_role'] = member.role
+                    return redirect('dashboard')
+                else:
+                    messages.error(request, "Invalid serial number or PIN.")
+
             except Member.DoesNotExist:
                 messages.error(request, "Invalid serial number or PIN.")
     else:
@@ -122,6 +128,10 @@ def admin_dashboard(request):
 
 @login_required
 def members_list(request):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     query = request.GET.get('q', '')
     if query:
         members = Member.objects.filter(
@@ -132,25 +142,50 @@ def members_list(request):
     else:
         members = Member.objects.all().order_by('full_name')
 
-    return render(request, 'accounts/members_list.html', {'members': members, 'query': query})
+    return render(request, 'accounts/members_list.html', {
+        'members': members,
+        'query': query,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 @login_required
 def member_profile(request, member_id):
     member = Member.objects.get(id=member_id)
-    return render(request, 'accounts/member_profile.html', {'member': member})
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
+    return render(request, 'accounts/member_profile.html', {
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 @login_required
 def executives_list(request):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     executives = Executive.objects.select_related('member').order_by('position')
-    return render(request, 'accounts/executives_list.html', {'executives': executives})
+    return render(request, 'accounts/executives_list.html', {
+        'executives': executives,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 @login_required
 @admin_required
 def assign_executive(request):
-    from django import forms
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
 
     class AssignExecutiveForm(forms.Form):
         member = forms.ModelChoiceField(queryset=Member.objects.all())
@@ -180,12 +215,21 @@ def assign_executive(request):
     else:
         form = AssignExecutiveForm()
 
-    return render(request, 'accounts/assign_executive.html', {'form': form})
+    return render(request, 'accounts/assign_executive.html', {
+        'form': form,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 @login_required
 @admin_required
 def add_tenure(request):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     if request.method == 'POST':
         form = ExecutiveTenureForm(request.POST)
         if form.is_valid():
@@ -201,19 +245,37 @@ def add_tenure(request):
     else:
         form = ExecutiveTenureForm()
 
-    return render(request, 'accounts/add_tenure.html', {'form': form})
+    return render(request, 'accounts/add_tenure.html', {
+        'form': form,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 @login_required
 @admin_required
 def tenures_list(request):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     tenures = Executive.objects.select_related('member').order_by('-id')
-    return render(request, 'accounts/tenures_list.html', {'tenures': tenures})
+    return render(request, 'accounts/tenures_list.html', {
+        'tenures': tenures,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 @login_required
 @admin_required
 def add_member(request):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     if request.method == 'POST':
         form = MemberForm(request.POST)
         if form.is_valid():
@@ -222,12 +284,20 @@ def add_member(request):
     else:
         form = MemberForm()
 
-    return render(request, 'accounts/add_member.html', {'form': form})
-
+    return render(request, 'accounts/add_member.html', {
+        'form': form,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 @login_required
 @admin_required
 def edit_tenure(request, tenure_id):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     tenure = get_object_or_404(Executive, id=tenure_id)
     form = ExecutiveTenureForm(request.POST or None, instance=tenure)
 
@@ -235,7 +305,13 @@ def edit_tenure(request, tenure_id):
         form.save()
         return redirect('tenures_list')
 
-    return render(request, 'accounts/edit_tenure.html', {'form': form, 'tenure': tenure})
+    return render(request, 'accounts/edit_tenure.html', {
+        'form': form,
+        'tenure': tenure,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 @login_required
@@ -252,14 +328,27 @@ def delete_tenure(request, tenure_id):
 
 @login_required
 def announcements_list(request):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     announcements = Announcement.objects.filter(is_active=True).order_by('-created_at')
-    return render(request, 'accounts/announcements_list.html', {'announcements': announcements})
+    return render(request, 'accounts/announcements_list.html', {
+        'announcements': announcements,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 
 @admin_required
 @login_required
 def add_announcement(request):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     if request.method == 'POST':
         form = AnnouncementForm(request.POST)
         if form.is_valid():
@@ -269,18 +358,36 @@ def add_announcement(request):
             return redirect('announcements_list')
     else:
         form = AnnouncementForm()
-    return render(request, 'accounts/add_announcement.html', {'form': form})
+    return render(request, 'accounts/add_announcement.html', {
+        'form': form,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 @login_required
 def minutes_list(request):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     minutes = MeetingMinute.objects.order_by('-meeting_date')
-    return render(request, 'accounts/minutes_list.html', {'minutes': minutes})
+    return render(request, 'accounts/minutes_list.html', {
+        'minutes': minutes,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 
 @login_required
 @admin_required
 def add_minutes(request):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     if request.method == 'POST':
         form = MeetingMinuteForm(request.POST)
         if form.is_valid():
@@ -290,11 +397,20 @@ def add_minutes(request):
             return redirect('minutes_list')
     else:
         form = MeetingMinuteForm()
-    return render(request, 'accounts/add_minutes.html', {'form': form})
+    return render(request, 'accounts/add_minutes.html', {
+        'form': form,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
 
 @login_required
 @admin_required
 def edit_announcement(request, announcement_id):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     announcement = Announcement.objects.get(id=announcement_id)
 
     if request.method == 'POST':
@@ -307,7 +423,10 @@ def edit_announcement(request, announcement_id):
 
     return render(request, 'accounts/edit_announcement.html', {
         'form': form,
-        'announcement': announcement
+        'announcement': announcement,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
     })
 
 @login_required
@@ -328,6 +447,10 @@ def delete_announcement(request, announcement_id):
 @login_required
 @admin_required
 def edit_minutes(request, minutes_id):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     minute = MeetingMinute.objects.get(id=minutes_id)
 
     if request.method == 'POST':
@@ -340,7 +463,10 @@ def edit_minutes(request, minutes_id):
 
     return render(request, 'accounts/edit_minutes.html', {
         'form': form,
-        'minute': minute
+        'minute': minute,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
     })
 
 
@@ -362,6 +488,10 @@ def delete_minutes(request, minutes_id):
 @login_required
 @admin_required
 def edit_executive(request, executive_id):
+    member = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
     executive = Executive.objects.get(id=executive_id)
 
     if request.method == 'POST':
@@ -374,7 +504,10 @@ def edit_executive(request, executive_id):
 
     return render(request, 'accounts/edit_executive.html', {
         'form': form,
-        'executive': executive
+        'executive': executive,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
     })
 
 
