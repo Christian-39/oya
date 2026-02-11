@@ -175,8 +175,37 @@
 
     @media (max-width: 600px) {
       h2 { font-size: 18px; }
-      .container { padding: 8px; }
+      .container { padding: 14px; }
     }
+@media (max-width: 768px) {
+  body {
+    padding: 0; /* remove side gaps */
+  }
+
+  .container {
+    max-width: 100%;
+    margin: 0;
+    border-radius: 0;
+    padding: 12px;
+  }
+
+  .main {
+    padding: 0 !important;
+  }
+
+  .table-wrap {
+    border-radius: 0;
+  }
+
+  table {
+    min-width: 700px; /* reduce scroll width */
+  }
+
+  th, td {
+    font-size: 11px;
+    padding: 8px;
+  }
+}
   </style>
 </head>
 <body>
