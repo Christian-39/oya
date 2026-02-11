@@ -292,7 +292,9 @@
               <th>Condition</th>
               <th>Status</th>
               <th>Assigned To</th>
+              {% if request.session.member_role == "admin" %}
               <th>Actions</th>
+              {% endif %}
             </tr>
           </thead>
           <tbody>

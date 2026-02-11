@@ -273,7 +273,9 @@
               <th>Role in Task Force</th>
               <th>Phone</th>
               <th>Status</th>
+              {% if request.session.member_role == "admin" %}
               <th>Actions</th>
+              {% endif %}
             </tr>
           </thead>
           <tbody>

@@ -1,6 +1,7 @@
 {% load humanize %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Admin Dashboard – OYA</title>
@@ -9,7 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -146,16 +149,30 @@
       background: #d1fae5;
     }
 
-    .income { border-left-color: #16a34a; }
-    .expense { border-left-color: #dc2626; }
-    .info { border-left-color: #2563eb; }
+    .income {
+      border-left-color: #16a34a;
+    }
+
+    .expense {
+      border-left-color: #dc2626;
+    }
+
+    .info {
+      border-left-color: #2563eb;
+    }
 
     @media (max-width: 640px) {
-      .title h2 { font-size: 20px; }
-      .card .value { font-size: 22px; }
+      .title h2 {
+        font-size: 20px;
+      }
+
+      .card .value {
+        font-size: 22px;
+      }
     }
   </style>
 </head>
+
 <body>
 
   <div class="container">
@@ -219,24 +236,6 @@
       </div>
 
       <div class="card">
-        <h3>Yearly Dues</h3>
-        <div class="value">₦{{ total_contributions|intcomma }}</div>
-        <div class="links">
-          <a href="{% url 'contributions_list' %}">👁 View</a>
-          <a href="{% url 'add_contribution' %}">+ Add</a>
-        </div>
-      </div>
-
-      <div class="card income">
-        <h3>Donations / Income</h3>
-        <div class="value">₦{{ total_income|intcomma }}</div>
-        <div class="links">
-          <a href="{% url 'donation_list' %}">👁 View</a>
-          <a href="{% url 'add_income' %}">+ Add</a>
-        </div>
-      </div>
-
-      <div class="card">
         <h3>Projects</h3>
         <div class="value">{{ total_projects|default:"0" }}</div>
         <div class="links">
@@ -272,12 +271,21 @@
         </div>
       </div>
 
-      <div class="card expense">
-        <h3>Expenses</h3>
-        <div class="value">₦{{ total_expense|intcomma }}</div>
+      <div class="card">
+        <h3>Yearly Dues</h3>
+        <div class="value">₦{{ total_contributions|intcomma }}</div>
         <div class="links">
-          <a href="{% url 'expenses_list' %}">👁 View</a>
-          <a href="{% url 'add_expense' %}">+ Add</a>
+          <a href="{% url 'contributions_list' %}">👁 View</a>
+          <a href="{% url 'add_contribution' %}">+ Add</a>
+        </div>
+      </div>
+
+      <div class="card income">
+        <h3>Donations / Income</h3>
+        <div class="value">₦{{ total_income|intcomma }}</div>
+        <div class="links">
+          <a href="{% url 'donation_list' %}">👁 View</a>
+          <a href="{% url 'add_income' %}">+ Add</a>
         </div>
       </div>
 
@@ -289,12 +297,15 @@
       <div class="card expense">
         <h3>Total Expenses</h3>
         <div class="value">₦{{ total_expense|intcomma }}</div>
+        <div class="links">
+          <a href="{% url 'expenses_list' %}">👁 View</a>
+          <a href="{% url 'add_expense' %}">+ Add</a>
+        </div>
       </div>
 
     </div>
-
-
   </div>
 
 </body>
+
 </html>
