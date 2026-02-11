@@ -133,14 +133,16 @@ def members_list(request):
     announcements_count = Announcement.objects.filter(is_active=True).count()
     minutes_count = MeetingMinute.objects.count()
     query = request.GET.get('q', '')
+    query = request.GET.get('q', '')
+
     if query:
         members = Member.objects.filter(
             Q(full_name__icontains=query) |
             Q(serial_number__icontains=query) |
             Q(phone_number__icontains=query)
-        )
+        ).order_by('serial_number')  # ✅ order search results too
     else:
-        members = Member.objects.all().order_by('full_name')
+        members = Member.objects.all().order_by('serial_number')
 
     return render(request, 'accounts/members_list.html', {
         'members': members,
@@ -522,4 +524,43 @@ def delete_executive(request, executive_id):
 
     return render(request, 'accounts/delete_executive.html', {
         'executive': executive
+    })
+
+@login_required
+@admin_required
+def edit_member(request, member_id):
+    members = Member.objects.get(id=request.session['member_id'])
+
+    announcements_count = Announcement.objects.filter(is_active=True).count()
+    minutes_count = MeetingMinute.objects.count()
+    member = Member.objects.get(id=member_id)
+
+    if request.method == 'POST':
+        form = MemberForm(request.POST, instance=member)
+        if form.is_valid():
+            form.save()
+            return redirect('members_list')
+    else:
+        form = MemberForm(instance=member)
+
+    return render(request, 'accounts/edit_member.html', {
+        'form': form,
+        'members': members,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
+    })
+
+
+@login_required
+@admin_required
+def delete_member(request, member_id):
+    member = Member.objects.get(id=member_id)
+
+    if request.method == 'POST':
+        member.delete()
+        return redirect('member_list')
+
+    return render(request, 'accounts/delete_member.html', {
+        'member': member
     })

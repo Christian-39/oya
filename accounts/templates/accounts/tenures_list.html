@@ -150,34 +150,37 @@
   </style>
 </head>
 <body>
-<!-- Sidebar -->
-  <aside class="sidebar" id="sidebar">
-    <div class="brand">
-          <div class="avatar">{{ member.full_name|slice:":1" }}</div>
-    </div>
-    <strong>welcome, {{ member.full_name }}</strong>
-          <div class="sub">
-            {% if member.executive_position %}
-        <p>Post: {{ member.executive_position }}</p>
-    {% endif %}
-          </div>
 
-    <button class="close-btn" onclick="toggleSidebar()">
-      <i class="fa fa-times"></i>
-    </button>
+	<!-- Sidebar -->
+	<aside class="sidebar" id="sidebar">
+		<div class="brand">
+			<a href="{% url 'dashboard' %}" style="text-decoration: none;"><div class="avatar">{{ member.full_name|slice:":1" }}</div></a>
+		</div>
+		<strong>welcome, {{ member.full_name }}</strong>
+		<div class="sub">
+			{% if member.executive_position %}
+			<p>Post: {{ member.executive_position }}</p>
+			{% endif %}
+		</div>
 
-    <nav class="menu">
-      <a href="{% url 'my_contributions' %}"><i class="fa fa-wallet"></i> Contributions</a>
-      <a href="{% url 'executives_list' %}"><i class="fa fa-users"></i> Executives</a>
-      <a href="{% url 'taskforce_list' %}"><i class="fa fa-user-shield"></i> Task Force</a>
-      <a href="{% url 'motorcycles_list' %}"><i class="fa fa-motorcycle"></i> Motorcycles</a>
-      <a href="{% url 'cases_list' %}"><i class="fa fa-folder-open"></i> Community Cases</a>
-      <a href="{% url 'projects_list' %}"><i class="fa fa-diagram-project"></i> Projects</a>
-      {% if request.session.member_role == 'admin' %}
-      <a href="{% url 'admin_dashboard' %}"><i class="fa fa-user-cog"></i> Admin Panel</a>
-      {% endif %}
-    </nav>
-  </aside>
+		<button class="close-btn" onclick="toggleSidebar()">
+			<i class="fa fa-times"></i>
+		</button>
+
+		<nav class="menu">
+			<a href="{% url 'dashboard' %}"><i class="fa fa-home"></i> Home</a>
+			<a href="{% url 'contributions_list' %}"><i class="fa fa-wallet"></i> Contributions</a>
+			<a href="{% url 'donation_list' %}"><i class="fa fa-plus"></i> Donations</a>
+			<a href="{% url 'executives_list' %}"><i class="fa fa-users"></i> Executives</a>
+			<a href="{% url 'taskforce_list' %}"><i class="fa fa-user-shield"></i> Task Force</a>
+			<a href="{% url 'motorcycles_list' %}"><i class="fa fa-motorcycle"></i> Motorcycles</a>
+			<a href="{% url 'cases_list' %}"><i class="fa fa-folder-open"></i> Community Cases</a>
+			<a href="{% url 'projects_list' %}"><i class="fa fa-diagram-project"></i> Projects</a>
+			{% if request.session.member_role == 'admin' %}
+			<a href="{% url 'admin_dashboard' %}"><i class="fa fa-user-cog"></i> Admin Panel</a>
+			{% endif %}
+		</nav>
+	</aside>
 
   <!-- Main -->
   <main class="main">

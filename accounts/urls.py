@@ -23,6 +23,8 @@ urlpatterns = [
     path('executives/', executives_list, name='executives_list'),
     path('executives/assign/', assign_executive, name='assign_executive'),
     path('members/add/', add_member, name='add_member'),
+    path('members/edit/<int:member_id>/', views.edit_member, name='edit_member'),
+    path('members/delete/<int:member_id>/', views.delete_member, name='delete_member'),
 
     path('announcements/', announcements_list, name='announcements_list'),
     path('announcements/add/', add_announcement, name='add_announcement'),
