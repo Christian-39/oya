@@ -450,3 +450,15 @@ body {
         margin-bottom: 12px;
     }
 }
+.table-wrap {
+    border-radius: 0;
+  }
+
+  table {
+    min-width: 900px; /* reduce scroll width */
+  }
+
+  th, td {
+    font-size: 11px;
+    padding: 8px;
+  }
