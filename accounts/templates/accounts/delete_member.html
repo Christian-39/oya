@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Delete Member – OYA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #e6f5f1, #f5f7f6);
+      padding: 0;
+      color: #111827;
+      display: flex;
+    }
+
+    .container {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 500px;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+      text-align: center;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      font-weight: 600;
+      color: #dc2626;
+    }
+
+    p {
+      font-size: 13px;
+      color: #374151;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .title {
+      color: #065f46;
+      font-weight: 600;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 13px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn.danger {
+      background: linear-gradient(135deg, #dc2626, #ef4444);
+      color: white;
+      box-shadow: 0 6px 16px rgba(220, 38, 38, 0.25);
+    }
+
+    .btn.danger:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(220, 38, 38, 0.35);
+    }
+
+    .btn.secondary {
+      background: #111827;
+      color: white;
+      box-shadow: 0 6px 16px rgba(17, 24, 39, 0.25);
+    }
+
+    .btn.secondary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(17, 24, 39, 0.35);
+    }
+
+    @media (max-width: 640px) {
+      h2 { font-size: 18px; }
+      p { font-size: 12px; }
+      .btn { font-size: 12px; padding: 9px 14px; }
+      .card { padding: 16px; }
+    }
+    @media (max-width: 640px) {
+  body {
+    padding: 0;
+  }
+
+  .container {
+    max-width: 100%;
+    border-radius: 0;
+    padding: 14px;
+  }
+}
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+      <h2>⚠️ Delete Member</h2>
+
+      <p>
+        Are you sure you want to delete
+        "<span class="title">{{ member.full_name }}</span>" from the lists?
+        <br>This action cannot be undone.
+      </p>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="actions">
+          <button type="submit" class="btn danger">Yes, Delete</button>
+          <a href="{% url 'members_list' %}" class="btn secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>
