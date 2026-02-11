@@ -138,7 +138,10 @@ def edit_motorcycle(request, motorcycle_id):
 
     return render(request, 'taskforce/edit_motorcycle.html', {
         'form': form,
-        'motorcycle': motorcycle
+        'motorcycle': motorcycle,
+        'member': member,
+        'announcements_count': announcements_count,
+        'minutes_count': minutes_count,
     })
 
 @login_required

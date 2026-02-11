@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Delete Announcement – OYA</title>
@@ -9,7 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -35,8 +38,15 @@
     }
 
     @keyframes pop {
-      from { transform: translateY(6px) scale(.98); opacity: .7; }
-      to { transform: translateY(0) scale(1); opacity: 1; }
+      from {
+        transform: translateY(6px) scale(.98);
+        opacity: .7;
+      }
+
+      to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
     }
 
     .icon {
@@ -125,24 +135,33 @@
     }
 
     @media (max-width: 480px) {
-      h2 { font-size: 18px; }
-      p { font-size: 13px; }
-      .btn { font-size: 12px; }
+      h2 {
+        font-size: 18px;
+      }
+
+      p {
+        font-size: 13px;
+      }
+
+      .btn {
+        font-size: 12px;
+      }
     }
+
     @media (max-width: 640px) {
-  body {
-    padding: 0;
-  }
+      body {
+        padding: 0;
+      }
 
-  .card {
-    max-width: 100%;
-    border-radius: 0;
-    padding: 14px;
-  }
-}
-
+      .card {
+        max-width: 100%;
+        border-radius: 0;
+        padding: 14px;
+      }
+    }
   </style>
 </head>
+
 <body>
 
   <div class="card">
@@ -164,4 +183,5 @@
   </div>
 
 </body>
+
 </html>

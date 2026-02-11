@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Members List – OYA</title>
@@ -10,26 +11,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="{% static 'accounts/css/styles.css' %}">
+  <link rel="stylesheet" href="{% static 'accounts/css/styles.css' %}">
   <style>
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: 'Poppins', sans-serif;
-      background: radial-gradient(circle at top, #e6f5f1, #f5f7f6, #ffffff);
-      padding: 20px;
-    }
-
     .container {
-      max-width: 1050px;
+      max-width: 100%;
       margin: auto;
-      background: rgba(255,255,255,0.95);
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(6px);
       padding: 20px;
       border-radius: 18px;
-      box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
       border: 1px solid #eef2f7;
     }
 
@@ -174,218 +165,231 @@
     }
 
     @media (max-width: 600px) {
-      h2 { font-size: 18px; }
-      .container { padding: 14px; }
+      h2 {
+        font-size: 18px;
+      }
+
+      .container {
+        padding: 14px;
+      }
     }
-@media (max-width: 768px) {
-  body {
-    padding: 0; /* remove side gaps */
-  }
 
-  .container {
-    max-width: 100%;
-    margin: 0;
-    border-radius: 0;
-    padding: 12px;
-  }
+    @media (max-width: 768px) {
+      body {
+        padding: 0;
+        /* remove side gaps */
+      }
 
-  .main {
-    padding: 0 !important;
-  }
+      .container {
+        max-width: 100%;
+        margin: 0;
+        border-radius: 0;
+        padding: 12px;
+      }
 
-  .table-wrap {
-    border-radius: 0;
-  }
+      .main {
+        padding: 0 !important;
+      }
 
-  table {
-    min-width: 900px; /* reduce scroll width */
-  }
+      .table-wrap {
+        border-radius: 0;
+      }
 
-  th, td {
-    font-size: 11px;
-    padding: 8px;
-  }
-}
+      table {
+        min-width: 900px;
+        /* reduce scroll width */
+      }
+
+      th,
+      td {
+        font-size: 11px;
+        padding: 8px;
+      }
+    }
   </style>
 </head>
+
 <body>
 
-	<!-- Sidebar -->
-	<aside class="sidebar" id="sidebar">
-		<div class="brand">
-			<a href="{% url 'dashboard' %}" style="text-decoration: none;"><div class="avatar">{{ member.full_name|slice:":1" }}</div></a>
-		</div>
-		<strong>welcome, {{ member.full_name }}</strong>
-		<div class="sub">
-			{% if member.executive_position %}
-			<p>Post: {{ member.executive_position }}</p>
-			{% endif %}
-		</div>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <a href="{% url 'dashboard' %}" style="text-decoration: none;">
+        <div class="avatar">{{ member.full_name|slice:":1" }}</div>
+      </a>
+    </div>
+    <strong>welcome, {{ member.full_name }}</strong>
+    <div class="sub">
+      {% if member.executive_position %}
+      <p>Post: {{ member.executive_position }}</p>
+      {% endif %}
+    </div>
 
-		<button class="close-btn" onclick="toggleSidebar()">
-			<i class="fa fa-times"></i>
-		</button>
+    <button class="close-btn" onclick="toggleSidebar()">
+      <i class="fa fa-times"></i>
+    </button>
 
-		<nav class="menu">
-			<a href="{% url 'dashboard' %}"><i class="fa fa-home"></i> Home</a>
-			<a href="{% url 'contributions_list' %}"><i class="fa fa-wallet"></i> Contributions</a>
-			<a href="{% url 'donation_list' %}"><i class="fa fa-plus"></i> Donations</a>
-			<a href="{% url 'executives_list' %}"><i class="fa fa-users"></i> Executives</a>
-			<a href="{% url 'taskforce_list' %}"><i class="fa fa-user-shield"></i> Task Force</a>
-			<a href="{% url 'motorcycles_list' %}"><i class="fa fa-motorcycle"></i> Motorcycles</a>
-			<a href="{% url 'cases_list' %}"><i class="fa fa-folder-open"></i> Community Cases</a>
-			<a href="{% url 'projects_list' %}"><i class="fa fa-diagram-project"></i> Projects</a>
-			{% if request.session.member_role == 'admin' %}
-			<a href="{% url 'admin_dashboard' %}"><i class="fa fa-user-cog"></i> Admin Panel</a>
-			{% endif %}
-		</nav>
-	</aside>
+    <nav class="menu">
+      <a href="{% url 'dashboard' %}"><i class="fa fa-home"></i> Home</a>
+      <a href="{% url 'contributions_list' %}"><i class="fa fa-wallet"></i> Contributions</a>
+      <a href="{% url 'donation_list' %}"><i class="fa fa-plus"></i> Donations</a>
+      <a href="{% url 'executives_list' %}"><i class="fa fa-users"></i> Executives</a>
+      <a href="{% url 'taskforce_list' %}"><i class="fa fa-user-shield"></i> Task Force</a>
+      <a href="{% url 'motorcycles_list' %}"><i class="fa fa-motorcycle"></i> Motorcycles</a>
+      <a href="{% url 'cases_list' %}"><i class="fa fa-folder-open"></i> Community Cases</a>
+      <a href="{% url 'projects_list' %}"><i class="fa fa-diagram-project"></i> Projects</a>
+      {% if request.session.member_role == 'admin' %}
+      <a href="{% url 'admin_dashboard' %}"><i class="fa fa-user-cog"></i> Admin Panel</a>
+      {% endif %}
+    </nav>
+  </aside>
 
   <!-- Main -->
   <main class="main">
     <!-- Topbar -->
-   <div class="topbar">
-  <div class="left-top">
-    <button class="hamburger" onclick="toggleSidebar()">
-      <i class="fa fa-bars"></i>
-    </button>
+    <div class="topbar">
+      <div class="left-top">
+        <button class="hamburger" onclick="toggleSidebar()">
+          <i class="fa fa-bars"></i>
+        </button>
 
-    <div class="brand">
-      <img src="{% static 'accounts/images/oya logo.jpeg' %}" alt="OYA Logo">
-      <span>
-        OYA<br>
-        <small>Peace & Progress</small>
-      </span>
-    </div>
-  </div>
+        <div class="brand">
+          <img src="{% static 'accounts/images/oya logo.jpeg' %}" alt="OYA Logo">
+          <span>
+            OYA<br>
+            <small>Peace & Progress</small>
+          </span>
+        </div>
+      </div>
 
-  <div class="actions">
+      <div class="actions">
 
-    <!-- Notifications / Profile Trigger -->
-    <div class="profile" onclick="toggleProfile()">
-      <span class="badge-noty">
-        {{ announcements_count|add:minutes_count }}
-      </span>
-      <i class="fa fa-cog"></i>
-    </div>
+        <!-- Notifications / Profile Trigger -->
+        <div class="profile" onclick="toggleProfile()">
+          <span class="badge-noty">
+            {{ announcements_count|add:minutes_count }}
+          </span>
+          <i class="fa fa-cog"></i>
+        </div>
 
-    <!-- Dropdown -->
-    <div class="dropdown" id="profileDrop">
-      <p>
-        <i class="fa fa-user-circle"></i>
-        <strong>{{ member.full_name }}</strong>
-      </p>
+        <!-- Dropdown -->
+        <div class="dropdown" id="profileDrop">
+          <p>
+            <i class="fa fa-user-circle"></i>
+            <strong>{{ member.full_name }}</strong>
+          </p>
 
-      <button class="icon-btn" onclick="toggleDark()">
-        <i class="fa fa-moon"></i>
-        Dark Mode
-      </button>
+          <button class="icon-btn" onclick="toggleDark()">
+            <i class="fa fa-moon"></i>
+            Dark Mode
+          </button>
 
-      <a href="{% url 'member_profile' member.id %}">
-        <i class="fa fa-id-badge"></i>
-        My Profile
-      </a>
+          <a href="{% url 'member_profile' member.id %}">
+            <i class="fa fa-id-badge"></i>
+            My Profile
+          </a>
 
-      <a href="{% url 'announcements_list' %}">
-        <i class="fa fa-bullhorn"></i>
-        Announcements ({{ announcements_count }})
-      </a>
+          <a href="{% url 'announcements_list' %}">
+            <i class="fa fa-bullhorn"></i>
+            Announcements ({{ announcements_count }})
+          </a>
 
-      <a href="{% url 'minutes_list' %}">
-        <i class="fa fa-file-lines"></i>
-        Minutes ({{ minutes_count }})
-      </a>
+          <a href="{% url 'minutes_list' %}">
+            <i class="fa fa-file-lines"></i>
+            Minutes ({{ minutes_count }})
+          </a>
 
-      <a href="#" onclick="window.print()">
-        <i class="fa fa-print"></i>
-        Print Report
-      </a>
+          <a href="#" onclick="window.print()">
+            <i class="fa fa-print"></i>
+            Print Report
+          </a>
 
-      <a href="{% url 'logout' %}">
-        <i class="fa fa-right-from-bracket"></i>
-        Logout
-      </a>
-    </div>
+          <a href="{% url 'logout' %}">
+            <i class="fa fa-right-from-bracket"></i>
+            Logout
+          </a>
+        </div>
 
-  </div>
-</div>
-
-
-  <div class="container">
-    <h2>Members – Okpo Youths Association (OYA)</h2>
-    <div class="tagline">Peace and Progress</div>
-
-    <div class="nav">
-      {% if member.role == "admin" %}
-      <a href="{% url 'admin_dashboard' %}">Admin Dashboard</a>{% endif %}
-      <a href="{% url 'dashboard' %}">My Dashboard</a>
+      </div>
     </div>
 
-    <form method="get" class="search-box">
-      <input type="text" name="q" placeholder="Search by name, serial or phone" value="{{ query }}">
-      <button type="submit">Search</button>
-    </form>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Serial No</th>
-            <th>Full Name</th>
-            <th>Role</th>
-            <th>Executive Post</th>
-            <th>Status</th>
-            <th>Year Joined</th>
-            {% if request.session.member_role == "admin" %}
-            <th>Profile | Edit | Delete</th>
-            {% endif %}
-          </tr>
-        </thead>
-        <tbody>
-          {% for member in members %}
-          <tr>
-            <td>{{ member.serial_number }}</td>
-            <td>{{ member.full_name }}</td>
-            <td>
-              <span class="badge {% if member.role == 'admin' %}badge-admin{% else %}badge-member{% endif %}">
-                {{ member.role|title }}
-              </span>
-            </td>
-            <td>
-              {% if member.executive_position %}
-                {{ member.executive_position }}
-              {% else %}
-                -
+    <div class="container">
+      <h2>Members – Okpo Youths Association (OYA)</h2>
+      <div class="tagline">Peace and Progress</div>
+
+      <div class="nav">
+        {% if member.role == "admin" %}
+        <a href="{% url 'admin_dashboard' %}">Admin Dashboard</a>{% endif %}
+        <a href="{% url 'dashboard' %}">My Dashboard</a>
+      </div>
+
+      <form method="get" class="search-box">
+        <input type="text" name="q" placeholder="Search by name, serial or phone" value="{{ query }}">
+        <button type="submit">Search</button>
+      </form>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Serial No</th>
+              <th>Full Name</th>
+              <th>Role</th>
+              <th>Executive Post</th>
+              <th>Status</th>
+              <th>Year Joined</th>
+              {% if request.session.member_role == "admin" %}
+              <th>Profile | Edit | Delete</th>
               {% endif %}
-            </td>
-            <td>
-              <span class="badge badge-{{ member.status }}">
-                {{ member.status|title }}
-              </span>
-            </td>
-            <td>{{ member.year_joined }}</td>
-            <td>
-  {% if request.session.member_role == "admin" %}
-    <a href="{% url 'member_profile' member.id %}" class="view-btn">View</a>|
-              <a href="{% url 'edit_member' member.id %}" class="view-btn">Edit</a> |
-              <a href="{% url 'delete_member' member.id %}" class="view-btn">Delete</a>
-  {% endif %}
-</td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="7" style="text-align:center; padding:16px; color:#6b7280;">
-              No members found.
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+            </tr>
+          </thead>
+          <tbody>
+            {% for member in members %}
+            <tr>
+              <td>{{ member.serial_number }}</td>
+              <td>{{ member.full_name }}</td>
+              <td>
+                <span class="badge {% if member.role == 'admin' %}badge-admin{% else %}badge-member{% endif %}">
+                  {{ member.role|title }}
+                </span>
+              </td>
+              <td>
+                {% if member.executive_position %}
+                {{ member.executive_position }}
+                {% else %}
+                -
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge badge-{{ member.status }}">
+                  {{ member.status|title }}
+                </span>
+              </td>
+              <td>{{ member.year_joined }}</td>
+              <td>
+                {% if request.session.member_role == "admin" %}
+                <a href="{% url 'member_profile' member.id %}" class="view-btn">View</a>|
+                <a href="{% url 'edit_member' member.id %}" class="view-btn">Edit</a> |
+                <a href="{% url 'delete_member' member.id %}" class="view-btn">Delete</a>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" style="text-align:center; padding:16px; color:#6b7280;">
+                No members found.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
 
-    </main>
-<script src="{% static 'accounts/js/scripts.js' %}"></script>
+  </main>
+  <script src="{% static 'accounts/js/scripts.js' %}"></script>
 
 </body>
+
 </html>

@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Add Case – OYA – OYA</title>
@@ -10,28 +11,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="{% static 'cases/css/styles.css' %}">
+  <link rel="stylesheet" href="{% static 'cases/css/styles.css' %}">
 
   <style>
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: 'Poppins', sans-serif;
-      background: radial-gradient(circle at top, #e6f5f1, #f5f7f6, #ffffff);
-      padding: 20px;
-    }
-
     .container {
-      max-width: 1050px;
-      margin: auto;
-      background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(6px);
-      padding: 24px;
-      border-radius: 18px;
-      box-shadow: 0 16px 40px rgba(0,0,0,0.1);
-      border: 1px solid #eef2f7;
+      width: 100%;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
     }
 
     .header {
@@ -65,7 +52,9 @@
       font-size: 12px;
     }
 
-    input, textarea, select {
+    input,
+    textarea,
+    select {
       width: 100%;
       padding: 10px 12px;
       border-radius: 10px;
@@ -77,9 +66,11 @@
       background: #ffffff;
     }
 
-    input:focus, textarea:focus, select:focus {
+    input:focus,
+    textarea:focus,
+    select:focus {
       border-color: #0a7c5b;
-      box-shadow: 0 0 0 3px rgba(10,124,91,0.15);
+      box-shadow: 0 0 0 3px rgba(10, 124, 91, 0.15);
     }
 
     textarea {
@@ -119,59 +110,42 @@
     }
 
     @media (max-width: 500px) {
-      .header h2 { font-size: 18px; }
-      .btn { font-size: 11px; padding: 8px 14px; }
+      .header h2 {
+        font-size: 18px;
+      }
+
+      .btn {
+        font-size: 11px;
+        padding: 8px 14px;
+      }
     }
   </style>
 </head>
+
 <body>
 
-	<!-- Sidebar -->
-	<aside class="sidebar" id="sidebar">
-		<div class="brand">
-			<a href="{% url 'dashboard' %}" style="text-decoration: none;"><div class="avatar">{{ member.full_name|slice:":1" }}</div></a>
-		</div>
-		<strong>welcome, {{ member.full_name }}</strong>
-		<div class="sub">
-			{% if member.executive_position %}
-			<p>Post: {{ member.executive_position }}</p>
-			{% endif %}
-		</div>
-
-		<button class="close-btn" onclick="toggleSidebar()">
-			<i class="fa fa-times"></i>
-		</button>
-
-		<nav class="menu">
-			<a href="{% url 'dashboard' %}"><i class="fa fa-home"></i> Home</a>
-			<a href="{% url 'contributions_list' %}"><i class="fa fa-wallet"></i> Contributions</a>
-			<a href="{% url 'donation_list' %}"><i class="fa fa-plus"></i> Donations</a>
-			<a href="{% url 'executives_list' %}"><i class="fa fa-users"></i> Executives</a>
-			<a href="{% url 'taskforce_list' %}"><i class="fa fa-user-shield"></i> Task Force</a>
-			<a href="{% url 'motorcycles_list' %}"><i class="fa fa-motorcycle"></i> Motorcycles</a>
-			<a href="{% url 'cases_list' %}"><i class="fa fa-folder-open"></i> Community Cases</a>
-			<a href="{% url 'projects_list' %}"><i class="fa fa-diagram-project"></i> Projects</a>
-			{% if request.session.member_role == 'admin' %}
-			<a href="{% url 'admin_dashboard' %}"><i class="fa fa-user-cog"></i> Admin Panel</a>
-			{% endif %}
-		</nav>
-	</aside>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
     <div class="brand">
-          <div class="avatar">{{ member.full_name|slice:":1" }}</div>
+      <a href="{% url 'dashboard' %}" style="text-decoration: none;">
+        <div class="avatar">{{ member.full_name|slice:":1" }}</div>
+      </a>
     </div>
     <strong>welcome, {{ member.full_name }}</strong>
-          <div class="sub">
-            {% if member.executive_position %}
-        <p>Post: {{ member.executive_position }}</p>
-    {% endif %}
-          </div>
+    <div class="sub">
+      {% if member.executive_position %}
+      <p>Post: {{ member.executive_position }}</p>
+      {% endif %}
+    </div>
 
     <button class="close-btn" onclick="toggleSidebar()">
       <i class="fa fa-times"></i>
     </button>
 
     <nav class="menu">
-      <a href="{% url 'my_contributions' %}"><i class="fa fa-wallet"></i> Contributions</a>
+      <a href="{% url 'dashboard' %}"><i class="fa fa-home"></i> Home</a>
+      <a href="{% url 'contributions_list' %}"><i class="fa fa-wallet"></i> Contributions</a>
+      <a href="{% url 'donation_list' %}"><i class="fa fa-plus"></i> Donations</a>
       <a href="{% url 'executives_list' %}"><i class="fa fa-users"></i> Executives</a>
       <a href="{% url 'taskforce_list' %}"><i class="fa fa-user-shield"></i> Task Force</a>
       <a href="{% url 'motorcycles_list' %}"><i class="fa fa-motorcycle"></i> Motorcycles</a>
@@ -183,96 +157,99 @@
     </nav>
   </aside>
 
+
+
   <!-- Main -->
   <main class="main">
     <!-- Topbar -->
-   <div class="topbar">
-  <div class="left-top">
-    <button class="hamburger" onclick="toggleSidebar()">
-      <i class="fa fa-bars"></i>
-    </button>
+    <div class="topbar">
+      <div class="left-top">
+        <button class="hamburger" onclick="toggleSidebar()">
+          <i class="fa fa-bars"></i>
+        </button>
 
-    <div class="brand">
-      <img src="{% static 'cases/images/oya logo.jpeg' %}" alt="OYA Logo">
-      <span>
-        OYA<br>
-        <small>Peace & Progress</small>
-      </span>
-    </div>
-  </div>
-
-  <div class="actions">
-
-    <!-- Notifications / Profile Trigger -->
-    <div class="profile" onclick="toggleProfile()">
-      <span class="badge-noty">
-        {{ announcements_count|add:minutes_count }}
-      </span>
-      <i class="fa fa-cog"></i>
-    </div>
-
-    <!-- Dropdown -->
-    <div class="dropdown" id="profileDrop">
-      <p>
-        <i class="fa fa-user-circle"></i>
-        <strong>{{ member_id.full_name }}</strong>
-      </p>
-
-      <button class="icon-btn" onclick="toggleDark()">
-        <i class="fa fa-moon"></i>
-        Dark Mode
-      </button>
-
-      <a href="{% url 'member_profile' member.id %}">
-        <i class="fa fa-id-badge"></i>
-        My Profile
-      </a>
-
-      <a href="{% url 'announcements_list' %}">
-        <i class="fa fa-bullhorn"></i>
-        Announcements ({{ announcements_count }})
-      </a>
-
-      <a href="{% url 'minutes_list' %}">
-        <i class="fa fa-file-lines"></i>
-        Minutes ({{ minutes_count }})
-      </a>
-
-      <a href="#" onclick="window.print()">
-        <i class="fa fa-print"></i>
-        Print Report
-      </a>
-
-      <a href="{% url 'logout' %}">
-        <i class="fa fa-right-from-bracket"></i>
-        Logout
-      </a>
-    </div>
-
-  </div>
-</div>
-
-  <div class="container">
-
-    <div class="header">
-      <h2>Add New Case</h2>
-      <p>Peace and Progress</p>
-    </div>
-
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
+        <div class="brand">
+          <img src="{% static 'cases/images/oya logo.jpeg' %}" alt="OYA Logo">
+          <span>
+            OYA<br>
+            <small>Peace & Progress</small>
+          </span>
+        </div>
+      </div>
 
       <div class="actions">
-        <button type="submit" class="btn">Save Case</button>
-        <a href="{% url 'cases_list' %}" class="btn secondary">← Back to Cases</a>
+
+        <!-- Notifications / Profile Trigger -->
+        <div class="profile" onclick="toggleProfile()">
+          <span class="badge-noty">
+            {{ announcements_count|add:minutes_count }}
+          </span>
+          <i class="fa fa-cog"></i>
+        </div>
+
+        <!-- Dropdown -->
+        <div class="dropdown" id="profileDrop">
+          <p>
+            <i class="fa fa-user-circle"></i>
+            <strong>{{ member_id.full_name }}</strong>
+          </p>
+
+          <button class="icon-btn" onclick="toggleDark()">
+            <i class="fa fa-moon"></i>
+            Dark Mode
+          </button>
+
+          <a href="{% url 'member_profile' member.id %}">
+            <i class="fa fa-id-badge"></i>
+            My Profile
+          </a>
+
+          <a href="{% url 'announcements_list' %}">
+            <i class="fa fa-bullhorn"></i>
+            Announcements ({{ announcements_count }})
+          </a>
+
+          <a href="{% url 'minutes_list' %}">
+            <i class="fa fa-file-lines"></i>
+            Minutes ({{ minutes_count }})
+          </a>
+
+          <a href="#" onclick="window.print()">
+            <i class="fa fa-print"></i>
+            Print Report
+          </a>
+
+          <a href="{% url 'logout' %}">
+            <i class="fa fa-right-from-bracket"></i>
+            Logout
+          </a>
+        </div>
+
       </div>
-    </form>
+    </div>
 
-  </div>
+    <div class="container">
 
-    </main>
-<script src="{% static 'accounts/js/scripts.js' %}"></script>
+      <div class="header">
+        <h2>Add New Case</h2>
+        <p>Peace and Progress</p>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <div class="actions">
+          <button type="submit" class="btn">Save Case</button>
+          <a href="{% url 'cases_list' %}" class="btn secondary">← Back to Cases</a>
+        </div>
+      </form>
+
+    </div>
+
+  </main>
+  <script src="{% static 'accounts/js/scripts.js' %}"></script>
 
 </body>
+
 </html>

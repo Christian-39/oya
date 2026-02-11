@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django import forms
 
-from . import forms
 from .models import Member, ExecutiveTenure, Announcement, MeetingMinute
 from .forms import PinLoginForm, ExecutiveTenureForm
 import hashlib
