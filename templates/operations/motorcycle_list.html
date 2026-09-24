@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Motorcycles{% endblock %}
+{% block page_title %}Motorcycle Registry{% endblock %}
+{% block breadcrumb %}Registry{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 style="font-size:clamp(1.125rem, 3vw, 1.5rem);">Motorcycle Registry</h1>
+    <p style="font-size:clamp(0.75rem, 2vw, 0.875rem);">Manage registered motorcycles and levy collections</p>
+  </div>
+  <div class="page-header-actions" style="flex-wrap:wrap;gap:0.5rem;">
+    <button class="btn btn-secondary" data-export="motorcycleTable">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
+    </button>
+    {% if user.has_executive_access %}
+    <a href="{% url 'operations:motorcycle_create' %}" class="btn btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Register Motorcycle
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="dashboard-grid dashboard-grid-4" style="grid-template-columns:repeat(auto-fit, minmax(min(100%, 220px), 1fr));" style="margin-bottom:clamp(0.75rem, 3vw, 1.5rem);">
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"/></svg></div>
+    </div>
+    <div class="kpi-value" style="font-size:clamp(1.25rem, 4vw, 1.75rem);">{{ total_motorcycles }}</div>
+    <div class="kpi-label">Registered</div>
+  </div>
+  <div class="kpi-card accent-success">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-success-bg);color:var(--oya-success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-success);font-size:clamp(1.25rem, 4vw, 1.75rem);">{{ excellent_count }}</div>
+    <div class="kpi-label">Excellent Condition</div>
+  </div>
+  <div class="kpi-card accent-warning">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-warning-bg);color:var(--oya-warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-warning);font-size:clamp(1.25rem, 4vw, 1.75rem);">{{ needs_service_count }}</div>
+    <div class="kpi-label">Needs Service</div>
+  </div>
+  <div class="kpi-card accent-danger">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-danger-bg);color:var(--oya-danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-danger);font-size:clamp(1.25rem, 4vw, 1.75rem);">{{ grounded_count }}</div>
+    <div class="kpi-label">Grounded</div>
+  </div>
+</div>
+
+<div class="filters-bar" style="flex-wrap:wrap;gap:0.5rem;">
+  <form method="get" style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+    <div class="filter-group">
+      <span class="filter-label" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);">Condition:</span>
+      <select name="condition" class="form-control" style="width:160px;" onchange="this.form.submit()">
+        <option value="" {% if not condition_filter %}selected{% endif %}>All</option>
+        {% for value, label in condition_choices %}
+          <option value="{{ value }}" {% if condition_filter == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% if search_term %}
+      <input type="hidden" name="search" value="{{ search_term }}">
+    {% endif %}
+  </form>
+  <div style="margin-left:auto;font-size:clamp(0.75rem, 2vw, 0.875rem);color:var(--oya-text-secondary);">
+    <strong style="color:var(--oya-text-primary);">{{ total_motorcycles }}</strong> motorcycles
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-toolbar" style="flex-wrap:wrap;">
+    <div class="toolbar-search" style="max-width:100%;">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <form method="get" style="width:100%;">
+        <input type="text" name="search" placeholder="Search by asset tag, brand, model..." 
+               value="{{ search_term }}" data-search-table="motorcycleTable"
+               onkeydown="if(event.key==='Enter') this.form.submit()">
+        {% if condition_filter %}
+          <input type="hidden" name="condition" value="{{ condition_filter }}">
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <div class="table-container" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table class="data-table" id="motorcycleTable" data-sortable style="white-space:nowrap;">
+      <thead>
+        <tr>
+          <th style="width:40px;"><input type="checkbox" class="form-check-input" id="selectAll"></th>
+          <th data-sort="text">Asset Tag</th>
+          <th data-sort="text">Brand</th>
+          <th data-sort="text">Model</th>
+          <th data-sort="text">Year</th>
+          <th data-sort="text">Condition</th>
+          <th data-sort="text">Assigned To</th>
+          <th style="width:120px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mc in motorcycles %}
+        <tr>
+          <td style="white-space:nowrap;"><input type="checkbox" class="form-check-input row-checkbox" value="{{ mc.pk }}"></td>
+          <td class="cell-muted" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);white-space:nowrap;">{{ mc.asset_tag }}</td>
+          <td style="white-space:nowrap;"><span class="cell-name" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);white-space:nowrap;">{{ mc.brand|default:"N/A" }}</span></td>
+          <td style="white-space:nowrap;">{{ mc.model|default:"N/A" }}</td>
+          <td class="cell-muted" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);white-space:nowrap;">{{ mc.year|default:"N/A" }}</td>
+          <td style="white-space:nowrap;">
+            {% if mc.condition == "EXCELLENT" %}
+              <span class="badge badge-success" style="white-space:nowrap;">Excellent</span>
+            {% elif mc.condition == "NEEDS_SERVICE" %}
+              <span class="badge badge-warning" style="white-space:nowrap;">Needs Service</span>
+            {% elif mc.condition == "GROUNDED" %}
+              <span class="badge badge-danger" style="white-space:nowrap;">Grounded</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap;">
+            {% if mc.assigned_to %}
+              {{ mc.assigned_to.full_name }}
+            {% else %}
+              <span class="cell-muted" style="white-space:nowrap;">Unassigned</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap;">
+            <div class="table-actions" style="flex-wrap:nowrap;gap:0.25rem;">
+              <a href="#" class="table-action-btn" title="View" onclick="event.preventDefault(); document.getElementById('mc-modal-{{ mc.pk }}').showModal();">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </a>
+              {% if user.has_executive_access %}
+                <a href="{% url 'operations:motorcycle_update' pk=mc.pk %}" class="table-action-btn" title="Edit">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </a>
+                <a href="{% url 'operations:motorcycle_delete' pk=mc.pk %}" class="table-action-btn danger" title="Delete">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align:center;padding:3rem;">
+            <div class="empty-state" style="padding:0;">
+              <div class="empty-state-icon" style="width:clamp(48px, 15vw, 60px);height:clamp(48px, 15vw, 60px);margin-bottom:1rem;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"/></svg>
+              </div>
+              <h3 style="font-size:clamp(0.875rem, 2.5vw, 1rem);">No motorcycles found</h3>
+              <p style="font-size:clamp(0.75rem, 2vw, 0.875rem);">
+                {% if search_term or condition_filter %}
+                  No motorcycles match your search/filter criteria.
+                {% else %}
+                  No motorcycles have been registered yet. Click "Register Motorcycle" to get started.
+                {% endif %}
+              </p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if motorcycles.has_other_pages %}
+  <div class="card-footer">
+    <span style="font-size:clamp(0.6875rem, 1.5vw, 0.8125rem);color:var(--oya-text-muted);">Showing {{ motorcycles.start_index }}-{{ motorcycles.end_index }} of {{ motorcycles.paginator.count }} motorcycles</span>
+    <div class="pagination">
+      {% if motorcycles.has_previous %}
+        <a href="?page={{ motorcycles.previous_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if condition_filter %}&condition={{ condition_filter }}{% endif %}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      {% endif %}
+
+      {% for num in motorcycles.paginator.page_range %}
+        {% if motorcycles.number == num %}
+          <button class="page-btn active">{{ num }}</button>
+        {% elif num > motorcycles.number|add:'-3' and num < motorcycles.number|add:'3' %}
+          <a href="?page={{ num }}{% if search_term %}&search={{ search_term }}{% endif %}{% if condition_filter %}&condition={{ condition_filter }}{% endif %}" class="page-btn">{{ num }}</a>
+        {% elif num == 1 or num == motorcycles.paginator.num_pages %}
+          <a href="?page={{ num }}{% if search_term %}&search={{ search_term }}{% endif %}{% if condition_filter %}&condition={{ condition_filter }}{% endif %}" class="page-btn">{{ num }}</a>
+        {% elif num == motorcycles.number|add:'-3' or num == motorcycles.number|add:'3' %}
+          <span class="page-btn" style="cursor:default;border:none;background:transparent;">...</span>
+        {% endif %}
+      {% endfor %}
+
+      {% if motorcycles.has_next %}
+        <a href="?page={{ motorcycles.next_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if condition_filter %}&condition={{ condition_filter }}{% endif %}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% for mc in motorcycles %}
+<dialog id="mc-modal-{{ mc.pk }}" style="border:none;border-radius:var(--oya-radius,8px);padding:0;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+  <div style="padding:clamp(1.25rem, 4vw, 1.75rem);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <h3 style="font-size:clamp(1rem, 3vw, 1.125rem);margin:0;">Motorcycle Details</h3>
+      <button onclick="document.getElementById('mc-modal-{{ mc.pk }}').close();" style="background:none;border:none;cursor:pointer;padding:0.25rem;color:var(--oya-text-muted);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;font-size:clamp(0.8125rem, 2vw, 0.875rem);">
+      <div>
+        <span style="color:var(--oya-text-muted);display:block;font-size:clamp(0.6875rem, 1.5vw, 0.75rem);">Asset Tag</span>
+        <span style="color:var(--oya-text-primary);font-weight:500;">{{ mc.asset_tag }}</span>
+      </div>
+      <div>
+        <span style="color:var(--oya-text-muted);display:block;font-size:clamp(0.6875rem, 1.5vw, 0.75rem);">Condition</span>
+        <span style="color:var(--oya-text-primary);font-weight:500;">
+          {% if mc.condition == "EXCELLENT" %}
+            <span class="badge badge-success">Excellent</span>
+          {% elif mc.condition == "NEEDS_SERVICE" %}
+            <span class="badge badge-warning">Needs Service</span>
+          {% elif mc.condition == "GROUNDED" %}
+            <span class="badge badge-danger">Grounded</span>
+          {% endif %}
+        </span>
+      </div>
+      <div>
+        <span style="color:var(--oya-text-muted);display:block;font-size:clamp(0.6875rem, 1.5vw, 0.75rem);">Brand</span>
+        <span style="color:var(--oya-text-primary);font-weight:500;">{{ mc.brand|default:"N/A" }}</span>
+      </div>
+      <div>
+        <span style="color:var(--oya-text-muted);display:block;font-size:clamp(0.6875rem, 1.5vw, 0.75rem);">Model</span>
+        <span style="color:var(--oya-text-primary);font-weight:500;">{{ mc.model|default:"N/A" }}</span>
+      </div>
+      <div>
+        <span style="color:var(--oya-text-muted);display:block;font-size:clamp(0.6875rem, 1.5vw, 0.75rem);">Year</span>
+        <span style="color:var(--oya-text-primary);font-weight:500;">{{ mc.year|default:"N/A" }}</span>
+      </div>
+      <div>
+        <span style="color:var(--oya-text-muted);display:block;font-size:clamp(0.6875rem, 1.5vw, 0.75rem);">Assigned To</span>
+        <span style="color:var(--oya-text-primary);font-weight:500;">
+          {% if mc.assigned_to %}
+            {{ mc.assigned_to.full_name }}
+          {% else %}
+            <span style="color:var(--oya-text-muted);">Unassigned</span>
+          {% endif %}
+        </span>
+      </div>
+    </div>
+    <div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--oya-border);">
+      <button onclick="document.getElementById('mc-modal-{{ mc.pk }}').close();" class="btn btn-secondary" style="font-size:clamp(0.75rem, 2vw, 0.8125rem);">Close</button>
+      {% if user.has_executive_access %}
+        <a href="{% url 'operations:motorcycle_update' pk=mc.pk %}" class="btn btn-primary" style="font-size:clamp(0.75rem, 2vw, 0.8125rem);">Edit</a>
+      {% endif %}
+    </div>
+  </div>
+</dialog>
+{% endfor %}
+
+{% endblock %}

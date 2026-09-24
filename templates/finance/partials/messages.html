@@ -1,0 +1,16 @@
+{% comment %}
+  NOTE: Not currently included anywhere — Django messages are already
+  rendered globally as toasts in templates/base.html. Rewritten here (in
+  case this partial is ever included directly, e.g. inside an HTMX partial
+  response) to use the project's .alert classes instead of Bootstrap's
+  .alert-dismissible, which has no matching CSS/JS in this project.
+{% endcomment %}
+{% if messages %}
+<div id="messageContainer" style="margin-bottom: 1rem;">
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags|default:'info' }}">
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}

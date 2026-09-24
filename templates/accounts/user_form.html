@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}<style>
+@media (max-width: 768px) {
+  .page-header-left h1 { font-size: 1.375rem !important; }
+  .page-header-left p { font-size: 0.9375rem; }
+  .form-control { font-size: 0.9375rem; padding: 0.625rem 0.875rem; }
+  .form-label { font-size: 0.9375rem; }
+  .form-error { font-size: 0.8125rem; }
+  .card-header-title { font-size: 1rem; }
+  .card-header-subtitle { font-size: 0.875rem; }
+  .btn { font-size: 0.875rem; padding: 0.625rem 1rem; }
+  .avatar { width: 52px; height: 52px; }
+}
+
+@media (max-width: 480px) {
+  .form-control { font-size: 0.875rem; padding: 0.5rem 0.75rem; }
+  .form-label { font-size: 0.875rem; }
+  .page-header-left h1 { font-size: 1.25rem !important; }
+  .btn { font-size: 0.8125rem; }
+}
+</style>
+
+{% endblock %}
+{% block page_title %}{{ title }}<style>
+@media (max-width: 768px) {
+  .page-header-left h1 { font-size: 1.375rem !important; }
+  .page-header-left p { font-size: 0.9375rem; }
+  .form-control { font-size: 0.9375rem; padding: 0.625rem 0.875rem; }
+  .form-label { font-size: 0.9375rem; }
+  .form-error { font-size: 0.8125rem; }
+  .card-header-title { font-size: 1rem; }
+  .card-header-subtitle { font-size: 0.875rem; }
+  .btn { font-size: 0.875rem; padding: 0.625rem 1rem; }
+  .avatar { width: 52px; height: 52px; }
+}
+
+@media (max-width: 480px) {
+  .form-control { font-size: 0.875rem; padding: 0.5rem 0.75rem; }
+  .form-label { font-size: 0.875rem; }
+  .page-header-left h1 { font-size: 1.25rem !important; }
+  .btn { font-size: 0.8125rem; }
+}
+</style>
+
+{% endblock %}
+{% block breadcrumb %}{{ action }}<style>
+@media (max-width: 768px) {
+  .page-header-left h1 { font-size: 1.375rem !important; }
+  .page-header-left p { font-size: 0.9375rem; }
+  .form-control { font-size: 0.9375rem; padding: 0.625rem 0.875rem; }
+  .form-label { font-size: 0.9375rem; }
+  .form-error { font-size: 0.8125rem; }
+  .card-header-title { font-size: 1rem; }
+  .card-header-subtitle { font-size: 0.875rem; }
+  .btn { font-size: 0.875rem; padding: 0.625rem 1rem; }
+  .avatar { width: 52px; height: 52px; }
+}
+
+@media (max-width: 480px) {
+  .form-control { font-size: 0.875rem; padding: 0.5rem 0.75rem; }
+  .form-label { font-size: 0.875rem; }
+  .page-header-left h1 { font-size: 1.25rem !important; }
+  .btn { font-size: 0.8125rem; }
+}
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 style="font-size:clamp(1.125rem,3vw,1.5rem);">{{ title }}</h1>
+    <p>{% if action == "Create" %}Create a new user account{% else %}Update user details{% endif %}</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">User Information</div>
+      <div class="card-header-subtitle">Enter user details below</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <!-- CRITICAL: enctype="multipart/form-data" is REQUIRED for file uploads -->
+    <form method="post" enctype="multipart/form-data" action="">
+      {% csrf_token %}
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:1.5rem;">
+        <!-- Left Column: Basic Info -->
+        <div>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label for="{{ form.serial_number.id_for_label }}" class="form-label">Serial Number</label>
+            {{ form.serial_number }}
+            {% if form.serial_number.errors %}
+              <div class="form-error">{{ form.serial_number.errors.0 }}</div>
+            {% endif %}
+            <div style="font-size:0.75rem;color:var(--oya-text-muted);margin-top:0.25rem;">Format: OYA-YYYY-XXXX (e.g., OYA-2026-0001)</div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label for="{{ form.full_name.id_for_label }}" class="form-label">Full Name</label>
+            {{ form.full_name }}
+            {% if form.full_name.errors %}
+              <div class="form-error">{{ form.full_name.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label for="{{ form.phone.id_for_label }}" class="form-label">Phone</label>
+            {{ form.phone }}
+            {% if form.phone.errors %}
+              <div class="form-error">{{ form.phone.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label for="{{ form.state.id_for_label }}" class="form-label">State</label>
+            {{ form.state }}
+            {% if form.state.errors %}
+              <div class="form-error">{{ form.state.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Right Column: Role, Photo, PIN, Status -->
+        <div>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label for="{{ form.role.id_for_label }}" class="form-label">Role</label>
+            {{ form.role }}
+            {% if form.role.errors %}
+              <div class="form-error">{{ form.role.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Photo Upload Section -->
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label for="{{ form.photo.id_for_label }}" class="form-label">Profile Photo</label>
+            <div style="display:flex;align-items:center;gap:1rem;">
+              {% if user_obj and user_obj.photo and user_obj.photo.name %}
+                <div class="avatar" style="width:60px;height:60px;overflow:hidden;cursor:pointer;" onclick="openImagePreview('{{ user_obj.photo.url }}', '{{ user_obj.full_name }}')">
+                  <img src="{{ user_obj.photo.url }}" alt="Current photo" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+              {% elif user_obj and user_obj.member and user_obj.member.photo and user_obj.member.photo.name %}
+                <div class="avatar" style="width:60px;height:60px;overflow:hidden;cursor:pointer;" onclick="openImagePreview('{{ user_obj.member.photo.url }}', '{{ user_obj.full_name }}')">
+                  <img src="{{ user_obj.member.photo.url }}" alt="Current photo" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+              {% else %}
+                <div class="avatar" style="width:60px;height:60px;background:var(--oya-primary);color:#fff;">
+                  {{ user_obj.get_initials|default:"?" }}
+                </div>
+              {% endif %}
+              <div style="flex:1;">
+                {{ form.photo }}
+                {% if form.photo.errors %}
+                  <div class="form-error">{{ form.photo.errors.0 }}</div>
+                {% endif %}
+                <div style="font-size:0.75rem;color:var(--oya-text-muted);margin-top:0.25rem;">Upload a new photo to replace the current one</div>
+              </div>
+            </div>
+          </div>
+
+          {% if action == "Create" %}
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label for="{{ form.pin.id_for_label }}" class="form-label">PIN (6 digits)</label>
+            {{ form.pin }}
+            {% if form.pin.errors %}
+              <div class="form-error">{{ form.pin.errors.0 }}</div>
+            {% endif %}
+            <div style="font-size:0.75rem;color:var(--oya-text-muted);margin-top:0.25rem;">6-digit PIN for login</div>
+          </div>
+          {% else %}
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label for="{{ form.new_pin.id_for_label }}" class="form-label">New PIN (optional)</label>
+            {{ form.new_pin }}
+            {% if form.new_pin.errors %}
+              <div class="form-error">{{ form.new_pin.errors.0 }}</div>
+            {% endif %}
+            <div style="font-size:0.75rem;color:var(--oya-text-muted);margin-top:0.25rem;">Leave blank to keep current PIN</div>
+          </div>
+          {% endif %}
+
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+              {{ form.is_active }}
+              <span>Active Account</span>
+            </label>
+            {% if form.is_active.errors %}
+              <div class="form-error">{{ form.is_active.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:1.5rem;display:flex;justify-content:flex-end;gap:0.75rem;">
+        <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary btn-lg">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          {{ action }} User
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+@media (max-width: 768px) {
+  .page-header-left h1 { font-size: 1.375rem !important; }
+  .page-header-left p { font-size: 0.9375rem; }
+  .form-control { font-size: 0.9375rem; padding: 0.625rem 0.875rem; }
+  .form-label { font-size: 0.9375rem; }
+  .form-error { font-size: 0.8125rem; }
+  .card-header-title { font-size: 1rem; }
+  .card-header-subtitle { font-size: 0.875rem; }
+  .btn { font-size: 0.875rem; padding: 0.625rem 1rem; }
+  .avatar { width: 52px; height: 52px; }
+}
+
+@media (max-width: 480px) {
+  .form-control { font-size: 0.875rem; padding: 0.5rem 0.75rem; }
+  .form-label { font-size: 0.875rem; }
+  .page-header-left h1 { font-size: 1.25rem !important; }
+  .btn { font-size: 0.8125rem; }
+}
+</style>
+
+{% endblock %}

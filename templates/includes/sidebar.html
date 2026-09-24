@@ -1,0 +1,542 @@
+{% load static %}
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <!-- Header -->
+  <div class="sidebar-header">
+    {% if settings_logo_url %}
+    <img
+      src="{{ settings_logo_url }}"
+      alt="OYA Logo"
+      class="sidebar-logo"
+      style="max-height: 36px; max-width: 120px; object-fit: contain"
+    />
+    {% else %}
+    <img
+      src="{% static 'images/oya_logo.png' %}"
+      alt="OYA Logo"
+      class="sidebar-logo"
+    />
+    {% endif %}
+    <span class="sidebar-brand">OYA System</span>
+    <button
+      class="sidebar-toggle"
+      id="sidebarToggle"
+      aria-label="Toggle Sidebar"
+    >
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    <!-- Main -->
+    <div class="nav-section">
+      <div class="nav-section-title">Main</div>
+
+      <a
+        href="{% url 'dashboard:index' %}"
+        class="nav-item {% if request.resolver_match.namespace == 'dashboard' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect x="3" y="3" width="7" height="7" />
+          <rect x="14" y="3" width="7" height="7" />
+          <rect x="14" y="14" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" />
+        </svg>
+        <span class="nav-label">Dashboard</span>
+      </a>
+
+      <a
+        href="{% url 'members:member_list' %}"
+        class="nav-item {% if request.resolver_match.namespace == 'members' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        <span class="nav-label">Members</span>
+      </a>
+
+      <a
+        href="{% url 'executives:executive_list' %}"
+        class="nav-item {% if request.resolver_match.namespace == 'executives' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <line x1="12" y1="11" x2="12" y2="11" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        <span class="nav-label">Executives</span>
+      </a>
+    </div>
+
+    <!-- Operations -->
+    <div class="nav-section">
+      <div class="nav-section-title">Operations</div>
+
+      <a
+        href="{% url 'operations:case_list' %}"
+        class="nav-item {% if request.resolver_match.url_name == 'case_list' or request.resolver_match.url_name == 'case_detail' or request.resolver_match.url_name == 'case_create' or request.resolver_match.url_name == 'case_resolve' or request.resolver_match.url_name == 'case_update' or request.resolver_match.url_name == 'case_delete' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+          />
+          <polyline points="14 2 14 8 20 8" />
+        </svg>
+        <span class="nav-label">Cases</span>
+      </a>
+
+      <a
+        href="{% url 'operations:taskforce_list' %}"
+        class="nav-item {% if request.resolver_match.url_name == 'taskforce_list' or request.resolver_match.url_name == 'taskforce_create' or request.resolver_match.url_name == 'taskforce_update' or request.resolver_match.url_name == 'taskforce_remove' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        <span class="nav-label">Task Force</span>
+      </a>
+
+      <a
+        href="{% url 'operations:motorcycle_list' %}"
+        class="nav-item {% if request.resolver_match.url_name == 'motorcycle_list' or request.resolver_match.url_name == 'motorcycle_create' or request.resolver_match.url_name == 'motorcycle_update' or request.resolver_match.url_name == 'motorcycle_delete' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="5.5" cy="17.5" r="3.5" />
+          <circle cx="18.5" cy="17.5" r="3.5" />
+          <path
+            d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"
+          />
+        </svg>
+        <span class="nav-label">Motorcycles</span>
+      </a>
+
+      <a
+        href="{% url 'projects:project_list' %}"
+        class="nav-item {% if request.resolver_match.namespace == 'projects' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polygon points="12 2 2 7 12 12 22 7 12 2" />
+          <polyline points="2 17 12 22 22 17" />
+          <polyline points="2 12 12 17 22 12" />
+        </svg>
+        <span class="nav-label">Projects</span>
+      </a>
+
+      <a
+        href="{% url 'elections:election_list' %}"
+        class="nav-item {% if request.resolver_match.namespace == 'elections' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        <span class="nav-label">Elections</span>
+      </a>
+    </div>
+
+    <!-- Finance -->
+    <div class="nav-section">
+      <div class="nav-section-title">Finance</div>
+
+      <a
+        href="{% url 'finance:finance_summary' %}"
+        class="nav-item {% if request.resolver_match.url_name == 'finance_summary' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="12" y1="1" x2="12" y2="23" />
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+        <span class="nav-label">Finance Overview</span>
+      </a>
+
+      <a
+        href="{% url 'finance:dues_tracker' %}"
+        class="nav-item {% if request.resolver_match.url_name == 'dues_tracker' or request.resolver_match.url_name == 'dues_allocate' or request.resolver_match.url_name == 'dues_create' or request.resolver_match.url_name == 'dues_delete' or request.resolver_match.url_name == 'member_dues_detail' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+          />
+          <polyline points="14 2 14 8 20 8" />
+          <line x1="16" y1="13" x2="8" y2="13" />
+          <line x1="16" y1="17" x2="8" y2="17" />
+        </svg>
+        <span class="nav-label">Dues Tracker</span>
+      </a>
+
+      <a
+        href="{% url 'finance:income_list' %}"
+        class="nav-item {% if request.resolver_match.url_name == 'income_list' or request.resolver_match.url_name == 'income_create' or request.resolver_match.url_name == 'income_detail' or request.resolver_match.url_name == 'income_delete' or request.resolver_match.url_name == 'donation_list' or request.resolver_match.url_name == 'donation_create' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+          <polyline points="17 6 23 6 23 12" />
+        </svg>
+        <span class="nav-label">Contributions</span>
+      </a>
+
+      <a
+        href="{% url 'settingsapp:donation_group_list' %}"
+        class="nav-item {% if request.resolver_match.url_name == 'donation_group_list' or request.resolver_match.url_name == 'donation_group_create' or request.resolver_match.url_name == 'donation_group_update' or request.resolver_match.url_name == 'donation_group_detail' or request.resolver_match.url_name == 'donation_group_delete' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21c0-4 3.5-6 8-6s8 2 8 6" />
+        </svg>
+        <span class="nav-label">Donation Groups</span>
+      </a>
+
+      <a
+        href="{% url 'project_donations:pledge_list' %}"
+        class="nav-item {% if request.resolver_match.url_name == 'pledge_list' or request.resolver_match.url_name == 'pledge_create' or request.resolver_match.url_name == 'pledge_update' or request.resolver_match.url_name == 'pledge_detail' or request.resolver_match.url_name == 'pledge_delete' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M9 11l3 3L22 4" />
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </svg>
+        <span class="nav-label">Pledges</span>
+      </a>
+
+      <a
+        href="{% url 'finance:expense_list' %}"
+        class="nav-item {% if request.resolver_match.url_name == 'expense_list' or request.resolver_match.url_name == 'expense_create' or request.resolver_match.url_name == 'expense_detail' or request.resolver_match.url_name == 'expense_delete' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+          <polyline points="17 18 23 18 23 12" />
+        </svg>
+        <span class="nav-label">Expenses</span>
+      </a>
+
+      <!-- Outside Donors -->
+      <a
+        href="{% url 'project_donations:outside_donor_list' %}"
+        class="nav-item {% if request.resolver_match.url_name == 'outside_donor_list' or request.resolver_match.url_name == 'outside_donor_detail' or request.resolver_match.url_name == 'outside_donor_create' or request.resolver_match.url_name == 'outside_donor_update' or request.resolver_match.url_name == 'outside_donor_delete' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        <span class="nav-label">Outside Donors</span>
+      </a>
+
+      <!-- Donations -->
+      <a
+        href="{% url 'project_donations:donation_list' %}"
+        class="nav-item {% if request.resolver_match.url_name == 'donation_list' or request.resolver_match.url_name == 'donation_detail' or request.resolver_match.url_name == 'donation_create' or request.resolver_match.url_name == 'donation_update' or request.resolver_match.url_name == 'donation_delete' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+          />
+        </svg>
+        <span class="nav-label">Project Donations</span>
+      </a>
+    </div>
+
+    <!-- Administration -->
+    <div class="nav-section">
+      <div class="nav-section-title">Administration</div>
+
+      <!-- User List -->
+      <a
+        href="{% url 'accounts:user_list' %}"
+        class="nav-item {% if request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'user_create' or request.resolver_match.url_name == 'user_detail' or request.resolver_match.url_name == 'user_update' or request.resolver_match.url_name == 'user_delete' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        <span class="nav-label">Admins</span>
+      </a>
+
+      <a
+        href="{% url 'notifications:notification_list' %}"
+        class="nav-item {% if request.resolver_match.namespace == 'notifications' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+        <span class="nav-label">Notifications</span>
+        {% if unread_notification_count > 0 %}
+        <span
+          class="badge badge-danger"
+          style="
+            margin-left: auto;
+            font-size: 0.625rem;
+            min-width: 20px;
+            height: 20px;
+          "
+          id="sidebarNotifBadge"
+          >{{ unread_notification_count }}</span
+        >
+        {% endif %}
+      </a>
+
+      {% if user.has_executive_access %}
+
+      <a
+        href="{% url 'auditlogs:auditlog_list' %}"
+        class="nav-item {% if request.resolver_match.namespace == 'auditlogs' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+        </svg>
+        <span class="nav-label">Audit Logs</span>
+      </a>
+
+      <a
+        href="{% url 'settingsapp:settings' %}"
+        class="nav-item {% if request.resolver_match.namespace == 'settingsapp' %}active{% endif %}"
+      >
+        <svg
+          class="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+          />
+        </svg>
+        <span class="nav-label">Settings</span>
+      </a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <!-- prettier-ignore -->
+      {% if user.is_authenticated %}{% with member=user.member %}{% with member_photo=member.photo|default:None %}
+      <div
+        class="user-avatar"
+        style="overflow: hidden; cursor: pointer"
+        onclick="openImagePreview('{% if user.photo and user.photo.name %}{{ user.photo.url }}{% elif member_photo and member_photo.name %}{{ member_photo.url }}{% endif %}', '{{ user.full_name|default:user.serial_number }}')"
+      >
+        {% if user.photo and user.photo.name %}
+        <img
+          src="{{ user.photo.url }}"
+          alt="{{ user.full_name }}"
+          style="width: 100%; height: 100%; object-fit: cover"
+        />
+        {% elif member_photo and member_photo.name %}
+        <img
+          src="{{ member_photo.url }}"
+          alt="{{ user.full_name }}"
+          style="width: 100%; height: 100%; object-fit: cover"
+        /><!-- prettier-ignore -->
+        {% else %} {{ user.get_full_name|first|upper|default:user.serial_number|first|upper }}
+        {% endif %}
+      </div>
+      {% endwith %}{% endwith %} {% else %}
+      <div
+        class="user-avatar"
+        style="overflow: hidden; cursor: pointer"
+        onclick="openImagePreview('', 'Guest')"
+      >
+        ?
+      </div>
+      {% endif %}
+      <div class="user-details">
+        {% if user.is_authenticated %}
+        <div class="user-name">
+          <!-- prettier-ignore -->
+          {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user }}{% endif %}
+        </div>
+        <div class="user-role">
+          {% if user.member.position %}{{ user.member.position }}{% else %}{{ user.get_role_display|default:"Member" }}{% endif %}
+        </div>
+        {% else %}
+        <div class="user-name">Guest</div>
+        <div class="user-role">Please sign in</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</aside>

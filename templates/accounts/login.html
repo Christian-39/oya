@@ -1,0 +1,502 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a3d62">
+    <title>Login | Okpo Youths Association</title>
+
+    <!-- Dynamic Favicon -->
+    {% if settings_favicon_url %}
+    <link rel="icon" type="image/png" href="{{ settings_favicon_url }}">
+    {% else %}
+    <link rel="icon" type="image/png" href="{% static 'images/oya_logo.png' %}">
+    {% endif %}
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --oya-navy: #0a3d62;
+            --oya-navy-light: #0d4a7c;
+            --oya-navy-dark: #072d4a;
+            --oya-gold: #d4a843;
+            --oya-gold-light: #e4b85a;
+            --oya-white: #ffffff;
+            --oya-gray-100: #f8f9fa;
+            --oya-gray-200: #e9ecef;
+            --oya-gray-300: #dee2e6;
+            --oya-gray-400: #adb5bd;
+            --oya-gray-500: #6c757d;
+            --oya-gray-600: #495057;
+            --oya-gray-700: #343a40;
+            --oya-danger: #dc3545;
+            --oya-success: #198754;
+            --oya-radius-sm: 12px;
+            --oya-radius: 16px;
+            --oya-radius-lg: 24px;
+            --oya-shadow: 0 4px 20px rgba(10, 61, 98, 0.15);
+            --oya-shadow-lg: 0 8px 40px rgba(10, 61, 98, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--oya-navy) 0%, var(--oya-navy-dark) 100%);
+            padding: 1rem;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Alert / Messages */
+        .alert-container {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            right: 1rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .alert {
+            background: var(--oya-white);
+            border-radius: var(--oya-radius);
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: var(--oya-shadow-lg);
+            animation: slideDown 0.3s ease-out;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            border-left: 4px solid var(--oya-success);
+            color: var(--oya-success);
+        }
+
+        .alert-danger {
+            border-left: 4px solid var(--oya-danger);
+            color: var(--oya-danger);
+        }
+
+        .alert-warning {
+            border-left: 4px solid var(--oya-gold);
+            color: #856404;
+        }
+
+        .alert-info {
+            border-left: 4px solid var(--oya-navy-light);
+            color: var(--oya-navy);
+        }
+
+        .alert-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .alert-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            line-height: 1;
+            cursor: pointer;
+            color: var(--oya-gray-400);
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .alert-close:hover {
+            background: var(--oya-gray-100);
+        }
+
+        /* Form Errors (inline, above card) */
+        .form-errors {
+            width: 100%;
+            max-width: 380px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-error {
+            background: var(--oya-white);
+            border-radius: var(--oya-radius);
+            padding: 0.875rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: var(--oya-shadow-lg);
+            animation: slideDown 0.3s ease-out;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-left: 4px solid var(--oya-danger);
+            color: var(--oya-danger);
+        }
+
+        /* Login Card */
+        .login-card {
+            background: var(--oya-white);
+            border-radius: var(--oya-radius-lg);
+            padding: 2rem 1.5rem;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: var(--oya-shadow-lg);
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        /* Logo Section */
+        .logo-section {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .logo-wrapper {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 1rem;
+            background: var(--oya-white);
+            border-radius: 50%;
+            padding: 4px;
+            box-shadow: 0 4px 15px rgba(10, 61, 98, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .logo-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+
+        .login-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--oya-navy);
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .login-subtitle {
+            font-size: 0.875rem;
+            color: var(--oya-gray-500);
+            font-weight: 400;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--oya-gray-600);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .form-control {
+            width: 100%;
+            border: 2px solid var(--oya-gray-200);
+            border-radius: var(--oya-radius);
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            color: var(--oya-gray-700);
+            background: var(--oya-white);
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--oya-navy-light);
+            box-shadow: 0 0 0 4px rgba(10, 61, 98, 0.08);
+        }
+
+        .form-control::placeholder {
+            color: var(--oya-gray-400);
+            font-weight: 400;
+        }
+
+        .form-control[type="password"] {
+            letter-spacing: 0.15em;
+        }
+
+        /* Field-specific errors */
+        .field-error {
+            color: var(--oya-danger);
+            font-size: 0.8rem;
+            margin-top: 0.35rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* Login Button */
+        .login-btn {
+            width: 100%;
+            padding: 0.875rem;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            border-radius: var(--oya-radius);
+            border: none;
+            background: linear-gradient(135deg, var(--oya-gold) 0%, var(--oya-gold-light) 100%);
+            color: var(--oya-navy-dark);
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(212, 168, 67, 0.3);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 168, 67, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Footer */
+        .login-footer {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        .login-footer-text {
+            font-size: 0.8125rem;
+            color: var(--oya-gray-500);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .login-footer-link {
+            color: var(--oya-navy-light);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-footer-link:hover {
+            text-decoration: underline;
+        }
+
+        .secure-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.75rem;
+            color: var(--oya-success);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .secure-badge svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile tweaks */
+        @media (max-width: 360px) {
+            .login-card {
+                padding: 1.5rem 1.25rem;
+            }
+            .logo-wrapper {
+                width: 80px;
+                height: 80px;
+            }
+            .login-title {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Django Messages / Alerts -->
+    {% if messages %}
+    <div class="alert-container">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+                {% if message.tags == 'success' %}
+                    <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {% elif message.tags == 'error' or message.tags == 'danger' %}
+                    <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {% elif message.tags == 'warning' %}
+                    <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                {% else %}
+                    <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {% endif %}
+                {{ message }}
+                <button type="button" class="alert-close" onclick="this.parentElement.remove()">&times;</button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Form Non-Field Errors (e.g. wrong credentials, deactivated account) -->
+    {% if form.non_field_errors %}
+    <div class="form-errors">
+        {% for error in form.non_field_errors %}
+            <div class="form-error" role="alert">
+                <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                {{ error }}
+                <button type="button" class="alert-close" onclick="this.parentElement.remove()">&times;</button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="login-card">
+        <!-- Logo -->
+        <div class="logo-section">
+            <div class="logo-wrapper">
+                {% if settings_logo_url %}
+                    <img src="{{ settings_logo_url }}" alt="OYA Logo">
+                {% else %}
+                    <img src="{% static 'images/oya_logo.png' %}" alt="OYA Logo">
+                {% endif %}
+            </div>
+            <h1 class="login-title">Okpo Youths Association</h1>
+            <p class="login-subtitle">Sign in to your account</p>
+        </div>
+
+        <!-- Login Form -->
+        <form method="post" action="{% url 'accounts:login' %}" novalidate>
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label" for="serial_number">Serial Number</label>
+                <input type="text" 
+                       id="serial_number"
+                       name="serial_number" 
+                       class="form-control" 
+                       placeholder="OYA-2026-0001" 
+                       required 
+                       autofocus 
+                       autocomplete="off"
+                       inputmode="text"
+                       value="{{ form.serial_number.value|default:'' }}">
+                {% if form.serial_number.errors %}
+                    {% for error in form.serial_number.errors %}
+                        <p class="field-error">⚠ {{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="pin">PIN</label>
+                <input type="password" 
+                       id="pin"
+                       name="pin" 
+                       class="form-control" 
+                       placeholder="Enter 6-digit PIN" 
+                       required 
+                       maxlength="6" 
+                       inputmode="numeric" 
+                       pattern="[0-9]*">
+                {% if form.pin.errors %}
+                    {% for error in form.pin.errors %}
+                        <p class="field-error">⚠ {{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <button type="submit" class="login-btn">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/>
+                    <polyline points="10 17 15 12 10 7"/>
+                    <line x1="15" y1="12" x2="3" y2="12"/>
+                </svg>
+                Sign In
+            </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="login-footer">
+            <div class="secure-badge">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+                Secure Login
+            </div>
+            <p class="login-footer-text">
+                Forgot PIN? <a href="#" class="login-footer-link">Contact an Admin</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-dismiss alerts after 5 seconds
+        document.querySelectorAll('.alert, .form-error').forEach(alert => {
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(() => alert.remove(), 300);
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

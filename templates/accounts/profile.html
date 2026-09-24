@@ -1,0 +1,454 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ user.get_full_name }} — Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block breadcrumb %}Account / Profile{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header detail-header"> 
+  <div class="page-header-left">
+    <div style="display:flex;align-items:center;gap:1rem;">
+      {% if user.photo %}
+        <img src="{{ user.photo.url }}" alt="{{ user.get_full_name }}" class="avatar avatar-lg">
+      {% else %}
+        <div class="avatar avatar-lg" style="background:var(--oya-primary);color:#fff;">{{ user.get_initials }}</div>
+      {% endif %}
+      <div>
+        <h1 style="font-size:clamp(1.125rem,3vw,1.5rem);">{{ user.get_full_name }}</h1>
+        <p style="margin:0;color:var(--oya-text-secondary);">{% if member.position %}{{ member.position }}{% else %}{{ user.get_role_display|default:"Member" }}{% endif %}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Contribution Summary KPIs -->
+<div class="dashboard-grid dashboard-grid-4" style="margin-bottom:1.5rem;">
+  <div class="kpi-card accent-success">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-success-bg);color:var(--oya-success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg></div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-success);">&#x20A6;{{ total_paid|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Total Contributions</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+    </div>
+    <div class="kpi-value">&#x20A6;{{ total_dues_paid|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Dues Paid</div>
+  </div>
+  <div class="kpi-card accent-info">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-info-bg);color:var(--oya-info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-info);">&#x20A6;{{ total_donations|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Donations & Other</div>
+  </div>
+  <div class="kpi-card accent-warning">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-warning-bg);color:var(--oya-warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-warning);">
+      {% if debt_info.debt_owed > 0 %}
+        &#x20A6;{{ debt_info.debt_owed|floatformat:0|intcomma }}
+      {% else %}
+        Paid Up
+      {% endif %}
+    </div>
+    <div class="kpi-label">Dues Outstanding</div>
+  </div>
+</div>
+
+<!-- Year-by-Year Dues Status + Donations -->
+<div class="dashboard-grid dashboard-grid-2" style="margin-bottom:1.5rem;">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Year-by-Year Dues Status</div>
+        <div class="card-header-subtitle">&#x20A6;{{ yearly_dues|intcomma }} per year</div>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <div class="activity-feed" style="padding:0 1.25rem;">
+        {% for group in year_status_grouped %}
+        <div class="activity-item">
+          {% if group.status == "PAID" %}
+          <div class="activity-icon success">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="activity-content">
+            <div class="activity-text">
+              <strong>
+                {% if group.start_year == group.end_year %}{{ group.start_year }}{% else %}{{ group.start_year }}–{{ group.end_year }}{% endif %}
+                Dues
+              </strong> — Paid
+              <span style="font-size:0.75rem;color:var(--oya-text-muted);">({{ group.count }} year{{ group.count|pluralize }})</span>
+            </div>
+            <div class="activity-time">
+              {% if group.payment %}
+                Recorded {{ group.payment.created_at|date:"M d, Y" }}
+                {% if group.payment.recorded_by %}by {{ group.payment.recorded_by.get_full_name }}{% endif %}
+                {% if group.payment.notes %}&bull; {{ group.payment.notes }}{% endif %}
+              {% endif %}
+            </div>
+          </div>
+          <span class="badge badge-success">&#x20A6;{{ group.total_amount|intcomma }}</span>
+          {% else %}
+          <div class="activity-icon danger">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+          <div class="activity-content">
+            <div class="activity-text">
+              <strong>
+                {% if group.start_year == group.end_year %}{{ group.start_year }}{% else %}{{ group.start_year }}–{{ group.end_year }}{% endif %}
+                Dues
+              </strong> — Outstanding
+              <span style="font-size:0.75rem;color:var(--oya-text-muted);">({{ group.count }} year{{ group.count|pluralize }})</span>
+            </div>
+            <div class="activity-time">&#x20A6;{{ group.total_amount|intcomma }} total due</div>
+          </div>
+          <span class="badge badge-danger">Owed</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Donations & Contributions -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Donations & Contributions</div>
+        <div class="card-header-subtitle">All non-dues payments</div>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for donation in donations %}
+            <tr>
+              <td class="cell-muted">{{ donation.created_at|date:"M d, Y" }}</td>
+              <td><span class="badge badge-info">{{ donation.get_income_type_display }}</span></td>
+              <td><span class="cell-name">{{ donation.reason }}</span></td>
+              <td style="font-weight:600;color:var(--oya-success);">&#x20A6;{{ donation.amount|floatformat:0|intcomma }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="4" style="text-align:center;padding:2rem;">
+                <p style="color:var(--oya-text-muted);">No donations or contributions recorded yet.</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot style="background:var(--oya-surface);border-top:2px solid var(--oya-border);">
+            <tr>
+              <td colspan="3" style="text-align:right;font-weight:600;">Total Donations:</td>
+              <td style="font-weight:700;color:var(--oya-success);">&#x20A6;{{ total_donations|floatformat:0|intcomma }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dues Payment History -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">Dues Payment History</div>
+      <div class="card-header-subtitle">Grouped by deposit — click view to see full year tracker</div>
+    </div>
+  </div>
+  <div class="card-body" style="padding:0;">
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Recorded By</th>
+            <th>Date</th>
+            <th class="text-end" style="width: 80px">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in dues_transactions_grouped %}
+          <tr>
+            <td style="white-space: nowrap">
+              <span class="badge badge-success">Dues</span>
+              <span class="cell-name">{{ item.reason }}</span>
+              {% if item.is_prepaid %}
+              <span class="badge badge-prepaid-mini">Prepaid</span>
+              {% endif %}
+            </td>
+            <td style="font-weight:600;color:var(--oya-success); white-space: nowrap;">&#x20A6;{{ item.amount|floatformat:0|intcomma }}</td>
+            <td class="cell-muted" style="white-space: nowrap;">{{ item.recorded_by.get_full_name|default:"System" }}</td>
+            <td class="cell-muted" style="white-space: nowrap;">{{ item.payment_date|date:"M d, Y" }}</td>
+            <td style="white-space: nowrap;">
+              <div class="table-actions" style="flex-wrap: nowrap; gap: 0.25rem;">
+                <a href="{% url 'finance:member_dues_detail' user.id %}" class="table-action-btn" title="View Full Tracker">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" style="text-align:center;padding:2rem;">
+              <p style="color:var(--oya-text-muted);">No dues payments recorded yet.</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot style="background:var(--oya-surface);border-top:2px solid var(--oya-border);">
+          <tr>
+            <td colspan="2" style="text-align:right;font-weight:600;">Total Dues Paid:</td>
+            <td colspan="3" style="font-weight:700;color:var(--oya-success);">&#x20A6;{{ total_dues_paid|floatformat:0|intcomma }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- All Payment History -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">All Payment History</div>
+      <div class="card-header-subtitle">Complete record of all contributions</div>
+    </div>
+  </div>
+  <div class="card-body" style="padding:0;">
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Recorded By</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for payment in payments %}
+          <tr>
+            <td class="cell-muted">{{ payment.date_display|date:"M d, Y" }}</td>
+            <td>
+              {% if payment.income_type == "DUES" %}
+                <span class="badge badge-success">Dues</span>
+                {% if payment.is_prepaid %}
+                <span class="badge badge-prepaid-mini">Prepaid</span>
+                {% endif %}
+              {% elif payment.income_type == "DONATION" %}
+                <span class="badge badge-info">Donation</span>
+              {% elif payment.income_type == "EVENT" %}
+                <span class="badge badge-warning">Event</span>
+              {% else %}
+                <span class="badge badge-secondary">Other</span>
+              {% endif %}
+            </td>
+            <td><span class="cell-name">{{ payment.reason }}</span></td>
+            <td style="font-weight:600;color:var(--oya-success);">&#x20A6;{{ payment.amount|floatformat:0|intcomma }}</td>
+            <td class="cell-muted">{{ payment.recorded_by.get_full_name|default:"System" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" style="text-align:center;padding:2rem;">
+              <p style="color:var(--oya-text-muted);">No payment history found.</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <!-- Pagination for payments -->
+  {% if payments.has_other_pages %}
+  <div class="card-footer">
+    <span style="font-size:0.8125rem;color:var(--oya-text-muted);">Showing {{ payments.start_index }}-{{ payments.end_index }} of {{ payments.paginator.count }} records</span>
+    <div class="pagination">
+      {% if payments.has_previous %}
+        <a href="?payments_page={{ payments.previous_page_number }}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      {% endif %}
+
+      {% for num in payments.paginator.page_range %}
+        {% if payments.number == num %}
+          <button class="page-btn active">{{ num }}</button>
+        {% elif num > payments.number|add:'-3' and num < payments.number|add:'3' %}
+          <a href="?payments_page={{ num }}" class="page-btn">{{ num }}</a>
+        {% elif num == 1 or num == payments.paginator.num_pages %}
+          <a href="?payments_page={{ num }}" class="page-btn">{{ num }}</a>
+        {% elif num == payments.number|add:'-3' or num == payments.number|add:'3' %}
+          <span class="page-btn" style="cursor:default;border:none;background:transparent;">...</span>
+        {% endif %}
+      {% endfor %}
+
+      {% if payments.has_next %}
+        <a href="?payments_page={{ payments.next_page_number }}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Profile Info Card -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">Profile Information</div>
+      <div class="card-header-subtitle">Your account details</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="detail-meta-grid" style="grid-template-columns: repeat(4, 1fr);">
+      <div>
+        <div class="meta-label">Serial Number</div>
+        <div class="meta-value">{{ user.serial_number }}</div>
+      </div>
+      <div>
+        <div class="meta-label">Full Name</div>
+        <div class="meta-value">{{ user.get_full_name }}</div>
+      </div>
+      <div>
+        <div class="meta-label">Phone</div>
+        <div class="meta-value">{{ user.phone|default:"Not set" }}</div>
+      </div>
+      <div>
+        <div class="meta-label">State</div>
+        <div class="meta-value">{{ user.state|default:"Not set" }}</div>
+      </div>
+      <div>
+        <div class="meta-label">Role</div>
+        <div class="meta-value">{{ user.get_role_display }}</div>
+      </div>
+      <div>
+        <div class="meta-label">Date Joined</div>
+        <div class="meta-value">{{ user.date_joined|date:"M d, Y" }}</div>
+      </div>
+      <div>
+        <div class="meta-label">Status</div>
+        <div class="meta-value">
+          {% if user.is_active %}<span class="badge badge-success">Active</span>{% else %}<span class="badge badge-danger">Inactive</span>{% endif %}
+        </div>
+      </div>
+      <div>
+        <div class="meta-label">Member Since</div>
+        <div class="meta-value">{{ user.date_joined|date:"Y" }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Profile & Change PIN -->
+<div class="dashboard-grid dashboard-grid-2" style="margin-bottom:1.5rem;">
+  <div class="card">
+    <div class="form-card-header">
+      <h3 class="form-card-title">Edit Profile</h3>
+      <p style="font-size:0.875rem;color:var(--oya-text-muted);margin:0;">Update your phone and state</p>
+    </div>
+    <div class="form-card-body">
+      <form method="post" action="{% url 'accounts:profile_update' %}" novalidate>
+        {% csrf_token %}
+        <div class="form-row" style="grid-template-columns: 1fr; gap: 1.5rem;">
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            {{ profile_form.phone }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">State</label>
+            {{ profile_form.state }}
+          </div>
+        </div>
+        <div class="form-actions" style="margin-top:1.5rem;">
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="form-card-header">
+      <h3 class="form-card-title">Change PIN</h3>
+      <p style="font-size:0.875rem;color:var(--oya-text-muted);margin:0;">Update your 6-digit security PIN</p>
+    </div>
+    <div class="form-card-body">
+      <form method="post" action="{% url 'accounts:change_pin' %}" novalidate>
+        {% csrf_token %}
+        <div class="form-row" style="grid-template-columns: 1fr; gap: 1.5rem;">
+          <div class="form-group">
+            <label class="form-label">Current PIN</label>
+            {{ pin_form.current_pin }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">New PIN</label>
+            {{ pin_form.new_pin }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm New PIN</label>
+            {{ pin_form.confirm_pin }}
+          </div>
+        </div>
+        <div class="form-actions" style="margin-top:1.5rem;">
+          <button type="submit" class="btn btn-primary">Update PIN</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  .badge-prepaid-mini {
+    background: var(--oya-info-bg);
+    color: var(--oya-info);
+    padding: 0.125rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    margin-left: 0.25rem;
+  }
+  
+@media (max-width: 768px) {
+  .detail-meta-grid { grid-template-columns: 1fr 1fr !important; }
+  .dashboard-grid-2 { grid-template-columns: 1fr !important; }
+  .dashboard-grid-4 { grid-template-columns: 1fr 1fr !important; }
+  .page-header { flex-direction: column !important; align-items: flex-start !important; }
+  .page-header-actions { width: 100% !important; flex-wrap: wrap !important; }
+  .detail-header .page-header-actions .btn { flex: 1 !important; min-width: 120px !important; }
+  .form-actions .btn { width: 100% !important; justify-content: center !important; }
+  .form-row { grid-template-columns: 1fr !important; gap: 0 !important; }
+}
+@media (max-width: 480px) {
+  .detail-meta-grid { grid-template-columns: 1fr !important; }
+  .dashboard-grid-4 { grid-template-columns: 1fr !important; }
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,363 @@
+{% load static %}
+<header class="topbar">
+  <div class="topbar-left">
+    <h2 class="page-title">{% block page_title %}OYA | Peace & Progress{% endblock %}</h2>
+
+  </div>
+
+  <div class="topbar-search hide-mobile">
+    <svg
+      class="search-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+    <input
+      type="text"
+      id="globalSearch"
+      placeholder="Search members, records, cases..."
+      autocomplete="off"
+      data-search-url="{% url 'dashboard:global_search_ajax' %}"
+    />
+    <div id="searchResults" class="search-dropdown hidden"></div>
+  </div>
+
+  <div class="topbar-actions">
+    <!-- Theme Dropdown (Desktop only) -->
+    <div class="dropdown hide-mobile">
+      <button
+        class="topbar-btn dropdown-toggle"
+        id="themeMenuToggle"
+        aria-label="Theme Menu"
+        title="Change Theme"
+        data-active-theme="light"
+      >
+        <svg
+          class="theme-icon-light"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="12" cy="12" r="5" />
+          <path
+            d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+          />
+        </svg>
+        <svg
+          class="theme-icon-dark"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+        <svg
+          class="theme-icon-system"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+          <line x1="8" y1="21" x2="16" y2="21" />
+          <line x1="12" y1="17" x2="12" y2="21" />
+        </svg>
+      </button>
+      <div
+        class="dropdown-menu dropdown-menu-right"
+        id="themeDropdownMenu"
+        style="min-width: 180px"
+      >
+        <div class="dropdown-header">Appearance</div>
+        <button type="button" class="dropdown-item" data-theme-option="light">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="5" />
+          </svg>
+          Light
+          <svg
+            class="dropdown-check"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+            style="margin-left: auto; opacity: 0"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </button>
+        <button type="button" class="dropdown-item" data-theme-option="dark">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          Dark
+          <svg
+            class="dropdown-check"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+            style="margin-left: auto; opacity: 0"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </button>
+        <button type="button" class="dropdown-item" data-theme-option="system">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+          </svg>
+          System
+          <svg
+            class="dropdown-check"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+            style="margin-left: auto; opacity: 0"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Notifications (Desktop only — hide on mobile since bottom nav has it) -->
+    <a
+      href="{% url 'notifications:notification_list' %}"
+      class="topbar-btn hide-mobile"
+      aria-label="Notifications"
+      title="Notifications"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </svg>
+      {% if unread_notification_count > 0 %}
+      <span class="badge" id="notificationBadge"
+        >{{ unread_notification_count }}</span
+      >
+      {% endif %}
+    </a>
+
+    <!-- Users -->
+    <a
+      href="{% url 'accounts:profile' %}"
+      class="topbar-btn hide-mobile"
+      aria-label="Users"
+      title="All Users"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+    </a>
+
+    <!-- Profile Dropdown -->
+
+    <div class="dropdown">
+      <button
+        class="topbar-btn dropdown-toggle"
+        aria-label="User Menu"
+        id="userMenuToggle"
+      >
+        <div
+          class="avatar avatar-sm"
+          id="topbarAvatar"
+          data-name="{% if user.is_authenticated %}{% if user.full_name %}{{ user.full_name }}{% else %}{{ user.serial_number }}{% endif %}{% else %}Guest{% endif %}"
+        >
+          {% if user.is_authenticated %} {% if user.photo %}
+          <img
+            src="{{ user.photo.url }}"
+            alt="{{ user.get_full_name|default:user.serial_number }}"
+            id="topbarAvatarImg"
+          />
+          {% else %}
+          <span id="topbarAvatarInitial"
+            >{{
+            user.get_full_name|first|upper|default:user.serial_number|first|upper
+            }}</span
+          >
+          {% endif %} {% else %}
+          <span id="topbarAvatarInitial">?</span>
+          {% endif %}
+        </div>
+        <svg
+          class="dropdown-chevron"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      <div class="dropdown-menu" id="userDropdownMenu">
+        <a href="{% url 'accounts:profile' %}" class="dropdown-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          My Profile
+        </a>
+        <a href="{% url 'settingsapp:settings' %}" class="dropdown-item">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+          Settings
+        </a>
+        <div class="dropdown-divider"></div>
+        <a
+          href="{% url 'accounts:logout' %}"
+          class="dropdown-item dropdown-item-danger"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Sign Out
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  (function () {
+    var themeAPI = window.OYA && window.OYA.theme;
+    if (!themeAPI) return;
+
+    var themeMenu = document.getElementById("themeDropdownMenu");
+
+    // When a theme option is chosen, apply it and close the menu
+    if (themeMenu) {
+      themeMenu.querySelectorAll("[data-theme-option]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          themeAPI.set(this.dataset.themeOption);
+          var parent = themeMenu.closest(".dropdown");
+          if (parent) parent.classList.remove("open");
+        });
+      });
+    }
+
+    // Initialize checkmarks + icons on load
+    function updateThemeUI() {
+      var stored = themeAPI.getStored() || 'system';
+      var applied = themeAPI.resolve(stored);
+
+      // Dropdown checkmarks
+      if (themeMenu) {
+        themeMenu.querySelectorAll("[data-theme-option]").forEach(function (btn) {
+          var check = btn.querySelector(".dropdown-check");
+          var isActive = btn.dataset.themeOption === stored;
+          if (check) check.style.opacity = isActive ? "1" : "0";
+          btn.classList.toggle("active", isActive);
+        });
+      }
+
+      // Desktop topbar icon
+      var desktopBtn = document.getElementById("themeMenuToggle");
+      if (desktopBtn) {
+        desktopBtn.setAttribute("data-active-theme", stored);
+        desktopBtn.querySelectorAll(".theme-icon-light, .theme-icon-dark, .theme-icon-system").forEach(function (icon) {
+          icon.style.display = "none";
+        });
+        var activeClass = stored === "system" ? "theme-icon-system" : (stored === "dark" ? "theme-icon-dark" : "theme-icon-light");
+        var activeIcon = desktopBtn.querySelector("." + activeClass);
+        if (activeIcon) activeIcon.style.display = "inline-block";
+      }
+
+      // Mobile header icon
+      var mobileBtn = document.getElementById("mobileThemeBtn");
+      if (mobileBtn) {
+        mobileBtn.setAttribute("data-active-theme", stored);
+        mobileBtn.querySelectorAll(".theme-icon-light, .theme-icon-dark, .theme-icon-system").forEach(function (icon) {
+          icon.style.display = "none";
+        });
+        var mac = stored === "system" ? "theme-icon-system" : (stored === "dark" ? "theme-icon-dark" : "theme-icon-light");
+        var mai = mobileBtn.querySelector("." + mac);
+        if (mai) mai.style.display = "inline-block";
+      }
+    }
+
+    // Run immediately
+    updateThemeUI();
+
+    // Keep icons in sync when mobile or settings page changes theme
+    window.addEventListener("oyathemechange", function () {
+      updateThemeUI();
+    });
+  })();
+</script>

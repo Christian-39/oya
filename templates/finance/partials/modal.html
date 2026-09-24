@@ -1,0 +1,27 @@
+{% comment %}
+  NOTE: Not currently included anywhere. Rewritten to use the project's real
+  modal system (.modal-overlay / .modal, see static/css/components.css)
+  instead of Bootstrap's .modal (which requires Bootstrap JS for open/close
+  behavior via data-bs-dismiss — not loaded in this project).
+  Toggle visibility by adding/removing the "show" class on .modal-overlay
+  (see static/js/dashboard.js for the pattern used elsewhere).
+{% endcomment %}
+<div class="modal-overlay" id="{{ modal_id|default:'confirmModal' }}">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">{{ modal_title|default:'Confirm Action' }}</div>
+      <button type="button" class="modal-close" data-modal-close aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p style="margin: 0;">{{ modal_body|default:'Are you sure you want to proceed?' }}</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+      <button type="button" class="btn btn-danger" id="{{ modal_confirm_id|default:'confirmBtn' }}">{{ modal_confirm_text|default:'Confirm' }}</button>
+    </div>
+  </div>
+</div>

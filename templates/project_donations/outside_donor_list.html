@@ -1,0 +1,412 @@
+{% extends "base.html" %}
+<!-- prettier-ignore -->
+{% load static %} {% load humanize %}
+<!-- prettier-ignore -->
+{% block title %}Outside Donors{% endblock %}
+<!-- prettier-ignore -->
+{% block page_title %}Outside Donors{% endblock%}
+<!-- prettier-ignore -->
+{% block breadcrumb %}Fundraising{% endblock %} {% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Outside Donors</h1>
+    <p>Manage non-member donors and their contribution history</p>
+  </div>
+  <div class="page-header-actions">
+    <a
+      href="{% url 'project_donations:donation_list' %}"
+      class="btn btn-secondary"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <line x1="12" y1="1" x2="12" y2="23" />
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+      </svg>
+      Donations
+    </a>
+    {% if user.has_executive_access %}
+    <a
+      href="{% url 'project_donations:outside_donor_create' %}"
+      class="btn btn-primary"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+      Add Donor
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="dashboard-grid dashboard-grid-3" style="margin-bottom: 1.5rem">
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div class="kpi-icon">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      </div>
+    </div>
+    <div class="kpi-value">{{ stats.total }}</div>
+    <div class="kpi-label">Total Donors</div>
+  </div>
+  <div class="kpi-card accent-success">
+    <div class="kpi-header">
+      <div
+        class="kpi-icon"
+        style="background: var(--oya-success-bg); color: var(--oya-success)"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <line x1="12" y1="1" x2="12" y2="23" />
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color: var(--oya-success)">
+      {{ stats.total_donations|floatformat:0|intcomma }}
+    </div>
+    <div class="kpi-label">Total Contributed</div>
+  </div>
+  <div class="kpi-card accent-info">
+    <div class="kpi-header">
+      <div
+        class="kpi-icon"
+        style="background: var(--oya-info-bg); color: var(--oya-info)"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color: var(--oya-info)">
+      {{ donors.paginator.count }}
+    </div>
+    <div class="kpi-label">Records</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-toolbar">
+    <div class="toolbar-search">
+      <svg
+        class="search-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <form method="get" style="width: 100%">
+        <input
+          type="text"
+          name="search"
+          placeholder="Search donors..."
+          value="{{ search_term }}"
+          onkeydown="if (event.key === 'Enter') this.form.submit();"
+        />
+      </form>
+    </div>
+  </div>
+
+  <div
+    class="table-container"
+    style="overflow-x: auto; -webkit-overflow-scrolling: touch"
+  >
+    <table class="data-table" style="white-space: nowrap">
+      <thead>
+        <tr>
+          <th>Donor</th>
+          <th>Phone</th>
+          <th>Occupation</th>
+          <th>Invited By</th>
+          <th>Donations</th>
+          <th>Total</th>
+          <th style="width: 80px">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for donor in donors %}
+        <tr>
+          <td style="white-space: nowrap">
+            <div style="display: flex; align-items: center; gap: 0.5rem">
+              {% if donor.profile_picture_url %}
+              <img
+                src="{{ donor.profile_picture_url }}"
+                alt=""
+                style="
+                  width: 32px;
+                  height: 32px;
+                  border-radius: 50%;
+                  object-fit: cover;
+                "
+              />
+              {% else %}
+              <div
+                style="
+                  width: 32px;
+                  height: 32px;
+                  border-radius: 50%;
+                  background: var(--oya-primary-50);
+                  color: var(--oya-primary);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                "
+              >
+                {{ donor.full_name|make_list|first }}
+              </div>
+              {% endif %}
+              <span class="cell-name">{{ donor.full_name }}</span>
+            </div>
+          </td>
+          <td style="white-space: nowrap">
+            <span class="cell-muted"
+              >{{ donor.phone_number|default:"N/A" }}</span
+            >
+          </td>
+          <td style="white-space: nowrap">
+            <span class="cell-muted">{{ donor.occupation|default:"N/A" }}</span>
+          </td>
+          <td style="white-space: nowrap">
+            {% if donor.invited_by %}
+            <span class="cell-name">{{ donor.invited_by.full_name }}</span>
+            {% else %}
+            <span class="cell-muted">N/A</span>
+            {% endif %}
+          </td>
+          <td style="white-space: nowrap">
+            <span class="badge badge-success">{{ donor.donation_count }}</span>
+          </td>
+          <td style="font-weight: 600; white-space: nowrap">
+            &#x20A6;{{ donor.total_donations|floatformat:0|intcomma }}
+          </td>
+          <td style="white-space: nowrap">
+            <div class="table-actions" style="flex-wrap: nowrap; gap: 0.25rem">
+              <a
+                href="{% url 'project_donations:outside_donor_detail' pk=donor.pk %}"
+                class="table-action-btn"
+                title="View Profile"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </a>
+              {% if user.has_executive_access %}
+              <a
+                href="{% url 'project_donations:outside_donor_update' pk=donor.pk %}"
+                class="table-action-btn"
+                title="Edit"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                  />
+                  <path
+                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                  />
+                </svg>
+              </a>
+              <a
+                href="{% url 'project_donations:donation_create' %}"
+                class="table-action-btn"
+                title="Record Donation"
+                style="color: var(--oya-success)"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 3rem">
+            <div class="empty-state" style="padding: 0">
+              <div
+                class="empty-state-icon"
+                style="width: 60px; height: 60px; margin-bottom: 1rem"
+              >
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+              <h3 style="font-size: 1rem">No outside donors found</h3>
+              <p style="font-size: 0.875rem">
+                <!-- prettier-ignore -->
+                {% if search_term %} No donors match your search criteria. {% else %} No outside donors have been added yet. Click "Add Donor" to get started. {% endif %}
+              </p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if donors.has_other_pages %}
+  <div class="card-footer">
+    <span style="font-size: 0.8125rem; color: var(--oya-text-muted)">
+      <!-- prettier-ignore -->Showing {{ donors.start_index }}-{{ donors.end_index }} of {{ donors.paginator.count }} donors</span
+    >
+    <div class="pagination">
+      {% if donors.has_previous %}
+      <a
+        href="?page={{ donors.previous_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}"
+        class="page-btn"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </a>
+      {% else %}
+      <button class="page-btn" disabled>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+      <!-- prettier-ignore -->
+      {% endif %} {% for num in donors.paginator.page_range %} {% if donors.number == num %}
+      <button class="page-btn active">{{ num }}</button>
+      {% elif num > donors.number|add:'-3' and num < donors.number|add:'3' %}
+      <a
+        href="?page={{ num }}{% if search_term %}&search={{ search_term }}{% endif %}"
+        class="page-btn"
+        >{{ num }}</a
+      >
+      {% elif num == 1 or num == donors.paginator.num_pages %}
+      <a
+        href="?page={{ num }}{% if search_term %}&search={{ search_term }}{% endif %}"
+        class="page-btn"
+        >{{ num }}</a
+      >
+      {% elif num == donors.number|add:'-3' or num == donors.number|add:'3' %}
+      <span
+        class="page-btn"
+        style="cursor: default; border: none; background: transparent"
+        >...</span
+      >
+      {% endif %} {% endfor %} {% if donors.has_next %}
+      <a
+        href="?page={{ donors.next_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}"
+        class="page-btn"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </a>
+      {% else %}
+      <button class="page-btn" disabled>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -1,11 +1,15 @@
+"""
+URL patterns for projects app.
+"""
 from django.urls import path
 from . import views
 
-urlpatterns = [
-    path('projects/', views.projects_list, name='projects_list'),
-    path('project/add/', views.add_project, name='add_project'),
-    path('<int:project_id>/', views.project_detail, name='project_detail'),
+app_name = "projects"
 
-    path('project/edit/<int:project_id>/', views.edit_project, name='edit_project'),
-    path('project/delete/<int:project_id>/', views.delete_project, name='delete_project'),
+urlpatterns = [
+    path("", views.project_list, name="project_list"),
+    path("create/", views.project_create, name="project_create"),
+    path("<int:pk>/", views.project_detail, name="project_detail"),
+    path("<int:pk>/update/", views.project_update, name="project_update"),
+    path("<int:pk>/delete/", views.project_delete, name="project_delete"),
 ]

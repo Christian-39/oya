@@ -1,0 +1,24 @@
+<div class="autocomplete-wrapper" data-autocomplete-wrapper>
+  <input
+    type="text"
+    class="form-control autocomplete-search-input"
+    id="{{ widget.search_input_id }}"
+    placeholder="{{ widget.placeholder }}"
+    value="{{ widget.display_value|default:'' }}"
+    autocomplete="off"
+    data-autocomplete-input
+    data-search-url="{{ widget.search_url }}"
+    data-min-chars="{{ widget.min_chars }}"
+  />
+  <input
+    type="hidden"
+    name="{{ widget.name }}"
+    id="{{ widget.attrs.id }}"
+    value="{{ widget.value|default:'' }}"
+    data-autocomplete-value
+  />
+  {% if widget.allow_clear %}
+  <button type="button" class="autocomplete-clear-btn" data-autocomplete-clear title="Clear" tabindex="-1">&times;</button>
+  {% endif %}
+  <div class="autocomplete-results hidden" data-autocomplete-results role="listbox"></div>
+</div>

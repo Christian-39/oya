@@ -1,0 +1,947 @@
+/* ==========================================================================
+   FILE 4 OF 4: base.css
+   OYA - Core Design System, Reset & Form Framework
+   ========================================================================== */
+
+/* ─── CSS Variables & Custom Properties ─── */
+:root {
+  /* Primary Identity Colors */
+  --oya-primary: #0B3D91;
+  --oya-primary-light: #1a56c7;
+  --oya-primary-dark: #082e6e;
+  --oya-primary-50: #e8f0fe;
+  --oya-primary-100: #c2d8fc;
+  --oya-primary-200: #9bc0fa;
+
+  /* Accent Branding (Gold) */
+  --oya-accent: #D4AF37;
+  --oya-accent-light: #e4c96a;
+  --oya-accent-dark: #b3922b;
+  --oya-accent-50: #fcf8e8;
+
+  /* Interface Background Colors */
+  --oya-bg: #F5F7FA;
+  --oya-bg-white: #FFFFFF;
+  --oya-bg-card: #FFFFFF;
+  --oya-bg-elevated: #FFFFFF;
+
+  /* Typography Text Colors */
+  --oya-text-primary: #0F172A;
+  --oya-text-secondary: #475569;
+  --oya-text-muted: #94A3B8;
+  --oya-text-white: #FFFFFF;
+
+  /* Architectural Borders */
+  --oya-border: #E2E8F0;
+  --oya-border-light: #F1F5F9;
+
+  /* Functional Status Semantic Tokens */
+  --oya-success: #10B981;
+  --oya-success-bg: #D1FAE5;
+  --oya-warning: #F59E0B;
+  --oya-warning-bg: #FEF3C7;
+  --oya-danger: #EF4444;
+  --oya-danger-bg: #FEE2E2;
+  --oya-info: #3B82F6;
+  --oya-info-bg: #DBEAFE;
+
+  /* Layout Constants */
+  --sidebar-width: 260px;
+  --sidebar-collapsed: 72px;
+  --sidebar-bg: #0F172A;
+  --sidebar-text: #94A3B8;
+  --sidebar-active: #0B3D91;
+  --sidebar-hover: rgba(255, 255, 255, 0.05);
+  --topbar-height: 64px;
+
+  /* Elevation Shadows */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+
+  /* Radius Framework */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  /* Timing & Animations */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 350ms ease;
+
+  /* Typography Stack */
+  --font-family: 'Inter', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ─── Dark Mode Color Token Overrides ─── */
+[data-theme="dark"] {
+  --oya-bg: #0B1120;
+  --oya-bg-white: #0F172A;
+  --oya-bg-card: #1E293B;
+  --oya-bg-elevated: #1E293B;
+
+  --oya-text-primary: #F1F5F9;
+  --oya-text-secondary: #CBD5E1;
+  --oya-text-muted: #64748B;
+
+  --oya-border: #334155;
+  --oya-border-light: #1E293B;
+
+  --sidebar-bg: #020617;
+  --sidebar-hover: rgba(255, 255, 255, 0.08);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* ─── Reset Rules & Base Structural Setup ─── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--oya-bg);
+  color: var(--oya-text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color var(--transition-fast);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ─── Typography Design Framework ─── */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--oya-text-primary);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+h1 { font-size: 1.875rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1.125rem; }
+h5 { font-size: 1rem; }
+h6 { font-size: 0.875rem; }
+
+p {
+  margin-bottom: 1rem;
+  color: var(--oya-text-secondary);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Scale Utilities */
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.125rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+
+/* Weight Utilities */
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+/* ─── Global Layout Utilities ─── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.gap-1 { gap: 0.25rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+
+.grid { display: grid; }
+.hidden { display: none; }
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+
+/* ─── System Level Custom Scrollbars ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track { background: transparent; }
+
+::-webkit-scrollbar-thumb {
+  background: var(--oya-text-muted);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover { background: var(--oya-text-secondary); }
+
+::selection {
+  background: var(--oya-primary);
+  color: var(--oya-text-white);
+}
+
+/* ==========================================================================
+   OYA - Standard Form Architecture Framework
+   ========================================================================== */
+
+/* ─── Native Custom Select Dropdown ─── */
+.form-select {
+  width: 100%;
+  padding: 0.625rem 2.5rem 0.625rem 0.875rem;
+  border: 1.5px solid var(--oya-border);
+  border-radius: var(--radius-md);
+  background: var(--oya-bg-white);
+  color: var(--oya-text-primary);
+  font-family: var(--font-family);
+  font-size: 0.875rem;
+  transition: all var(--transition-fast);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: var(--oya-primary);
+  box-shadow: 0 0 0 3px rgba(11, 61, 145, 0.1);
+}
+
+.form-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--oya-bg);
+}
+
+/* ─── Text Fields (Inputs) ─── */
+.form-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1.5px solid var(--oya-border);
+  border-radius: var(--radius-md);
+  background: var(--oya-bg-white);
+  color: var(--oya-text-primary);
+  font-family: var(--font-family);
+  font-size: 0.875rem;
+  transition: all var(--transition-fast);
+  min-width: 0;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--oya-primary);
+  box-shadow: 0 0 0 3px rgba(11, 61, 145, 0.1);
+}
+
+.form-input::placeholder { color: var(--oya-text-muted); }
+
+.form-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--oya-bg);
+}
+
+/* Step Spinner Adjustments for Number Fields */
+.form-input[type="number"]::-webkit-inner-spin-button,
+.form-input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+  height: 28px;
+  cursor: pointer;
+}
+
+/* ─── Multiline Text Areas ─── */
+.form-textarea {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1.5px solid var(--oya-border);
+  border-radius: var(--radius-md);
+  background: var(--oya-bg-white);
+  color: var(--oya-text-primary);
+  font-family: var(--font-family);
+  font-size: 0.875rem;
+  transition: all var(--transition-fast);
+  resize: vertical;
+  min-height: 100px;
+  min-width: 0;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--oya-primary);
+  box-shadow: 0 0 0 3px rgba(11, 61, 145, 0.1);
+}
+
+/* ─── File Upload Elements ─── */
+.form-input[type="file"] {
+  padding: 0.5rem 0.875rem;
+  cursor: pointer;
+}
+
+.form-input[type="file"]::-webkit-file-upload-button {
+  padding: 0.375rem 0.875rem;
+  border: 1.5px solid var(--oya-border);
+  border-radius: var(--radius-sm);
+  background: var(--oya-bg);
+  color: var(--oya-text-secondary);
+  font-family: var(--font-family);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 0.75rem;
+  transition: all var(--transition-fast);
+}
+
+.form-input[type="file"]::-webkit-file-upload-button:hover {
+  background: var(--oya-primary);
+  color: #FFFFFF;
+  border-color: var(--oya-primary);
+}
+
+/* ─── Selection Choices (Radio Selection) ─── */
+.radio-group {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--oya-text-primary);
+  font-weight: 500;
+}
+
+.radio-label input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--oya-primary);
+  margin: 0;
+}
+
+/* ─── Grid Framework for Form Layouts ─── */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 1.25rem;
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.form-row .form-group {
+  margin-bottom: 1.25rem;
+  min-width: 0;
+}
+
+.form-row-single { grid-template-columns: 1fr; }
+
+.form-group {
+  margin-bottom: 1.25rem;
+  min-width: 0;
+}
+
+.form-group:last-child { margin-bottom: 0; }
+
+/* Labels, Validations, and Feedback Markers */
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--oya-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.form-label .required {
+  color: var(--oya-danger);
+  margin-left: 2px;
+}
+
+.form-help {
+  font-size: 0.75rem;
+  color: var(--oya-text-muted);
+  margin-top: 0.375rem;
+  line-height: 1.4;
+}
+
+.form-error {
+  font-size: 0.75rem;
+  color: var(--oya-danger);
+  margin-top: 0.375rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.form-error::before {
+  content: '!';
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--oya-danger);
+  color: #FFF;
+  font-size: 0.625rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ─── Compound Structural Form Cards ─── */
+.form-card {
+  background: var(--oya-bg-card);
+  border: 1px solid var(--oya-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.form-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--oya-border);
+  background: var(--oya-bg);
+  gap: 1rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.form-card-header > * { min-width: 0; }
+
+.form-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--oya-text-primary);
+}
+
+.form-card-body {
+  padding: 1.5rem;
+  min-width: 0;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding: 1rem 0;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.form-actions > * { min-width: 0; }
+
+/* ─── Functional Context Components ─── */
+.photo-preview {
+  margin-top: 0.5rem;
+  display: inline-block;
+}
+
+.photo-preview img {
+  max-width: 100px;
+  max-height: 100px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--oya-border);
+  object-fit: cover;
+}
+
+/* Regional/Geographical Location UI Blocks */
+.location-section {
+  border: 1.5px solid var(--oya-border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  background: var(--oya-bg);
+  margin-bottom: 1.25rem;
+  min-width: 0;
+}
+
+.location-toggle {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.state-dropdown { position: relative; }
+
+.state-dropdown select { width: 100%; }
+
+.state-dropdown .search-hint {
+  font-size: 0.75rem;
+  color: var(--oya-text-muted);
+  margin-top: 0.375rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.state-dropdown .search-hint svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ==========================================================================
+   OYA - Contextual Dark Mode UI Extensions
+   ========================================================================== */
+
+[data-theme="dark"] .form-input,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] .form-textarea {
+  background: var(--oya-bg-white);
+  border-color: var(--oya-border);
+  color: var(--oya-text-primary);
+}
+
+[data-theme="dark"] .form-input:focus,
+[data-theme="dark"] .form-select:focus,
+[data-theme="dark"] .form-textarea:focus {
+  border-color: var(--oya-primary);
+  box-shadow: 0 0 0 3px rgba(11, 61, 145, 0.2);
+}
+
+[data-theme="dark"] .form-input::placeholder { color: var(--oya-text-muted); }
+
+[data-theme="dark"] .form-input[type="file"]::-webkit-file-upload-button {
+  background: var(--oya-bg);
+  color: var(--oya-text-secondary);
+  border-color: var(--oya-border);
+}
+
+[data-theme="dark"] .location-section {
+  background: var(--oya-bg-white);
+  border-color: var(--oya-border);
+}
+
+[data-theme="dark"] .photo-preview img { border-color: var(--oya-border); }
+
+/* ==========================================================================
+   OYA - Buttons, Cards, Badges, Alerts, Empty States
+   ========================================================================== */
+
+/* ─── Buttons ─── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  font-family: inherit;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--oya-primary);
+  color: #FFF;
+  border-color: var(--oya-primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--oya-primary-light);
+  border-color: var(--oya-primary-light);
+}
+
+.btn-secondary {
+  background: var(--oya-bg-card);
+  color: var(--oya-text-primary);
+  border-color: var(--oya-border);
+}
+
+.btn-secondary:hover:not(:disabled) { background: var(--oya-bg-hover); }
+
+.btn-danger {
+  background: var(--oya-danger);
+  color: #FFF;
+  border-color: var(--oya-danger);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #DC2626;
+  border-color: #DC2626;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--oya-text-secondary);
+  border-color: transparent;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--oya-bg-hover);
+  color: var(--oya-text-primary);
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+/* .btn-lg intentionally not duplicated here — see components.css */
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: var(--radius-md);
+}
+
+/* ─── Cards ─── */
+.card {
+  background: var(--oya-bg-card);
+  border: 1px solid var(--oya-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--oya-border-light);
+  gap: 1rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.card-header > * { min-width: 0; }
+
+/* .card-body canonical definition lives in components.css — do not
+   redefine here (see note above .kpi-card in components.css). */
+
+.card-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--oya-border-light);
+  min-width: 0;
+}
+
+.card-header-title { font-size: 1rem; font-weight: 700; }
+.card-header-subtitle { font-size: 0.8125rem; color: var(--oya-text-muted); }
+
+/* ─── Badges ───
+   Canonical .badge / .badge-* definitions live in components.css.
+   Do not redefine here — see the note above .kpi-card in components.css
+   for why duplicate definitions across files cause inconsistent sizing. */
+
+/* ─── Alerts ─── */
+.alert {
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  border-left: 3px solid;
+  margin-bottom: 1rem;
+  min-width: 0;
+}
+
+.alert-success { background: var(--oya-success-bg); border-color: var(--oya-success); color: var(--oya-success); }
+.alert-warning { background: var(--oya-warning-bg); border-color: var(--oya-warning); color: var(--oya-warning); }
+.alert-danger { background: var(--oya-danger-bg); border-color: var(--oya-danger); color: var(--oya-danger); }
+.alert-info { background: var(--oya-info-bg); border-color: var(--oya-info); color: var(--oya-info); }
+
+/* ─── Empty States ─── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  min-width: 0;
+}
+
+.empty-state-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--oya-primary-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  color: var(--oya-primary);
+}
+
+[data-theme="dark"] .empty-state-icon { background: rgba(11, 61, 145, 0.2); }
+
+.empty-state-icon svg { width: 36px; height: 36px; }
+
+.empty-state h3 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
+
+.empty-state p {
+  color: var(--oya-text-secondary);
+  font-size: 0.875rem;
+  max-width: 400px;
+  margin-bottom: 1.5rem;
+}
+
+/* ─── Skeleton Loading ─── */
+.skeleton {
+  background: linear-gradient(90deg, var(--oya-border-light) 25%, var(--oya-border) 50%, var(--oya-border-light) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Global Footer Core Layout Alignment ─── */
+.footer, 
+.main-footer,
+footer {
+  width: 100%;
+  padding: 1.5rem;
+  margin-top: auto;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  box-sizing: border-box;
+  background: var(--oya-bg-card);
+  border-top: 1px solid var(--oya-border-light);
+}
+
+.footer-container,
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+/* ─── Utilities ─── */
+.text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.text-wrap { overflow-wrap: anywhere; word-break: break-word; }
+.flex-wrap { flex-wrap: wrap; }
+
+/* ─── Reduced Motion ─── */
+/* ============================================
+   Bootstrap-Compatibility Utility Shim
+   ============================================
+   A handful of finance templates (income/expense/dues forms & detail
+   pages — see templates/finance/*_form.html, *_detail.html,
+   *_confirm_delete.html) were authored using Bootstrap's grid and utility
+   class names, but this project never loads Bootstrap CSS or JS (see
+   templates/base.html). Without this, those pages render as unstyled
+   stacked divs, icons render as blank boxes, and validation/alert styling
+   is invisible. Rather than rewrite markup across 10 templates, this shim
+   gives those specific classes real, design-system-consistent behavior.
+   New pages should use the project's own .form-row / .form-group /
+   .dashboard-grid system instead of these.
+   ------------------------------------------------------------------ */
+.container {
+  width: 100%;
+  max-width: 900px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  box-sizing: border-box;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-inline: -0.5rem;
+}
+.row.g-3 > [class*="col-"] { padding: 0.5rem; }
+.row > [class*="col-"] { padding-inline: 0.5rem; box-sizing: border-box; min-width: 0; }
+.justify-content-center { justify-content: center; }
+
+.col-12, .col-sm-6, .col-md-6, .col-lg-3, .col-lg-5, .col-lg-7, .col-lg-8 {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+@media (min-width: 576px) {
+  .col-sm-6 { flex: 0 0 50%; max-width: 50%; }
+}
+@media (min-width: 768px) {
+  .col-md-6 { flex: 0 0 50%; max-width: 50%; }
+}
+@media (min-width: 992px) {
+  .col-lg-3 { flex: 0 0 25%; max-width: 25%; }
+  .col-lg-5 { flex: 0 0 41.6667%; max-width: 41.6667%; }
+  .col-lg-7 { flex: 0 0 58.3333%; max-width: 58.3333%; }
+  .col-lg-8 { flex: 0 0 66.6667%; max-width: 66.6667%; }
+}
+
+.d-flex { display: flex; }
+.d-block { display: block; }
+.d-none { display: none; }
+@media (min-width: 576px) { .d-sm-block { display: block; } }
+@media (min-width: 768px) { .d-md-block { display: block; } }
+
+.input-group {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+.input-group > .form-control,
+.input-group > .form-select,
+.input-group > select,
+.input-group > input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.input-group-text {
+  display: flex;
+  align-items: center;
+  padding: 0 0.9rem;
+  background: var(--oya-bg);
+  border: 1px solid var(--oya-border);
+  border-right: none;
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
+  color: var(--oya-text-muted);
+  flex-shrink: 0;
+}
+
+.invalid-feedback {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--oya-danger);
+  margin-top: 0.375rem;
+}
+
+.alert-dismissible { position: relative; padding-right: 2.75rem; }
+.btn-close {
+  position: absolute;
+  top: 0.9rem;
+  right: 1rem;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  opacity: 0.5;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0;
+}
+.btn-close::before { content: "\00d7"; }
+.btn-close:hover { opacity: 0.85; }
+
+.fade { opacity: 1; }
+
+/* Common text/spacing utility classes referenced across templates
+   (finance detail/confirm-delete pages especially) with no prior
+   definition anywhere in the project. */
+.fw-bold { font-weight: 700; }
+.fw-semibold { font-weight: 600; }
+.small { font-size: 0.875rem; }
+.text-muted { color: var(--oya-text-muted); }
+.text-primary { color: var(--oya-primary); }
+.text-danger { color: var(--oya-danger); }
+.text-warning { color: var(--oya-warning); }
+.text-success { color: var(--oya-success); }
+.fs-5 { font-size: 1.25rem; }
+.display-4 { font-size: 3rem; font-weight: 300; line-height: 1.1; }
+.me-1 { margin-right: 0.25rem; }
+.me-2 { margin-right: 0.5rem; }
+.mb-0 { margin-bottom: 0; }
+.mb-3 { margin-bottom: 1rem; }
+.mt-3 { margin-top: 1rem; }
+
+.spinner-border {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 0.15em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: oya-spin 0.75s linear infinite;
+  vertical-align: -0.125em;
+}
+.spinner-border-sm { width: 0.8rem; height: 0.8rem; border-width: 0.125em; }
+@keyframes oya-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html { scroll-behavior: auto; }
+}
+
+/* ─── Print Styles ─── */
+@media print {
+  body { background: #FFF; color: #000; }
+  .card, .btn, .badge { box-shadow: none; border: 1px solid #CCC; }
+  a { text-decoration: underline; color: #000; }
+  .no-print { display: none !important; }
+}

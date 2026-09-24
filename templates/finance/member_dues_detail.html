@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load static %}
+
+{% block title %}{{ member.get_full_name }} — Dues Details{% endblock %}
+{% block page_title %}{{ member.get_full_name }} — Dues Details{% endblock %}
+{% block breadcrumb %}Dues Details{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      {% if user.photo and user.photo.name %}
+        <div style="width:clamp(40px, 10vw, 56px);height:clamp(40px, 10vw, 56px);border-radius:50%;overflow:hidden;cursor:pointer;flex-shrink:0;border:3px solid rgba(255,255,255,0.3);"
+             onclick="openImagePreview('{{ user.photo.url }}', '{{ user.full_name|default:user.serial_number }}')">
+          <img src="{{ user.photo.url }}" alt="{{ user.get_full_name }}" style="width:100%;height:100%;object-fit:cover;display:block;">
+        </div>
+      {% else %}
+        <div style="width:clamp(40px, 10vw, 56px);height:clamp(40px, 10vw, 56px);border-radius:50%;background:linear-gradient(135deg, var(--oya-primary) 0%, var(--oya-primary-dark, #16213e) 100%);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:clamp(1rem, 3vw, 1.4rem);border:3px solid rgba(255,255,255,0.3);flex-shrink:0;">
+          {{ user.get_initials }}
+        </div>
+      {% endif %}
+      <div>
+        <h1 style="font-size:clamp(1.125rem, 3vw, 1.5rem);">{{ user.get_full_name }}</h1>
+        <p style="font-size:clamp(0.75rem, 2vw, 0.875rem);color:var(--oya-text-secondary);margin:0;">{{ user.serial_number }} · {{ user.get_role_display }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="page-header-actions" style="flex-wrap:wrap;gap:0.5rem;">
+    <a href="{% url 'finance:dues_tracker' %}" class="btn btn-secondary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to Tracker
+    </a>
+    {% if user.has_executive_access %}
+    <a href="{% url 'finance:dues_allocate' %}" class="btn btn-success">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Record Payment
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- KPI Stats -->
+<div class="dashboard-grid dashboard-grid-4" style="grid-template-columns:repeat(auto-fit, minmax(min(100%, 220px), 1fr)); margin-bottom:clamp(0.75rem, 3vw, 1.5rem);">
+  <div class="kpi-card accent-primary">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-primary-bg);color:var(--oya-primary);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-primary);">&#8358;{{ debt_info.total_expected|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Total Expected</div>
+  </div>
+  <div class="kpi-card accent-success">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-success-bg);color:var(--oya-success);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-success);">&#8358;{{ debt_info.total_paid|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Total Paid</div>
+  </div>
+  <div class="kpi-card accent-danger">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-danger-bg, #fee2e2);color:var(--oya-danger);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-danger);">&#8358;{{ debt_info.debt_owed|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Debt Owed</div>
+  </div>
+  <div class="kpi-card accent-info">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-info-bg);color:var(--oya-info);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-info);">&#8358;{{ debt_info.prepaid_amount|default:0|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Prepaid</div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- YEARLY TIMELINE -->
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header" style="padding:1rem 1.25rem;border-bottom:1px solid var(--oya-border);">
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--oya-primary)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span style="font-weight:600;font-size:clamp(0.875rem, 2.5vw, 1rem);">Yearly Timeline</span>
+          {% if join_year > 2020 %}
+          <span class="badge badge-info" style="margin-left:auto;">Joined {{ join_year }}</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="card-body" style="padding:1.25rem;">
+        {% for ys in year_status %}
+        <div class="timeline-year">
+          <div class="timeline-dot {{ ys.status|lower }}"></div>
+          <div class="year-card {{ ys.status|lower }}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div>
+                <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                  <span class="fw-bold" style="font-size:clamp(0.875rem, 2vw, 1rem);">{{ ys.year }}</span>
+                  {% if ys.before_join %}<span class="badge badge-na">N/A</span>
+                  {% elif ys.is_future %}<span class="badge badge-info">Future</span>{% endif %}
+                  {% if ys.status == "PAID" %}<span class="badge badge-paid">Paid</span>
+                  {% elif ys.status == "PARTIAL" %}<span class="badge badge-partial">Partial</span>
+                  {% elif ys.status == "PREPAID" %}<span class="badge badge-prepaid">Prepaid</span>
+                  {% elif ys.status == "OWED" %}<span class="badge badge-owed">Owed</span>{% endif %}
+                </div>
+                {% if ys.before_join %}
+                <div style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);color:var(--oya-text-muted);margin-top:0.25rem;">Member joined in {{ join_year }}</div>
+                {% elif ys.payment %}
+                <div style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);color:var(--oya-text-secondary);margin-top:0.25rem;">Paid: &#8358;{{ ys.payment.amount_paid|floatformat:0|intcomma }}{% if ys.payment.remaining_balance > 0 %} · Remaining: &#8358;{{ ys.payment.remaining_balance|floatformat:0|intcomma }}{% endif %}</div>
+                {% else %}
+                <div style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);color:var(--oya-text-secondary);margin-top:0.25rem;">Amount: &#8358;{{ yearly_dues|floatformat:0|intcomma }}</div>
+                {% endif %}
+              </div>
+              <div>
+                {% if ys.payment and user.has_admin_access %}
+                <form method="post" action="{% url 'finance:dues_delete' ys.payment.pk %}" class="d-inline" onsubmit="return confirm('Delete this dues record?');">
+                  {% csrf_token %}
+                  <button type="submit" class="table-action-btn" title="Delete" style="color:var(--oya-danger);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div style="text-align:center;padding:2rem;">
+          <div class="empty-state-icon" style="width:clamp(48px, 15vw, 60px);height:clamp(48px, 15vw, 60px);margin:0 auto 1rem;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <h3 style="font-size:clamp(0.875rem, 2.5vw, 1rem);">No yearly data</h3>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN: TRANSACTIONS + PAYMENTS -->
+  <div class="col-lg-7">
+    <!-- PAYMENT TRANSACTIONS TABLE -->
+    <div class="card mb-4">
+      <div class="card-header" style="padding:1rem 1.25rem;border-bottom:1px solid var(--oya-border);display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--oya-success)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span style="font-weight:600;font-size:clamp(0.875rem, 2.5vw, 1rem);">Payment Transactions</span>
+        </div>
+      </div>
+      <div class="table-container" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+        <table class="data-table" data-sortable style="white-space:nowrap;">
+          <thead>
+            <tr>
+              <th data-sort="date">Date</th>
+              <th class="text-end" data-sort="number">Amount</th>
+              <th data-sort="text">Method</th>
+              <th data-sort="text">Reference</th>
+              <th data-sort="text">Recorded By</th>
+              <th data-sort="text">Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tx in transactions %}
+            <tr>
+              <td class="cell-muted" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);white-space:nowrap;">{{ tx.payment_date|date:"M d, Y" }}</td>
+              <td class="text-end fw-bold" style="color:var(--oya-success);font-size:clamp(0.8125rem, 2vw, 0.875rem);white-space:nowrap;">&#8358;{{ tx.total_amount|floatformat:0|intcomma }}</td>
+              <td style="white-space:nowrap;"><span class="badge bg-light text-dark">{{ tx.get_payment_method_display }}</span></td>
+              <td style="white-space:nowrap;">{% if tx.receipt_reference %}<span class="receipt-badge">{{ tx.receipt_reference }}</span>{% else %}<span class="cell-muted">—</span>{% endif %}</td>
+              <td style="white-space:nowrap;font-size:clamp(0.75rem, 1.5vw, 0.8125rem);">{% if tx.recorded_by %}{{ tx.recorded_by.get_full_name }}{% else %}—{% endif %}</td>
+              <td style="white-space:nowrap;font-size:clamp(0.75rem, 1.5vw, 0.8125rem);color:var(--oya-text-secondary);">{{ tx.notes|truncatechars:30|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" style="text-align:center;padding:3rem;">
+                <div class="empty-state" style="padding:0;">
+                  <div class="empty-state-icon" style="width:clamp(48px, 15vw, 60px);height:clamp(48px, 15vw, 60px);margin-bottom:1rem;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  </div>
+                  <h3 style="font-size:clamp(0.875rem, 2.5vw, 1rem);">No payment transactions recorded yet</h3>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DUES PAYMENT RECORDS TABLE -->
+    <div class="card">
+      <div class="card-header" style="padding:1rem 1.25rem;border-bottom:1px solid var(--oya-border);">
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--oya-primary)" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span style="font-weight:600;font-size:clamp(0.875rem, 2.5vw, 1rem);">Dues Payment Records</span>
+        </div>
+      </div>
+      <div class="table-container" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+        <table class="data-table" data-sortable style="white-space:nowrap;">
+          <thead>
+            <tr>
+              <th data-sort="number">Year</th>
+              <th class="text-end" data-sort="number">Amount Paid</th>
+              <th data-sort="text">Status</th>
+              <th class="text-end" data-sort="number">Remaining</th>
+              <th data-sort="text">Recorded By</th>
+              <th data-sort="date">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in payments %}
+            <tr>
+              <td class="fw-bold" style="white-space:nowrap;">{{ p.year }}</td>
+              <td class="text-end" style="white-space:nowrap;">&#8358;{{ p.amount_paid|floatformat:0|intcomma }}</td>
+              <td style="white-space:nowrap;">
+                {% if p.status == "PAID" %}<span class="badge badge-paid">Paid</span>
+                {% elif p.status == "PARTIAL" %}<span class="badge badge-partial">Partial</span>
+                {% elif p.status == "PREPAID" %}<span class="badge badge-prepaid">Prepaid</span>
+                {% elif p.status == "N/A" %}<span class="badge badge-na">N/A</span>
+                {% else %}<span class="badge badge-owed">Owed</span>{% endif %}
+              </td>
+              <td class="text-end" style="white-space:nowrap;{% if p.remaining_balance > 0 %}color:var(--oya-danger);{% else %}color:var(--oya-success);{% endif %}">&#8358;{{ p.remaining_balance|floatformat:0|intcomma }}</td>
+              <td style="white-space:nowrap;font-size:clamp(0.75rem, 1.5vw, 0.8125rem);">{% if p.recorded_by %}{{ p.recorded_by.get_full_name }}{% else %}—{% endif %}</td>
+              <td class="cell-muted" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);white-space:nowrap;">{{ p.created_at|date:"M d, Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" style="text-align:center;padding:3rem;">
+                <div class="empty-state" style="padding:0;">
+                  <div class="empty-state-icon" style="width:clamp(48px, 15vw, 60px);height:clamp(48px, 15vw, 60px);margin-bottom:1rem;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                  </div>
+                  <h3 style="font-size:clamp(0.875rem, 2.5vw, 1rem);">No dues payment records found</h3>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Timeline styles */
+  .timeline-year { position: relative; padding-left: 2rem; padding-bottom: 1.5rem; border-left: 3px solid var(--oya-border); }
+  .timeline-year:last-child { border-left: 3px solid transparent; padding-bottom: 0; }
+  .timeline-dot { position: absolute; left: -9px; top: 0; width: 16px; height: 16px; border-radius: 50%; border: 3px solid var(--oya-card); box-shadow: 0 0 0 2px var(--oya-border); }
+  .timeline-dot.paid { background: var(--oya-success); box-shadow: 0 0 0 2px var(--oya-success); }
+  .timeline-dot.partial { background: var(--oya-warning); box-shadow: 0 0 0 2px var(--oya-warning); }
+  .timeline-dot.owed { background: var(--oya-danger); box-shadow: 0 0 0 2px var(--oya-danger); }
+  .timeline-dot.prepaid { background: var(--oya-info); box-shadow: 0 0 0 2px var(--oya-info); }
+  .timeline-dot.na { background: var(--oya-text-muted); box-shadow: 0 0 0 2px var(--oya-border); }
+
+  .year-card { border-radius: 10px; border: 1px solid var(--oya-border); padding: 1rem; background: var(--oya-card); }
+  .year-card.paid { border-left: 4px solid var(--oya-success); }
+  .year-card.partial { border-left: 4px solid var(--oya-warning); }
+  .year-card.owed { border-left: 4px solid var(--oya-danger); }
+  .year-card.prepaid { border-left: 4px solid var(--oya-info); }
+  .year-card.na { border-left: 4px solid var(--oya-text-muted); opacity: 0.7; }
+
+  .receipt-badge { font-size: .75rem; background: var(--oya-info-bg); color: var(--oya-info); padding: 2px 8px; border-radius: 4px; }
+
+  /* Badges matching income list pattern */
+  .badge-paid { background: var(--oya-success-bg); color: var(--oya-success); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  .badge-partial { background: var(--oya-warning-bg); color: var(--oya-warning); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  .badge-owed { background: var(--oya-danger-bg, #fee2e2); color: var(--oya-danger); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  .badge-prepaid { background: var(--oya-info-bg); color: var(--oya-info); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  .badge-info { background: var(--oya-info-bg); color: var(--oya-info); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  .badge-na { background: var(--oya-surface-hover); color: var(--oya-text-muted); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+
+  /* KPI danger accent fallback */
+  .kpi-card.accent-danger .kpi-icon { background: var(--oya-danger-bg, #fee2e2); color: var(--oya-danger); }
+
+  @media (max-width: 768px) {
+    .dashboard-grid-4 { grid-template-columns: 1fr 1fr !important; }
+  }
+  @media (max-width: 480px) {
+    .dashboard-grid-4 { grid-template-columns: 1fr !important; }
+  }
+</style>
+{% endblock %}

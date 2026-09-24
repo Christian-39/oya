@@ -1,0 +1,394 @@
+{% extends "base.html" %} {% load static %} {% block title %}{{ title|default:"Record Donation" }}{% endblock %}
+<!-- prettier-ignore -->
+{% block page_title %}{{title|default:"Record Donation" }}{% endblock %}
+<!-- prettier-ignore -->
+{% block breadcrumb %}Fundraising{% endblock %} {% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>{{ title|default:"Record Donation" }}</h1>
+    <p>
+      <!-- prettier-ignore -->
+      {% if donation %}Update donation record{% else %}Record a new project donation{% endif %}
+    </p>
+  </div>
+  <div class="page-header-actions">
+    <a
+      href="{% url 'project_donations:outside_donor_list' %}"
+      class="btn btn-secondary"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+      Donors
+    </a>
+  </div>
+</div>
+
+<div class="dashboard-grid dashboard-grid-1" style="max-width: 900px">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">Donation Information</div>
+    </div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data" novalidate id="donationForm">
+        {% csrf_token %}
+
+        <div
+          class="form-row"
+          style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+          "
+        >
+          <div class="form-group">
+            <label for="{{ form.project.id_for_label }}" class="form-label"
+              >Project <span style="color: var(--oya-danger)">*</span></label
+            >
+            {{ form.project }} {% if form.project.errors %}
+            <div class="form-error">{{ form.project.errors.0 }}</div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label for="{{ form.donor_type.id_for_label }}" class="form-label"
+              >Donor Type <span style="color: var(--oya-danger)">*</span></label
+            >
+            {{ form.donor_type }} {% if form.donor_type.errors %}
+            <div class="form-error">{{ form.donor_type.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div
+          class="form-row"
+          style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+          "
+        >
+          <div class="form-group">
+            <label for="{{ form.donation_type.id_for_label }}" class="form-label"
+              >Donation Type <span style="color: var(--oya-danger)">*</span></label
+            >
+            {{ form.donation_type }} {% if form.donation_type.errors %}
+            <div class="form-error">{{ form.donation_type.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Helper: jump to create donor if missing -->
+        <div id="add-donor-helper" style="display: none; margin-bottom: 1rem">
+          <div
+            style="
+              padding: 0.75rem 1rem;
+              background: var(--oya-info-bg);
+              border: 1px solid var(--oya-info);
+              border-radius: var(--oya-radius);
+              color: var(--oya-info);
+              font-size: 0.875rem;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 0.75rem;
+            "
+          >
+            <span>Can't find the donor? Add them first.</span>
+            <a
+              href="{% url 'project_donations:outside_donor_create' %}"
+              class="btn btn-sm btn-primary"
+              target="_blank"
+            >
+              + Add Outside Donor
+            </a>
+          </div>
+        </div>
+
+        <div
+          class="form-row"
+          style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+          "
+        >
+          <div class="form-group" id="member-field-group">
+            <label for="{{ form.member.id_for_label }}" class="form-label"
+              >Member</label
+            >
+            {{ form.member }} {% if form.member.errors %}
+            <div class="form-error">{{ form.member.errors.0 }}</div>
+            {% endif %}
+          </div>
+          <div class="form-group" id="outside-donor-field-group">
+            <label
+              for="{{ form.outside_donor.id_for_label }}"
+              class="form-label"
+              >Outside Donor</label
+            >
+            {{ form.outside_donor }} {% if form.outside_donor.errors %}
+            <div class="form-error">{{ form.outside_donor.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1rem">
+          <label for="{{ form.invited_by.id_for_label }}" class="form-label"
+            >Invited By</label
+          >
+          {{ form.invited_by }} {% if form.invited_by.errors %}
+          <div class="form-error">{{ form.invited_by.errors.0 }}</div>
+          {% endif %}
+          <div
+            style="
+              font-size: 0.75rem;
+              color: var(--oya-text-muted);
+              margin-top: 0.25rem;
+            "
+          >
+            Auto-filled for outside donors based on their profile.
+          </div>
+        </div>
+
+        <div id="money-fields-group">
+          <div
+            class="form-row"
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 1rem;
+              margin-bottom: 1rem;
+            "
+          >
+            <div class="form-group">
+              <label for="{{ form.amount.id_for_label }}" class="form-label"
+                >Amount (₦) <span style="color: var(--oya-danger)">*</span></label
+              >
+              {{ form.amount }} {% if form.amount.errors %}
+              <div class="form-error">{{ form.amount.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="form-group">
+              <label
+                for="{{ form.payment_method.id_for_label }}"
+                class="form-label"
+                >Payment Method</label
+              >
+              {{ form.payment_method }} {% if form.payment_method.errors %}
+              <div class="form-error">{{ form.payment_method.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem">
+            <label for="{{ form.receipt.id_for_label }}" class="form-label">Receipt</label>
+            {{ form.receipt }} {% if form.receipt.errors %}
+            <div class="form-error">{{ form.receipt.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div id="material-fields-group" style="display:none;">
+          <div
+            class="form-row"
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;"
+          >
+            <div class="form-group">
+              <label for="{{ form.material_name.id_for_label }}" class="form-label">Material Name</label>
+              {{ form.material_name }} {% if form.material_name.errors %}
+              <div class="form-error">{{ form.material_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="form-group">
+              <label for="{{ form.quantity.id_for_label }}" class="form-label">Quantity</label>
+              {{ form.quantity }} {% if form.quantity.errors %}
+              <div class="form-error">{{ form.quantity.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <div class="form-check" style="display:flex;align-items:center;gap:0.5rem;">
+              {{ form.update_treasury }}
+              <label for="{{ form.update_treasury.id_for_label }}" class="form-label" style="margin:0;">Update Treasury with Estimated Value</label>
+            </div>
+          </div>
+        </div>
+
+        <div id="labour-fields-group" style="display:none;">
+          <div
+            class="form-row"
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;"
+          >
+            <div class="form-group">
+              <label for="{{ form.labour_type.id_for_label }}" class="form-label">Labour Type</label>
+              {{ form.labour_type }} {% if form.labour_type.errors %}
+              <div class="form-error">{{ form.labour_type.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="form-group">
+              <label for="{{ form.number_of_days.id_for_label }}" class="form-label">Number of Days</label>
+              {{ form.number_of_days }} {% if form.number_of_days.errors %}
+              <div class="form-error">{{ form.number_of_days.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div id="shared-material-labour-group" style="display:none;">
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label for="{{ form.estimated_value.id_for_label }}" class="form-label">Estimated Value (₦) — Optional</label>
+            {{ form.estimated_value }} {% if form.estimated_value.errors %}
+            <div class="form-error">{{ form.estimated_value.errors.0 }}</div>
+            {% endif %}
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label for="{{ form.remarks.id_for_label }}" class="form-label">Remarks</label>
+            {{ form.remarks }} {% if form.remarks.errors %}
+            <div class="form-error">{{ form.remarks.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div
+          class="form-row"
+          style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+          "
+        >
+          <div class="form-group">
+            <label
+              for="{{ form.reference_number.id_for_label }}"
+              class="form-label"
+              >Reference Number</label
+            >
+            {{ form.reference_number }} {% if form.reference_number.errors %}
+            <div class="form-error">{{ form.reference_number.errors.0 }}</div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label
+              for="{{ form.donation_date.id_for_label }}"
+              class="form-label"
+              >Donation Date</label
+            >
+            {{ form.donation_date }} {% if form.donation_date.errors %}
+            <div class="form-error">{{ form.donation_date.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1rem">
+          <label for="{{ form.narration.id_for_label }}" class="form-label"
+            >Narration</label
+          >
+          {{ form.narration }} {% if form.narration.errors %}
+          <div class="form-error">{{ form.narration.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem">
+          <label for="{{ form.status.id_for_label }}" class="form-label"
+            >Status</label
+          >
+          {{ form.status }} {% if form.status.errors %}
+          <div class="form-error">{{ form.status.errors.0 }}</div>
+          {% endif %}
+          <div
+            style="
+              font-size: 0.75rem;
+              color: var(--oya-text-muted);
+              margin-top: 0.25rem;
+            "
+          >
+            Pledge: donor has committed but hasn't fulfilled it yet — this automatically creates a linked record in the Pledges module. Confirmed: contribution already received.
+          </div>
+        </div>
+
+        <div
+          style="
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            border-top: 1px solid var(--oya-border);
+            padding-top: 1.25rem;
+          "
+        >
+          <a
+            href="{% url 'project_donations:donation_list' %}"
+            class="btn btn-secondary"
+            >Cancel</a
+          >
+          <button type="submit" class="btn btn-primary">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            {{ action|default:"Save Donation" }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const donationTypeSelect = document.getElementById('id_donation_type');
+  const moneyGroup = document.getElementById('money-fields-group');
+  const materialGroup = document.getElementById('material-fields-group');
+  const labourGroup = document.getElementById('labour-fields-group');
+  const sharedGroup = document.getElementById('shared-material-labour-group');
+
+  function toggleDonationFields() {
+    const value = donationTypeSelect ? donationTypeSelect.value : '';
+
+    // Hide all first
+    moneyGroup.style.display = 'none';
+    materialGroup.style.display = 'none';
+    labourGroup.style.display = 'none';
+    sharedGroup.style.display = 'none';
+
+    if (value === 'MONEY') {
+      moneyGroup.style.display = '';
+    } else if (value === 'MATERIAL') {
+      materialGroup.style.display = '';
+      sharedGroup.style.display = '';
+    } else if (value === 'LABOUR') {
+      labourGroup.style.display = '';
+      sharedGroup.style.display = '';
+    }
+  }
+
+  if (donationTypeSelect) {
+    donationTypeSelect.addEventListener('change', toggleDonationFields);
+  }
+
+  // Initialize on page load (handles edit mode)
+  toggleDonationFields();
+})();
+</script>
+
+{% endblock %}

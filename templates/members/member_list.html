@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Members{% endblock %}
+{% block page_title %}Members{% endblock %}
+{% block breadcrumb %}Directory{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 style="font-size:clamp(1.125rem, 3vw, 1.5rem);">Member Directory</h1>
+    <p style="font-size:clamp(0.75rem, 2vw, 0.875rem);">Manage and view all registered members of OKPO Youths Association</p>
+  </div>
+  <div class="page-header-actions" style="flex-wrap:wrap;gap:0.5rem;">
+    <button class="btn btn-secondary" data-export="membersTable">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
+    </button>
+    {% if user.has_executive_access %}
+    <a href="{% url 'members:member_create' %}" class="btn btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Member
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Stats Bar -->
+<div class="filters-bar" style="flex-wrap:wrap;gap:0.5rem;">
+  <div class="filter-group">
+    <span class="filter-label" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);">Status:</span>
+    <select name="status" class="form-control" onchange="this.form.submit()" form="filterForm" style="width:160px;">
+      <option value="">All Status</option>
+      {% for value, label in status_choices %}
+        <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);">Clan:</span>
+    <select name="clan" class="form-control" onchange="this.form.submit()" form="filterForm" style="width:160px;">
+      <option value="">All Clans</option>
+      {% for clan in clans %}
+        <option value="{{ clan.id }}" {% if clan_filter == clan.id|stringformat:"s" %}selected{% endif %}>{{ clan.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div style="margin-left:auto;font-size:clamp(0.75rem, 2vw, 0.875rem);color:var(--oya-text-secondary);white-space:nowrap;">
+    <strong style="color:var(--oya-text-primary);">{{ stats.total }}</strong> total members
+    <span style="margin-left:1rem;"><strong style="color:var(--oya-success);">{{ stats.active }}</strong> active</span>
+    <span style="margin-left:1rem;"><strong style="color:var(--oya-text-muted);">{{ stats.past }}</strong> past</span>
+    <span style="margin-left:1rem;"><strong style="color:var(--oya-danger);">{{ stats.removed }}</strong> removed</span>
+  </div>
+</div>
+
+<form id="filterForm" method="get" style="display:none;"></form>
+
+<!-- Members Table -->
+<div class="card">
+  <div class="table-toolbar" style="flex-wrap:wrap;">
+    <div class="toolbar-search" style="max-width:100%;">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" name="search" placeholder="Search by name, serial number, clan..." 
+             value="{{ search_term }}" form="filterForm" onchange="this.form.submit()">
+    </div>
+  </div>
+
+  <div class="table-container" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table class="data-table" id="membersTable" data-sortable>
+      <thead>
+        <tr>
+          <th style="width:40px;">
+            <input type="checkbox" class="form-check-input" id="selectAll" style="margin:0;">
+          </th>
+          <th data-sort="text">Member</th>
+          <th data-sort="text">Serial Number</th>
+          <th data-sort="text">Clan</th>
+          <th data-sort="text">Status</th>
+          <th data-sort="text">Position</th>
+          <th data-sort="text">Age</th>
+          <th data-sort="text">State/Abroad</th>
+          <th data-sort="date">Joined</th>
+          <th style="width:100px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for member in members %}
+        <tr>
+          <td><input type="checkbox" class="form-check-input row-checkbox" value="{{ member.pk }}"></td>
+          <td>
+            <div style="display:flex;align-items:center;gap:0.75rem;white-space:nowrap;">
+              <div class="avatar avatar-sm" style="{% if not member.photo or not member.photo.name %}background:{% cycle 'var(--oya-primary)' 'var(--oya-accent)' 'var(--oya-success)' 'var(--oya-warning)' %};color:#fff;{% endif %}overflow:hidden;{% if member.photo and member.photo.name %}cursor:pointer;{% endif %}" {% if member.photo and member.photo.name %}onclick="openImagePreview('{{ member.photo.url }}', '{{ member.full_name }}')"{% endif %}>
+              {% if member.photo and member.photo.name %}
+                <img src="{{ member.photo.url }}" alt="{{ member.full_name }}" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+                {{ member.full_name|slice:":2"|upper }}
+              {% endif %}
+            </div>
+              <span class="cell-name" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);white-space:nowrap;">{{ member.full_name }}</span>
+            </div>
+          </td>
+          <td class="cell-muted" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);white-space:nowrap;">{{ member.serial_number }}</td>
+          <td style="white-space:nowrap;">{{ member.umu_nna_clan.name|default:"—" }}</td>
+          <td style="white-space:nowrap;">
+            {% if member.status == "ACTIVE" %}
+              <span class="badge badge-success" style="font-size:clamp(0.625rem, 1.5vw, 0.75rem);white-space:nowrap;">Active</span>
+            {% elif member.status == "PAST_MEMBER" %}
+              <span class="badge badge-warning" style="font-size:clamp(0.625rem, 1.5vw, 0.75rem);white-space:nowrap;">Past Member</span>
+            {% elif member.status == "REMOVED" %}
+              <span class="badge badge-danger" style="font-size:clamp(0.625rem, 1.5vw, 0.75rem);white-space:nowrap;">Removed</span>
+            {% else %}
+              <span class="badge" style="white-space:nowrap;">{{ member.status }}</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap;">
+            {% if member.position %}
+              <span class="badge badge-primary" style="font-size:clamp(0.625rem, 1.5vw, 0.75rem);white-space:nowrap;">{{ member.position }}</span>
+            {% elif member.is_taskforce %}
+              <span class="badge badge-info" style="font-size:clamp(0.625rem, 1.5vw, 0.75rem);white-space:nowrap;">Taskforce</span>
+            {% else %}
+              <span class="cell-muted" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);white-space:nowrap;">Floor Member</span>
+            {% endif %}
+          </td>
+          <td class="cell-muted" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);white-space:nowrap;">{{ member.age }}</td>
+          <td class="cell-muted" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);white-space:nowrap;">{{ member.state_or_abroad|default:"—" }}</td>
+          <td class="cell-muted" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);white-space:nowrap;">{{ member.year_joined }}</td>
+          <td style="white-space:nowrap;">
+  <div class="table-actions" style="display:flex;gap:0.25rem;flex-wrap:nowrap;white-space:nowrap;">
+    <a href="{% url 'members:member_detail' pk=member.pk %}" class="table-action-btn" title="View">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    </a>
+    {% if user.has_executive_access %}
+    <a href="{% url 'members:member_update' pk=member.pk %}" class="table-action-btn" title="Edit">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </a>
+    <a href="{% url 'members:member_remove' pk=member.pk %}" class="table-action-btn danger" title="Remove">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+    </a>
+    <a href="{% url 'members:member_delete' pk=member.pk %}" class="table-action-btn danger" title="Delete Permanently" style="background:var(--oya-danger);color:#fff;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+    </a>
+    {% endif %}
+  </div>
+</td>
+
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="10" style="text-align:center;padding:2rem;color:var(--oya-text-muted);">
+            No members found. <a href="{% url 'members:member_create' %}">Add your first member</a>.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if members.has_other_pages %}
+  <div class="card-footer">
+    <span style="font-size:clamp(0.6875rem, 1.5vw, 0.8125rem);color:var(--oya-text-muted);white-space:nowrap;">
+      Showing {{ members.start_index }}-{{ members.end_index }} of {{ stats.total }} members
+    </span>
+    <div class="pagination">
+      {% if members.has_previous %}
+        <a href="?page={{ members.previous_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if clan_filter %}&clan={{ clan_filter }}{% endif %}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      {% endif %}
+
+      {% for num in members.paginator.page_range %}
+        {% if members.number == num %}
+          <button class="page-btn active">{{ num }}</button>
+        {% elif num > members.number|add:"-3" and num < members.number|add:"3" %}
+          <a href="?page={{ num }}{% if search_term %}&search={{ search_term }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if clan_filter %}&clan={{ clan_filter }}{% endif %}" class="page-btn">{{ num }}</a>
+        {% elif num == 1 or num == members.paginator.num_pages %}
+          <a href="?page={{ num }}{% if search_term %}&search={{ search_term }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if clan_filter %}&clan={{ clan_filter }}{% endif %}" class="page-btn">{{ num }}</a>
+        {% elif num == members.number|add:"-3" or num == members.number|add:"3" %}
+          <span class="page-btn">...</span>
+        {% endif %}
+      {% endfor %}
+
+      {% if members.has_next %}
+        <a href="?page={{ members.next_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if clan_filter %}&clan={{ clan_filter }}{% endif %}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+/* ─── Mobile Responsive Overrides ─── */
+@media (max-width: 768px) {
+  .page-header-left h1 { font-size: 1.375rem !important; }
+  .page-header-left p { font-size: 0.9375rem !important; }
+  .form-control, .form-select, .form-input, .form-textarea { font-size: 0.9375rem !important; padding: 0.625rem 0.875rem !important; }
+  .form-label { font-size: 0.9375rem !important; }
+  .form-error, .form-help { font-size: 0.8125rem !important; }
+  .card-header-title { font-size: 1rem !important; }
+  .card-header-subtitle { font-size: 0.875rem !important; }
+  .card-body { padding: 1.25rem !important; }
+  .btn { font-size: 0.875rem !important; padding: 0.625rem 1rem !important; }
+  .btn-sm { font-size: 0.8125rem !important; padding: 0.5rem 0.875rem !important; }
+  .btn-lg { font-size: 0.9375rem !important; padding: 0.75rem 1.25rem !important; }
+  .badge { font-size: 0.8125rem !important; padding: 0.3rem 0.5rem !important; }
+  .data-table { font-size: 0.9375rem !important; }
+  .data-table thead th, .data-table tbody td { padding: 0.75rem 1rem !important; white-space: nowrap !important; }
+  .cell-name { font-size: 0.9375rem !important; }
+  .cell-muted { font-size: 0.875rem !important; }
+  .table-actions { flex-wrap: nowrap !important; gap: 0.25rem !important; white-space: nowrap !important; }
+  .table-action-btn { width: 36px !important; height: 36px !important; flex-shrink: 0 !important; }
+  .avatar { width: 40px !important; height: 40px !important; font-size: 0.875rem !important; }
+  .avatar-sm { width: 32px !important; height: 32px !important; font-size: 0.8125rem !important; }
+  .avatar-lg { width: 52px !important; height: 52px !important; font-size: 1.125rem !important; }
+  .activity-text { font-size: 0.9375rem !important; }
+  .activity-time { font-size: 0.8125rem !important; }
+  .timeline-title { font-size: 0.9375rem !important; }
+  .timeline-desc { font-size: 0.875rem !important; }
+  .timeline-time { font-size: 0.8125rem !important; }
+  .meta-label { font-size: 0.8125rem !important; }
+  .meta-value { font-size: 0.9375rem !important; }
+  .detail-label { font-size: 0.8125rem !important; }
+  .detail-value { font-size: 0.9375rem !important; }
+  .filter-label { font-size: 0.875rem !important; }
+  .page-btn { min-width: 36px !important; height: 36px !important; font-size: 0.875rem !important; }
+  .modal-title { font-size: 1.125rem !important; }
+  .modal-header, .modal-body { padding: 1.25rem !important; }
+  .modal-footer { padding: 1rem 1.25rem !important; }
+  .dropdown-item { font-size: 0.875rem !important; padding: 0.625rem 1rem !important; }
+  .notification-title { font-size: 0.9375rem !important; }
+  .notification-desc { font-size: 0.875rem !important; }
+  .notification-time { font-size: 0.8125rem !important; }
+  .urgent-case-title { font-size: 0.9375rem !important; }
+  .urgent-case-meta { font-size: 0.8125rem !important; }
+  .settings-info h4 { font-size: 1rem !important; }
+  .settings-info p { font-size: 0.875rem !important; }
+  .quick-action-btn { font-size: 0.875rem !important; padding: 1rem 0.75rem !important; }
+  .quick-action-btn svg { width: 24px !important; height: 24px !important; }
+  .chart-card-title { font-size: 1rem !important; }
+  .chart-card-subtitle { font-size: 0.875rem !important; }
+  .tab-btn { font-size: 0.9375rem !important; padding: 0.625rem 1rem !important; }
+  .alert { font-size: 0.9375rem !important; padding: 1rem 1.25rem !important; }
+  .toast { font-size: 0.9375rem !important; padding: 1rem 1.25rem !important; }
+  .empty-state h3 { font-size: 1.0625rem !important; }
+  .empty-state p { font-size: 0.875rem !important; }
+  .toolbar-search input { font-size: 0.9375rem !important; }
+  .pagination-info { font-size: 0.875rem !important; }
+  .progress-bar-label { font-size: 0.875rem !important; }
+  .progress-bar-value { font-size: 0.875rem !important; }
+  .directory-info h4 { font-size: 0.9375rem !important; }
+  .directory-info p { font-size: 0.875rem !important; }
+  .finance-hero-amount { font-size: 1.75rem !important; }
+  .receipt-dropzone div { font-size: 0.875rem !important; }
+  .category-card div { font-size: 0.8125rem !important; }
+  .export-btn-text { font-size: 0.875rem !important; }
+  .chart-legend { font-size: 0.8125rem !important; }
+  .chart-tooltip { font-size: 0.875rem !important; }
+  .detail-badge { font-size: 0.8125rem !important; }
+  .mobile-nav-link { font-size: 0.875rem !important; }
+  .mobile-bottom-nav-item { font-size: 0.625rem !important; }
+  .mobile-logo-text { font-size: 0.9375rem !important; }
+  .search-dropdown .dropdown-item { font-size: 0.875rem !important; }
+  .search-dropdown .dropdown-header { font-size: 0.75rem !important; }
+  .form-card-title { font-size: 1rem !important; }
+  .form-card-header { padding: 1rem 1.25rem !important; }
+  .form-card-body { padding: 1.25rem !important; }
+  .form-actions .btn { width: 100% !important; justify-content: center !important; }
+  .form-row { grid-template-columns: 1fr !important; gap: 0 !important; }
+  .dashboard-grid-4, .dashboard-grid-3, .dashboard-grid-2 { grid-template-columns: 1fr !important; }
+  .detail-meta-grid { grid-template-columns: 1fr 1fr !important; }
+  .user-detail-grid { grid-template-columns: 1fr !important; }
+  .quick-actions { grid-template-columns: repeat(2, 1fr) !important; }
+  .directory-grid { grid-template-columns: 1fr !important; }
+  .profile-card { flex-direction: column !important; text-align: center !important; }
+  .filters-bar { flex-direction: column !important; align-items: stretch !important; gap: 0.75rem !important; padding: 1rem !important; }
+  .filters-bar form { flex-direction: column !important; align-items: stretch !important; }
+  .filter-group { width: 100% !important; }
+  .filter-group .form-control { width: 100% !important; }
+  .table-toolbar { flex-direction: column !important; align-items: stretch !important; }
+  .toolbar-search { max-width: 100% !important; }
+  .page-header { flex-direction: column !important; align-items: flex-start !important; }
+  .page-header-actions { width: 100% !important; flex-wrap: wrap !important; }
+  .card-header { flex-direction: column !important; align-items: flex-start !important; gap: 0.75rem !important; }
+  .card-header .btn { width: 100% !important; justify-content: center !important; }
+  .detail-header { flex-direction: column !important; align-items: flex-start !important; gap: 1rem !important; }
+  .detail-header .page-header-actions { width: 100% !important; flex-wrap: wrap !important; }
+  .detail-header .page-header-actions .btn { flex: 1 !important; min-width: 120px !important; }
+  .modal-footer { flex-direction: column !important; gap: 0.5rem !important; }
+  .modal-footer .btn { width: 100% !important; justify-content: center !important; }
+  .settings-row { flex-direction: column !important; align-items: flex-start !important; gap: 0.875rem !important; padding: 1.125rem 0 !important; }
+  .radio-group { flex-direction: column !important; align-items: flex-start !important; gap: 0.75rem !important; }
+  .location-section { padding: 0.875rem 1rem !important; }
+  .photo-preview img { max-width: 90px !important; max-height: 90px !important; }
+  .content-area { padding: 1rem !important; padding-bottom: 80px !important; }
+  .app-footer { padding-bottom: 80px !important; font-size: 0.875rem !important; }
+  .hide-mobile { display: none !important; }
+}
+
+@media (max-width: 480px) {
+  .page-header-left h1 { font-size: 1.25rem !important; }
+  .page-header-left p { font-size: 0.875rem !important; }
+  .form-control, .form-select, .form-input, .form-textarea { font-size: 0.875rem !important; padding: 0.5rem 0.75rem !important; }
+  .form-label { font-size: 0.875rem !important; }
+  .form-error, .form-help { font-size: 0.75rem !important; }
+  .card-header-title { font-size: 0.9375rem !important; }
+  .card-header-subtitle { font-size: 0.8125rem !important; }
+  .card-body { padding: 1rem !important; }
+  .btn { font-size: 0.8125rem !important; padding: 0.5rem 0.875rem !important; }
+  .btn-sm { font-size: 0.75rem !important; padding: 0.375rem 0.75rem !important; }
+  .btn-lg { font-size: 0.875rem !important; padding: 0.625rem 1rem !important; }
+  .badge { font-size: 0.75rem !important; padding: 0.25rem 0.4rem !important; }
+  .data-table { font-size: 0.875rem !important; }
+  .data-table thead th, .data-table tbody td { padding: 0.625rem 0.75rem !important; white-space: nowrap !important; }
+  .cell-name { font-size: 0.875rem !important; }
+  .cell-muted { font-size: 0.8125rem !important; }
+  .table-actions { flex-wrap: nowrap !important; gap: 0.25rem !important; white-space: nowrap !important; }
+  .table-action-btn { width: 32px !important; height: 32px !important; flex-shrink: 0 !important; }
+  .avatar { width: 36px !important; height: 36px !important; font-size: 0.8125rem !important; }
+  .avatar-sm { width: 28px !important; height: 28px !important; font-size: 0.75rem !important; }
+  .avatar-lg { width: 48px !important; height: 48px !important; font-size: 1rem !important; }
+  .activity-text { font-size: 0.875rem !important; }
+  .activity-time { font-size: 0.75rem !important; }
+  .timeline-title { font-size: 0.875rem !important; }
+  .timeline-desc { font-size: 0.8125rem !important; }
+  .timeline-time { font-size: 0.75rem !important; }
+  .meta-label { font-size: 0.75rem !important; }
+  .meta-value { font-size: 0.875rem !important; }
+  .detail-label { font-size: 0.75rem !important; }
+  .detail-value { font-size: 0.875rem !important; }
+  .filter-label { font-size: 0.8125rem !important; }
+  .page-btn { min-width: 32px !important; height: 32px !important; font-size: 0.8125rem !important; }
+  .modal-title { font-size: 1rem !important; }
+  .modal-header, .modal-body { padding: 1rem !important; }
+  .modal-footer { padding: 0.75rem 1rem !important; }
+  .dropdown-item { font-size: 0.8125rem !important; padding: 0.5rem 0.875rem !important; }
+  .notification-title { font-size: 0.875rem !important; }
+  .notification-desc { font-size: 0.8125rem !important; }
+  .notification-time { font-size: 0.75rem !important; }
+  .urgent-case-title { font-size: 0.875rem !important; }
+  .urgent-case-meta { font-size: 0.75rem !important; }
+  .settings-info h4 { font-size: 0.9375rem !important; }
+  .settings-info p { font-size: 0.8125rem !important; }
+  .quick-action-btn { font-size: 0.8125rem !important; padding: 0.875rem 0.5rem !important; }
+  .quick-action-btn svg { width: 22px !important; height: 22px !important; }
+  .chart-card-title { font-size: 0.9375rem !important; }
+  .chart-card-subtitle { font-size: 0.8125rem !important; }
+  .tab-btn { font-size: 0.875rem !important; padding: 0.5rem 0.75rem !important; }
+  .alert { font-size: 0.875rem !important; padding: 0.75rem 1rem !important; }
+  .toast { font-size: 0.875rem !important; padding: 0.75rem 1rem !important; }
+  .empty-state h3 { font-size: 0.9375rem !important; }
+  .empty-state p { font-size: 0.8125rem !important; }
+  .toolbar-search input { font-size: 0.875rem !important; }
+  .pagination-info { font-size: 0.8125rem !important; }
+  .progress-bar-label { font-size: 0.8125rem !important; }
+  .progress-bar-value { font-size: 0.8125rem !important; }
+  .directory-info h4 { font-size: 0.875rem !important; }
+  .directory-info p { font-size: 0.8125rem !important; }
+  .finance-hero-amount { font-size: 1.5rem !important; }
+  .receipt-dropzone div { font-size: 0.8125rem !important; }
+  .category-card div { font-size: 0.75rem !important; }
+  .export-btn-text { font-size: 0.8125rem !important; }
+  .chart-legend { font-size: 0.75rem !important; }
+  .chart-tooltip { font-size: 0.8125rem !important; }
+  .detail-badge { font-size: 0.75rem !important; }
+  .mobile-nav-link { font-size: 0.8125rem !important; }
+  .mobile-bottom-nav-item { font-size: 0.5625rem !important; }
+  .mobile-logo-text { font-size: 0.875rem !important; }
+  .search-dropdown .dropdown-item { font-size: 0.8125rem !important; }
+  .search-dropdown .dropdown-header { font-size: 0.6875rem !important; }
+  .form-card-title { font-size: 0.9375rem !important; }
+  .form-card-header { padding: 0.875rem 1rem !important; }
+  .form-card-body { padding: 1rem !important; }
+  .card-footer { padding: 0.75rem 1rem !important; }
+  .detail-meta-grid { grid-template-columns: 1fr !important; }
+  .content-area { padding: 0.75rem !important; padding-bottom: 72px !important; }
+  .app-footer { padding: 0.875rem 1rem !important; padding-bottom: 72px !important; }
+}
+
+@media (max-width: 360px) {
+  .page-header-left h1 { font-size: 1.125rem !important; }
+  .page-header-left p { font-size: 0.8125rem !important; }
+  .form-control, .form-select, .form-input, .form-textarea { font-size: 0.8125rem !important; padding: 0.375rem 0.625rem !important; }
+  .form-label { font-size: 0.8125rem !important; }
+  .card-header-title { font-size: 0.875rem !important; }
+  .card-header-subtitle { font-size: 0.75rem !important; }
+  .btn { font-size: 0.75rem !important; padding: 0.375rem 0.75rem !important; }
+  .btn-sm { font-size: 0.6875rem !important; padding: 0.25rem 0.625rem !important; }
+  .badge { font-size: 0.6875rem !important; padding: 0.2rem 0.35rem !important; }
+  .data-table { font-size: 0.8125rem !important; }
+  .data-table thead th, .data-table tbody td { padding: 0.5rem 0.625rem !important; white-space: nowrap !important; }
+  .table-actions { flex-wrap: nowrap !important; gap: 0.25rem !important; white-space: nowrap !important; }
+  .table-action-btn { width: 28px !important; height: 28px !important; flex-shrink: 0 !important; }
+  .avatar { width: 32px !important; height: 32px !important; font-size: 0.75rem !important; }
+  .activity-text { font-size: 0.8125rem !important; }
+  .activity-time { font-size: 0.6875rem !important; }
+  .page-btn { min-width: 28px !important; height: 28px !important; font-size: 0.75rem !important; }
+  .modal-title { font-size: 0.9375rem !important; }
+  .dropdown-item { font-size: 0.75rem !important; padding: 0.375rem 0.75rem !important; }
+  .notification-title { font-size: 0.8125rem !important; }
+  .notification-desc { font-size: 0.75rem !important; }
+  .quick-action-btn { font-size: 0.75rem !important; }
+  .tab-btn { font-size: 0.8125rem !important; padding: 0.4rem 0.625rem !important; }
+  .alert { font-size: 0.8125rem !important; }
+  .toast { font-size: 0.8125rem !important; }
+  .empty-state h3 { font-size: 0.875rem !important; }
+  .empty-state p { font-size: 0.75rem !important; }
+  .content-area { padding: 0.625rem !important; padding-bottom: 64px !important; }
+  .app-footer { padding: 0.75rem !important; padding-bottom: 64px !important; font-size: 0.75rem !important; }
+}
+</style>
+
+{% endblock %}

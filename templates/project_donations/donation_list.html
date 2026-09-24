@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Project Donations{% endblock %}
+{% block page_title %}Project Donations{% endblock %}
+{% block breadcrumb %}Fundraising{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Project Donations</h1>
+    <p>Track and manage donations raised for community projects</p>
+  </div>
+  <div class="page-header-actions">
+    {% if user.has_executive_access %}
+    <a href="{% url 'project_donations:donation_create' %}" class="btn btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Record Donation
+    </a>
+    {% endif %}
+    <a href="{% url 'project_donations:donation_history_report' %}" class="btn btn-secondary" target="_blank">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Report
+    </a>
+  </div>
+</div>
+
+<div class="dashboard-grid dashboard-grid-4" style="margin-bottom:1.5rem;">
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+    </div>
+    <div class="kpi-value">{{ total_donations|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Total Donations</div>
+  </div>
+  <div class="kpi-card accent-success">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-success-bg);color:var(--oya-success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-success);">{{ member_total|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Member Donations</div>
+  </div>
+  <div class="kpi-card accent-info">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-info-bg);color:var(--oya-info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-info);">{{ outside_total|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Outside Donations</div>
+  </div>
+  <div class="kpi-card accent-warning">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-warning-bg);color:var(--oya-warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-warning);">{{ donations.paginator.count }}</div>
+    <div class="kpi-label">Records</div>
+  </div>
+</div>
+
+<div class="filters-bar">
+  <form method="get" style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+    {% if fundraising_projects %}
+    <div class="filter-group">
+      <span class="filter-label">Project:</span>
+      <select name="project" class="form-control" style="width:180px;" onchange="this.form.submit()">
+        <option value="">All Projects</option>
+        {% for proj in fundraising_projects %}
+          <option value="{{ proj.id }}" {% if project_filter == proj.id|stringformat:"s" %}selected{% endif %}>
+            {{ proj.title|truncatechars:25 }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+    <div class="filter-group">
+      <span class="filter-label">Type:</span>
+      <select name="donor_type" class="form-control" style="width:140px;" onchange="this.form.submit()">
+        <option value="" {% if not donor_type_filter %}selected{% endif %}>All</option>
+        {% for value, label in donor_type_choices %}
+          <option value="{{ value }}" {% if donor_type_filter == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Status:</span>
+      <select name="status" class="form-control" style="width:140px;" onchange="this.form.submit()">
+        <option value="" {% if not status_filter %}selected{% endif %}>All</option>
+        {% for value, label in status_choices %}
+          <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% if search_term %}<input type="hidden" name="search" value="{{ search_term }}">{% endif %}
+  </form>
+  <div style="margin-left:auto;font-size:0.875rem;color:var(--oya-text-secondary);display:flex;align-items:center;gap:0.75rem;">
+    <a href="{% url 'project_donations:outside_donor_list' %}" class="btn btn-sm btn-ghost">Outside Donors</a>
+    <strong style="color:var(--oya-text-primary);">{{ donations.paginator.count }}</strong> records
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-toolbar">
+    <div class="toolbar-search">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <form method="get" style="width:100%;">
+        <input type="text" name="search" placeholder="Search donations..."
+               value="{{ search_term }}"
+               onkeydown="if(event.key==='Enter') this.form.submit()">
+        {% if donor_type_filter %}<input type="hidden" name="donor_type" value="{{ donor_type_filter }}">{% endif %}
+        {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+        {% if project_filter %}<input type="hidden" name="project" value="{{ project_filter }}">{% endif %}
+      </form>
+    </div>
+  </div>
+
+  <div class="table-container" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table class="data-table" style="white-space:nowrap;">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Project</th>
+          <th>Donor</th>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Method</th>
+          <th>Status</th>
+          <th style="width:80px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for donation in donations %}
+        <tr>
+          <td style="white-space:nowrap;">{{ donation.donation_date|date:"M d, Y" }}</td>
+                    <td style="white-space:nowrap;">
+            <a href="{% url 'projects:project_detail' pk=donation.project.pk %}" class="cell-name">{{ donation.project.title|truncatechars:25 }}</a>
+          </td>
+          <td style="white-space:nowrap;">
+            {% if donation.member %}
+              <a href="{% url 'members:member_detail' pk=donation.member.pk %}" class="cell-name">{{ donation.member.full_name }}</a>
+            {% elif donation.outside_donor %}
+              <a href="{% url 'project_donations:outside_donor_detail' pk=donation.outside_donor.pk %}" class="cell-name">{{ donation.outside_donor.full_name }}</a>
+            {% else %}
+              <span class="cell-muted">Anonymous</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap;">
+            {% if donation.donor_type == "MEMBER" %}
+              <span class="badge badge-success">Member</span>
+            {% else %}
+              <span class="badge badge-info">Outside</span>
+            {% endif %}
+          </td>
+          <td style="font-weight:600;white-space:nowrap;">{{ donation.display_value }}</td>
+          <td style="white-space:nowrap;"><span class="cell-muted">{{ donation.get_payment_method_display }}</span></td>
+          <td style="white-space:nowrap;">
+            {% if donation.status == "CONFIRMED" %}
+              <span class="badge badge-success">Confirmed</span>
+            {% elif donation.status == "PLEDGE" %}
+              <span class="badge badge-warning">Pledge</span>
+            {% else %}
+              <span class="badge badge-danger">Cancelled</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap;">
+            <div class="table-actions" style="flex-wrap:nowrap;gap:0.25rem;">
+              <a href="{% url 'project_donations:donation_detail' pk=donation.pk %}" class="table-action-btn" title="View">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </a>
+              {% if user.has_executive_access %}
+              <a href="{% url 'project_donations:donation_update' pk=donation.pk %}" class="table-action-btn" title="Edit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </a>
+              {% endif %}
+              {% if user.has_admin_access %}
+              <a href="{% url 'project_donations:donation_delete' pk=donation.pk %}" class="table-action-btn" title="Delete" style="color:var(--oya-danger);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align:center;padding:3rem;">
+            <div class="empty-state" style="padding:0;">
+              <div class="empty-state-icon" style="width:60px;height:60px;margin-bottom:1rem;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <h3 style="font-size:1rem;">No donations found</h3>
+              <p style="font-size:0.875rem;">
+                {% if search_term or donor_type_filter or status_filter or project_filter %}
+                  No donations match your search/filter criteria.
+                {% else %}
+                  No donations have been recorded yet. Click "Record Donation" to get started.
+                {% endif %}
+              </p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if donations.has_other_pages %}
+  <div class="card-footer">
+    <span style="font-size:0.8125rem;color:var(--oya-text-muted);">Showing {{ donations.start_index }}-{{ donations.end_index }} of {{ donations.paginator.count }} records</span>
+    <div class="pagination">
+      {% if donations.has_previous %}
+        <a href="?page={{ donations.previous_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if donor_type_filter %}&donor_type={{ donor_type_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if project_filter %}&project={{ project_filter }}{% endif %}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      {% endif %}
+      {% for num in donations.paginator.page_range %}
+        {% if donations.number == num %}
+          <button class="page-btn active">{{ num }}</button>
+        {% elif num > donations.number|add:'-3' and num < donations.number|add:'3' %}
+          <a href="?page={{ num }}{% if search_term %}&search={{ search_term }}{% endif %}{% if donor_type_filter %}&donor_type={{ donor_type_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if project_filter %}&project={{ project_filter }}{% endif %}" class="page-btn">{{ num }}</a>
+        {% elif num == 1 or num == donations.paginator.num_pages %}
+          <a href="?page={{ num }}{% if search_term %}&search={{ search_term }}{% endif %}{% if donor_type_filter %}&donor_type={{ donor_type_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if project_filter %}&project={{ project_filter }}{% endif %}" class="page-btn">{{ num }}</a>
+        {% elif num == donations.number|add:'-3' or num == donations.number|add:'3' %}
+          <span class="page-btn" style="cursor:default;border:none;background:transparent;">...</span>
+        {% endif %}
+      {% endfor %}
+      {% if donations.has_next %}
+        <a href="?page={{ donations.next_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if donor_type_filter %}&donor_type={{ donor_type_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if project_filter %}&project={{ project_filter }}{% endif %}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

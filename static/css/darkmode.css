@@ -1,0 +1,288 @@
+/* ============================================
+   OYA - Dark Mode Overrides
+   ============================================ */
+
+[data-theme="dark"] body {
+  background: var(--oya-bg);
+  color: var(--oya-text-primary);
+}
+
+[data-theme="dark"] .topbar {
+  background: var(--oya-bg-white);
+  border-bottom-color: var(--oya-border);
+}
+
+[data-theme="dark"] .card {
+  background: var(--oya-bg-card);
+  border-color: var(--oya-border);
+}
+
+[data-theme="dark"] .card-header {
+  border-bottom-color: var(--oya-border);
+}
+
+[data-theme="dark"] .card-footer {
+  border-top-color: var(--oya-border);
+}
+
+[data-theme="dark"] .kpi-card {
+  background: var(--oya-bg-card);
+  border-color: var(--oya-border);
+}
+
+[data-theme="dark"] .kpi-icon {
+  background: rgba(11, 61, 145, 0.2);
+}
+
+[data-theme="dark"] .chart-card {
+  background: var(--oya-bg-card);
+  border-color: var(--oya-border);
+}
+
+[data-theme="dark"] .stat-card {
+  background: var(--oya-bg-card);
+  border-color: var(--oya-border);
+}
+
+[data-theme="dark"] .directory-card {
+  background: var(--oya-bg-card);
+  border-color: var(--oya-border);
+}
+
+[data-theme="dark"] .quick-action-btn {
+  background: var(--oya-bg-card);
+  border-color: var(--oya-border);
+  color: var(--oya-text-primary);
+}
+
+[data-theme="dark"] .quick-action-btn:hover {
+  background: rgba(11, 61, 145, 0.15);
+}
+
+[data-theme="dark"] .data-table thead th {
+  background: var(--oya-bg-white);
+  border-bottom-color: var(--oya-border);
+  color: var(--oya-text-muted);
+}
+
+[data-theme="dark"] .data-table tbody tr {
+  border-bottom-color: var(--oya-border);
+}
+
+[data-theme="dark"] .data-table tbody tr:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+[data-theme="dark"] .form-control {
+  background: var(--oya-bg-white);
+  border-color: var(--oya-border);
+  color: var(--oya-text-primary);
+}
+
+[data-theme="dark"] .form-control:focus {
+  border-color: var(--oya-primary);
+  box-shadow: 0 0 0 3px rgba(11, 61, 145, 0.2);
+}
+
+[data-theme="dark"] .topbar-search input {
+  background: var(--oya-bg);
+  border-color: var(--oya-border);
+  color: var(--oya-text-primary);
+}
+
+[data-theme="dark"] .topbar-btn {
+  background: var(--oya-bg-white);
+  border-color: var(--oya-border);
+  color: var(--oya-text-secondary);
+}
+
+[data-theme="dark"] .topbar-btn:hover {
+  background: var(--oya-bg);
+}
+
+[data-theme="dark"] .toolbar-search input {
+  background: var(--oya-bg);
+  border-color: var(--oya-border);
+}
+
+[data-theme="dark"] .page-btn {
+  background: var(--oya-bg-card);
+  border-color: var(--oya-border);
+  color: var(--oya-text-secondary);
+}
+
+[data-theme="dark"] .page-btn:hover:not(:disabled) {
+  border-color: var(--oya-primary);
+}
+
+[data-theme="dark"] .page-btn.active {
+  background: var(--oya-primary);
+  color: #FFF;
+}
+
+[data-theme="dark"] .tab-btn {
+  color: var(--oya-text-muted);
+}
+
+[data-theme="dark"] .tab-btn.active {
+  color: var(--oya-primary-light);
+  border-bottom-color: var(--oya-primary-light);
+}
+
+[data-theme="dark"] .tabs {
+  border-bottom-color: var(--oya-border);
+}
+
+[data-theme="dark"] .modal {
+  background: var(--oya-bg-card);
+}
+
+[data-theme="dark"] .modal-header {
+  border-bottom-color: var(--oya-border);
+}
+
+[data-theme="dark"] .modal-footer {
+  border-top-color: var(--oya-border);
+}
+
+[data-theme="dark"] .modal-close {
+  background: var(--oya-bg);
+  color: var(--oya-text-muted);
+}
+
+[data-theme="dark"] .dropdown-menu {
+  background: var(--oya-bg-card);
+  border-color: var(--oya-border);
+}
+
+[data-theme="dark"] .dropdown-item {
+  color: var(--oya-text-primary);
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+  background: var(--oya-bg-white);
+}
+
+[data-theme="dark"] .toast {
+  background: var(--oya-bg-card);
+  border-color: var(--oya-border);
+}
+
+[data-theme="dark"] .login-card {
+  background: var(--oya-bg-card);
+}
+
+[data-theme="dark"] .app-footer {
+  background: var(--oya-bg-white);
+  border-top-color: var(--oya-border);
+}
+
+[data-theme="dark"] .mobile-nav {
+  background: var(--oya-bg-card);
+  border-top-color: var(--oya-border);
+}
+
+[data-theme="dark"] .notification-item {
+  border-bottom-color: var(--oya-border);
+}
+
+[data-theme="dark"] .notification-item:hover {
+  background: var(--oya-bg-white);
+}
+
+[data-theme="dark"] .notification-item.unread {
+  background: rgba(11, 61, 145, 0.08);
+}
+
+[data-theme="dark"] .activity-item {
+  border-bottom-color: var(--oya-border);
+}
+
+[data-theme="dark"] .urgent-case {
+  background: var(--oya-bg-white);
+}
+
+[data-theme="dark"] .settings-row {
+  border-bottom-color: var(--oya-border);
+}
+
+[data-theme="dark"] .settings-section-title {
+  border-bottom-color: var(--oya-border);
+}
+
+[data-theme="dark"] .filters-bar {
+  background: var(--oya-bg-white);
+}
+
+[data-theme="dark"] .timeline::before {
+  background: var(--oya-border);
+}
+
+[data-theme="dark"] .timeline-dot {
+  border-color: var(--oya-bg-card);
+  box-shadow: 0 0 0 2px var(--oya-border);
+}
+
+[data-theme="dark"] .timeline-content {
+  background: var(--oya-bg-white);
+}
+
+[data-theme="dark"] .profile-card {
+  background: var(--oya-bg-card);
+  border-color: var(--oya-border);
+}
+
+[data-theme="dark"] .toggle-slider {
+  background: #475569;
+}
+
+[data-theme="dark"] .badge-secondary {
+  background: var(--oya-bg-white);
+}
+
+[data-theme="dark"] .progress-bar {
+  background: var(--oya-bg-white);
+}
+
+[data-theme="dark"] .empty-state-icon {
+  background: rgba(11, 61, 145, 0.15);
+}
+
+[data-theme="dark"] .table-action-btn:hover {
+  background: var(--oya-bg-white);
+}
+
+[data-theme="dark"] .nav-submenu .nav-item {
+  color: #94A3B8;
+}
+
+[data-theme="dark"] .nav-submenu .nav-item:hover {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .sidebar-footer {
+  border-top-color: rgba(255,255,255,0.06);
+}
+
+[data-theme="dark"] .nav-section-title {
+  color: #64748B;
+}
+
+[data-theme="dark"] .chart-container canvas {
+  filter: brightness(0.95);
+}
+
+/* Smooth theme transition */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+/* Disable transition on page load */
+.no-transition,
+.no-transition *,
+.no-transition *::before,
+.no-transition *::after {
+  transition: none !important;
+}

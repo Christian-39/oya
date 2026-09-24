@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Yearly Dues Debtors{% endblock %}
+{% block page_title %}Yearly Dues Debtors{% endblock %}
+{% block breadcrumb %}Finance{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Yearly Dues Debtors</h1>
+    <p>Members with outstanding yearly dues — sorted by total debt</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'finance:dues_tracker' %}" class="btn btn-secondary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back to Dues Tracker
+    </a>
+  </div>
+</div>
+
+<div class="dashboard-grid dashboard-grid-3" style="margin-bottom:1.5rem;">
+  <div class="kpi-card">
+    <div class="kpi-header"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div>
+    <div class="kpi-value">{{ stats.total_members }}</div>
+    <div class="kpi-label">Members with Outstanding Dues</div>
+  </div>
+  <div class="kpi-card accent-warning">
+    <div class="kpi-header"><div class="kpi-icon" style="background:var(--oya-warning-bg);color:var(--oya-warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div></div>
+    <div class="kpi-value" style="color:var(--oya-warning);">{{ stats.total_records }}</div>
+    <div class="kpi-label">Total Debtor Records</div>
+  </div>
+  <div class="kpi-card accent-danger">
+    <div class="kpi-header"><div class="kpi-icon" style="background:var(--oya-danger-bg);color:var(--oya-danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div></div>
+    <div class="kpi-value" style="color:var(--oya-danger);">&#x20A6;{{ stats.total_outstanding|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Total Outstanding</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-toolbar" style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+    <div class="toolbar-search" style="flex:1;min-width:220px;">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <form method="get" style="width:100%;display:flex;gap:0.5rem;">
+        <input type="text" name="search" placeholder="Search by name, membership no. or phone..." value="{{ search_term }}" onkeydown="if (event.key === 'Enter') this.form.submit();" />
+        <select name="year" class="form-select" style="max-width:140px;" onchange="this.form.submit()">
+          <option value="">All Years</option>
+          {% for y in years %}
+          <option value="{{ y }}" {% if year_filter == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+  </div>
+
+  <div class="table-container" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table class="data-table" style="white-space:nowrap;">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Member</th>
+          <th>Years Owed</th>
+          <th class="text-end">Amount Due</th>
+          <th class="text-end">Amount Paid</th>
+          <th class="text-end">Outstanding Balance</th>
+          <th>Last Payment</th>
+          <th class="text-end" style="width:80px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in debtors %}
+        <tr>
+          <td style="font-weight:700;color:var(--oya-text-muted);">
+            {% if debtors.number == 1 and forloop.counter <= 3 %}
+              {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% endif %}
+            {% else %}
+              {{ forloop.counter0|add:debtors.start_index }}
+            {% endif %}
+          </td>
+          <td>
+            <span class="cell-name">{{ row.member.full_name }}</span><br/>
+            <span class="cell-muted">{{ row.member.serial_number }}</span>
+          </td>
+          <td>
+            <span class="badge badge-warning">{{ row.years_missed }} year{{ row.years_missed|pluralize }}</span>
+          </td>
+          <td class="text-end">&#x20A6;{{ row.total_due|floatformat:0|intcomma }}</td>
+          <td class="text-end">&#x20A6;{{ row.total_paid|floatformat:0|intcomma }}</td>
+          <td class="text-end" style="color:var(--oya-danger);font-weight:600;">&#x20A6;{{ row.debt|floatformat:0|intcomma }}</td>
+          <td><span class="cell-muted">{% if row.last_payment_date %}{{ row.last_payment_date|date:"M d, Y" }}{% else %}Never{% endif %}</span></td>
+          <td style="white-space:nowrap;">
+            <div class="table-actions" style="flex-wrap:nowrap;gap:0.25rem;">
+              <a href="{% url 'finance:member_dues_detail' row.member.id %}" class="table-action-btn" title="View Dues Detail">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" style="text-align:center;padding:3rem 1rem;color:var(--oya-text-muted);">No outstanding dues found{% if search_term %} for "{{ search_term }}"{% endif %}{% if year_filter %} in {{ year_filter }}{% endif %}.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if debtors.paginator.num_pages > 1 %}
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;flex-wrap:wrap;gap:0.75rem;">
+    <span class="cell-muted">Showing {{ debtors.start_index }}-{{ debtors.end_index }} of {{ debtors.paginator.count }} records</span>
+    <div class="pagination">
+      {% if debtors.has_previous %}
+      <a href="?page={{ debtors.previous_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if year_filter %}&year={{ year_filter }}{% endif %}" class="page-btn">&laquo;</a>
+      {% endif %}
+      <span class="page-btn active">{{ debtors.number }}</span>
+      {% if debtors.has_next %}
+      <a href="?page={{ debtors.next_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if year_filter %}&year={{ year_filter }}{% endif %}" class="page-btn">&raquo;</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

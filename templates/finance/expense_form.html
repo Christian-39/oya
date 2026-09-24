@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load static %}
+
+{% block title %}{{ title }} — OYA Finance{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .treasury-bar { background: linear-gradient(135deg, var(--oya-primary) 0%, var(--oya-primary-dark, #16213e) 100%); color: #fff; border-radius: 12px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; }
+  .receipt-preview { border: 2px dashed var(--oya-border); border-radius: 12px; padding: 2rem; text-align: center; transition: all .2s; }
+  .receipt-preview.dragover { border-color: var(--oya-primary); background: var(--oya-primary-bg, #e7f1ff); }
+  .quick-cat { cursor: pointer; transition: all .15s; }
+  .quick-cat:hover { background: #ffebee !important; }
+  .file-info { background: var(--oya-surface); border-radius: 8px; padding: .75rem 1rem; margin-top: .5rem; display: none; }
+  .file-info.show { display: flex; align-items: center; gap: .5rem; }
+
+  /* TABLE FIX for recent expenses */
+  .form-card .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .form-card table { min-width: 600px; }
+  .form-card table th,
+  .form-card table td { white-space: nowrap !important; vertical-align: middle; }
+
+  [data-theme="dark"] .form-card { background: var(--oya-card); box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+  [data-theme="dark"] .card-header { background: var(--oya-card) !important; border-color: var(--oya-border) !important; }
+  [data-theme="dark"] .form-control,
+  [data-theme="dark"] .form-select { background: var(--oya-surface); color: var(--oya-text); border-color: var(--oya-border); }
+  [data-theme="dark"] .input-group-text { background: var(--oya-surface); color: var(--oya-text); border-color: var(--oya-border); }
+  [data-theme="dark"] .btn-outline-secondary { color: var(--oya-text); border-color: var(--oya-border); }
+  [data-theme="dark"] .file-info { background: var(--oya-surface); }
+  [data-theme="dark"] .text-muted { color: var(--oya-text-muted) !important; }
+  [data-theme="dark"] .badge.bg-light { background: var(--oya-surface) !important; color: var(--oya-text) !important; border: 1px solid var(--oya-border); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="fw-bold mb-0" style="color:var(--oya-primary);"><i class="bi bi-receipt me-2"></i>{{ title }}</h2>
+          <p class="text-muted mb-0">Record a new expenditure</p>
+        </div>
+        <a href="{% url 'finance:expense_list' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
+      </div>
+
+      <div class="treasury-bar d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <div class="small opacity-75">Treasury Balance</div>
+          <div class="fw-bold fs-5">&#8358;{{ treasury_balance|floatformat:0|intcomma }}</div>
+        </div>
+        <div class="d-flex gap-3">
+          <div class="text-center">
+            <div class="small opacity-75">Income</div>
+            <div class="fw-bold text-success">&#8358;{{ total_income|floatformat:0|intcomma }}</div>
+          </div>
+          <div class="text-center">
+            <div class="small opacity-75">Expenses</div>
+            <div class="fw-bold text-danger">&#8358;{{ total_expenses|floatformat:0|intcomma }}</div>
+          </div>
+        </div>
+      </div>
+
+      {% if messages %}
+      <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="form-card card">
+        <div class="card-body p-4">
+          <form method="post" enctype="multipart/form-data" novalidate id="expenseForm">
+            {% csrf_token %}
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Amount <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text">&#8358;</span>
+                  {{ form.amount }}
+                </div>
+                {% if form.amount.errors %}
+                <div class="invalid-feedback d-block">{{ form.amount.errors.0 }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                {{ form.category }}
+                {% if form.category.errors %}
+                <div class="invalid-feedback d-block">{{ form.category.errors.0 }}</div>
+                {% endif %}
+                {% if common_categories %}
+                <div class="mt-2">
+                  <span class="small text-muted">Quick select:</span>
+                  {% for cat in common_categories %}
+                  <span class="badge bg-light text-dark quick-cat me-1" onclick="document.getElementById('id_category').value='{{ cat|escapejs }}'">{{ cat }}</span>
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
+              {{ form.description }}
+              {% if form.description.errors %}
+              <div class="invalid-feedback d-block">{{ form.description.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Receipt File <span class="text-danger">*</span></label>
+              {{ form.receipt_file }}
+              <div class="form-text">Upload receipt, invoice, or proof of payment. Max 10MB. Accepted: PDF, JPG, PNG.</div>
+              {% if form.receipt_file.errors %}
+              <div class="invalid-feedback d-block">{{ form.receipt_file.errors.0 }}</div>
+              {% endif %}
+              <div class="file-info" id="fileInfo">
+                <i class="bi bi-file-earmark-text text-primary fs-5"></i>
+                <div>
+                  <div class="fw-medium" id="fileName"></div>
+                  <div class="small text-muted" id="fileSize"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-danger btn-lg" id="submitBtn">
+                <i class="bi bi-check-lg me-1"></i> {{ action }}
+              </button>
+              <a href="{% url 'finance:expense_list' %}" class="btn btn-outline-secondary btn-lg">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {% if recent_expenses %}
+      <div class="form-card card mt-4">
+        <div class="card-header bg-white border-0 pt-3 pb-0">
+          <h6 class="fw-bold mb-0" style="color:var(--oya-primary);"><i class="bi bi-clock-history me-2"></i>Recent Expenses</h6>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <tbody>
+                {% for exp in recent_expenses %}
+                <tr>
+                  <td><span class="badge bg-light text-dark">{{ exp.get_category_display }}</span></td>
+                  <td class="fw-medium">{{ exp.description|truncatechars:35 }}</td>
+                  <td class="text-end fw-bold text-danger">&#8358;{{ exp.amount|floatformat:0|intcomma }}</td>
+                  <td class="small text-muted">{{ exp.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  const fileInput = document.getElementById('id_receipt_file');
+  const fileInfo = document.getElementById('fileInfo');
+  const fileName = document.getElementById('fileName');
+  const fileSize = document.getElementById('fileSize');
+  const submitBtn = document.getElementById('submitBtn');
+
+  fileInput.addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+      const f = this.files[0];
+      fileName.textContent = f.name;
+      let size = f.size;
+      let unit = 'B';
+      if (size > 1024) { size /= 1024; unit = 'KB'; }
+      if (size > 1024) { size /= 1024; unit = 'MB'; }
+      fileSize.textContent = size.toFixed(1) + ' ' + unit;
+      fileInfo.classList.add('show');
+
+      if (f.size > 10 * 1024 * 1024) {
+        submitBtn.disabled = true;
+        fileSize.classList.add('text-danger');
+        fileSize.textContent += ' — File too large (max 10MB)';
+      } else {
+        submitBtn.disabled = false;
+        fileSize.classList.remove('text-danger');
+      }
+    } else {
+      fileInfo.classList.remove('show');
+    }
+  });
+})();
+</script>
+{% endblock %}

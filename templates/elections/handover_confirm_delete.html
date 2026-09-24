@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Delete Handover{% endblock %}
+{% block page_title %}Delete Handover{% endblock %}
+{% block breadcrumb %}
+<a href="{% url 'elections:election_list' %}">Elections</a> &rsaquo; 
+<a href="{% url 'elections:handover_list' %}">Handovers</a> &rsaquo; Delete
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 style="font-size:clamp(1.125rem, 3vw, 1.5rem);">Delete Handover Ledger</h1>
+    <p style="color:var(--oya-text-secondary);">This action cannot be undone</p>
+  </div>
+</div>
+
+<div class="card" style="max-width:520px;">
+  <div class="card-body" style="text-align:center;padding:2rem;">
+    <div style="width:64px;height:64px;background:var(--oya-danger-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--oya-danger)" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+      </svg>
+    </div>
+    
+    <h2 style="font-size:1.125rem;margin-bottom:0.5rem;">Are you sure?</h2>
+    <p style="color:var(--oya-text-secondary);font-size:0.875rem;margin-bottom:1.5rem;">
+      You are about to delete the handover ledger for<br>
+      <strong>{{ handover.executive.member.full_name }}</strong> 
+      ({{ handover.executive.post }})<br>
+      covering <strong>{{ handover.tenure_start|date:"M Y" }} – {{ handover.tenure_end|date:"M Y" }}</strong>.
+    </p>
+    
+    <p style="color:var(--oya-danger);font-size:0.8125rem;margin-bottom:1.5rem;">
+      All auto-calculated data including finance, operations, and project aggregates will be permanently removed.
+    </p>
+
+    <form method="post" style="display:flex;gap:0.75rem;justify-content:center;">
+      {% csrf_token %}
+      <a href="{% url 'elections:handover_list' %}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-danger">Delete Permanently</button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

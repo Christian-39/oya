@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Pledges{% endblock %}
+{% block page_title %}Pledges{% endblock %}
+{% block breadcrumb %}Fundraising{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Pledges</h1>
+    <p>Track pledged commitments and outstanding balances</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'project_donations:donation_list' %}" class="btn btn-secondary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Donations
+    </a>
+    {% if user.has_executive_access %}
+    <a href="{% url 'project_donations:pledge_create' %}" class="btn btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Record Pledge
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="dashboard-grid dashboard-grid-4" style="margin-bottom:1.5rem;">
+  <div class="kpi-card">
+    <div class="kpi-header"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div></div>
+    <div class="kpi-value">{{ stats.total }}</div>
+    <div class="kpi-label">Total Pledges</div>
+  </div>
+  <div class="kpi-card accent-warning">
+    <div class="kpi-header"><div class="kpi-icon" style="background:var(--oya-warning-bg);color:var(--oya-warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div></div>
+    <div class="kpi-value" style="color:var(--oya-warning);">{{ stats.pending }}</div>
+    <div class="kpi-label">Pending</div>
+  </div>
+  <div class="kpi-card accent-info">
+    <div class="kpi-header"><div class="kpi-icon" style="background:var(--oya-info-bg);color:var(--oya-info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-4"/></svg></div></div>
+    <div class="kpi-value" style="color:var(--oya-info);">{{ stats.partially_paid }}</div>
+    <div class="kpi-label">Partially Paid</div>
+  </div>
+  <div class="kpi-card accent-success">
+    <div class="kpi-header"><div class="kpi-icon" style="background:var(--oya-success-bg);color:var(--oya-success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+    <div class="kpi-value" style="color:var(--oya-success);">{{ stats.completed }}</div>
+    <div class="kpi-label">Completed</div>
+  </div>
+</div>
+
+<div class="dashboard-grid dashboard-grid-2" style="margin-bottom:1.5rem;">
+  <div class="kpi-card">
+    <div class="kpi-value">&#x20A6;{{ stats.total_pledged|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Total Pledged (active, money)</div>
+  </div>
+  <div class="kpi-card accent-warning">
+    <div class="kpi-value" style="color:var(--oya-warning);">&#x20A6;{{ stats.total_outstanding|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Total Outstanding</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-toolbar" style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+    <div class="toolbar-search" style="flex:1;min-width:220px;">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <form method="get" style="width:100%;display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <input type="text" name="search" placeholder="Search by member or project..." value="{{ search_term }}" onkeydown="if (event.key === 'Enter') this.form.submit();" />
+        <select name="status" class="form-select" style="max-width:180px;" onchange="this.form.submit()">
+          <option value="" {% if not status_filter %}selected{% endif %}>All Status</option>
+          {% for value, label in status_choices %}
+          <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+          <option value="OVERDUE" {% if status_filter == "OVERDUE" %}selected{% endif %}>Overdue</option>
+        </select>
+        <select name="donation_type" class="form-select" style="max-width:160px;" onchange="this.form.submit()">
+          <option value="" {% if not donation_type_filter %}selected{% endif %}>All Types</option>
+          {% for value, label in donation_type_choices %}
+          <option value="{{ value }}" {% if donation_type_filter == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <select name="project" class="form-select" style="max-width:220px;" onchange="this.form.submit()">
+          <option value="">All Projects</option>
+          {% for p in fundraising_projects %}
+          <option value="{{ p.id }}" {% if project_filter == p.id|stringformat:"s" %}selected{% endif %}>{{ p.title }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+  </div>
+
+  <div class="table-container" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table class="data-table" style="white-space:nowrap;">
+      <thead>
+        <tr>
+          <th>Donor</th>
+          <th>Type</th>
+          <th>Project</th>
+          <th>Pledged</th>
+          <th>Paid</th>
+          <th>Outstanding</th>
+          <th>Due Date</th>
+          <th>Status</th>
+          <th style="width:60px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pledge in pledges %}
+        <tr>
+          <td>
+            <span class="cell-name">
+              {% if pledge.member %}{{ pledge.member.full_name }}{% elif pledge.outside_donor %}{{ pledge.outside_donor.full_name }} <span class="badge badge-info" style="font-size:0.625rem;">Outside</span>{% else %}<span class="cell-muted">—</span>{% endif %}
+            </span>
+          </td>
+          <td><span class="badge {{ pledge.donation_type_badge_class|default:'badge-secondary' }}">{{ pledge.get_donation_type_display }}</span></td>
+          <td><span class="cell-muted">{{ pledge.project.title }}</span></td>
+          <td style="font-weight:600;">{{ pledge.display_value }}</td>
+          <td>
+            {% if pledge.donation_type == "MONEY" %}&#x20A6;{{ pledge.total_paid|floatformat:0|intcomma }}{% else %}<span class="cell-muted">—</span>{% endif %}
+          </td>
+          <td style="color:var(--oya-warning);font-weight:600;">
+            {% if pledge.donation_type == "MONEY" %}&#x20A6;{{ pledge.outstanding_balance|floatformat:0|intcomma }}{% elif pledge.status == "COMPLETED" %}<span class="cell-muted" style="font-weight:400;">Fulfilled</span>{% else %}<span style="font-weight:600;">Outstanding</span>{% endif %}
+          </td>
+          <td>
+            {% if pledge.due_date %}
+              {% if pledge.is_overdue %}
+              <span class="cell-muted" style="color:var(--oya-danger);font-weight:600;">{{ pledge.due_date|date:"M d, Y" }} (Overdue)</span>
+              {% else %}
+              <span class="cell-muted">{{ pledge.due_date|date:"M d, Y" }}</span>
+              {% endif %}
+            {% else %}<span class="cell-muted">—</span>{% endif %}
+          </td>
+          <td>
+            {% if pledge.status == "COMPLETED" %}<span class="badge badge-success">Completed</span>
+            {% elif pledge.status == "PARTIALLY_PAID" %}<span class="badge badge-info">Partially Paid</span>
+            {% elif pledge.status == "CANCELLED" %}<span class="badge badge-secondary">Cancelled</span>
+            {% else %}<span class="badge badge-warning">Pending</span>{% endif %}
+          </td>
+          <td>
+            <a href="{% url 'project_donations:pledge_detail' pk=pledge.pk %}" class="table-action-btn" title="View">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" style="text-align:center;padding:3rem 1rem;color:var(--oya-text-muted);">No pledges found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pledges.paginator.num_pages > 1 %}
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;flex-wrap:wrap;gap:0.75rem;">
+    <span class="cell-muted">Showing {{ pledges.start_index }}-{{ pledges.end_index }} of {{ pledges.paginator.count }} pledges</span>
+    <div class="pagination">
+      {% if pledges.has_previous %}<a href="?page={{ pledges.previous_page_number }}" class="page-btn">&laquo;</a>{% endif %}
+      <span class="page-btn active">{{ pledges.number }}</span>
+      {% if pledges.has_next %}<a href="?page={{ pledges.next_page_number }}" class="page-btn">&raquo;</a>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+{% load static oya_tags %}
+
+{% block title %}Audit Log<style>
+@media (max-width: 768px) {
+  .page-header-left h1 { font-size: 1.375rem; }
+  .page-header-left p { font-size: 0.9375rem; }
+  .filters-bar { flex-direction: column; align-items: stretch; gap: 0.75rem; padding: 1rem; }
+  .filter-group { width: 100%; }
+  .filter-group .form-control { width: 100%; }
+  .filter-label { font-size: 0.875rem; }
+  .form-control { font-size: 0.9375rem; padding: 0.625rem 0.875rem; }
+  .data-table { font-size: 0.9375rem; }
+  .data-table thead th,
+  .data-table tbody td { padding: 0.75rem 1rem; }
+  .badge { font-size: 0.8125rem; padding: 0.3rem 0.5rem; }
+  .btn { font-size: 0.875rem; padding: 0.625rem 1rem; }
+  .table-action-btn { width: 36px; height: 36px; }
+  .page-btn { min-width: 36px; height: 36px; font-size: 0.875rem; }
+  .card-header-title { font-size: 1rem; }
+  .card-header-subtitle { font-size: 0.875rem; }
+  .detail-label { font-size: 0.8125rem; }
+  .detail-value { font-size: 0.9375rem; }
+  .detail-value pre { font-size: 0.8125rem; }
+  .modal-header h3 { font-size: 1.125rem; }
+  .modal-header, .modal-body { padding: 1.25rem; }
+}
+
+@media (max-width: 480px) {
+  .filters-bar { padding: 0.75rem; }
+  .data-table { font-size: 0.875rem; }
+  .data-table thead th,
+  .data-table tbody td { padding: 0.625rem 0.75rem; }
+  .badge { font-size: 0.75rem; }
+  .btn { font-size: 0.8125rem; }
+  .page-btn { min-width: 32px; height: 32px; font-size: 0.8125rem; }
+  .modal-header h3 { font-size: 1rem; }
+  .modal-header, .modal-body { padding: 1rem; }
+  .detail-label { font-size: 0.75rem; }
+  .detail-value { font-size: 0.875rem; }
+}
+</style>
+
+{% endblock %}
+{% block page_title %}Audit Log<style>
+@media (max-width: 768px) {
+  .page-header-left h1 { font-size: 1.375rem; }
+  .page-header-left p { font-size: 0.9375rem; }
+  .filters-bar { flex-direction: column; align-items: stretch; gap: 0.75rem; padding: 1rem; }
+  .filter-group { width: 100%; }
+  .filter-group .form-control { width: 100%; }
+  .filter-label { font-size: 0.875rem; }
+  .form-control { font-size: 0.9375rem; padding: 0.625rem 0.875rem; }
+  .data-table { font-size: 0.9375rem; }
+  .data-table thead th,
+  .data-table tbody td { padding: 0.75rem 1rem; }
+  .badge { font-size: 0.8125rem; padding: 0.3rem 0.5rem; }
+  .btn { font-size: 0.875rem; padding: 0.625rem 1rem; }
+  .table-action-btn { width: 36px; height: 36px; }
+  .page-btn { min-width: 36px; height: 36px; font-size: 0.875rem; }
+  .card-header-title { font-size: 1rem; }
+  .card-header-subtitle { font-size: 0.875rem; }
+  .detail-label { font-size: 0.8125rem; }
+  .detail-value { font-size: 0.9375rem; }
+  .detail-value pre { font-size: 0.8125rem; }
+  .modal-header h3 { font-size: 1.125rem; }
+  .modal-header, .modal-body { padding: 1.25rem; }
+}
+
+@media (max-width: 480px) {
+  .filters-bar { padding: 0.75rem; }
+  .data-table { font-size: 0.875rem; }
+  .data-table thead th,
+  .data-table tbody td { padding: 0.625rem 0.75rem; }
+  .badge { font-size: 0.75rem; }
+  .btn { font-size: 0.8125rem; }
+  .page-btn { min-width: 32px; height: 32px; font-size: 0.8125rem; }
+  .modal-header h3 { font-size: 1rem; }
+  .modal-header, .modal-body { padding: 1rem; }
+  .detail-label { font-size: 0.75rem; }
+  .detail-value { font-size: 0.875rem; }
+}
+</style>
+
+{% endblock %}
+{% block breadcrumb %}System Logs<style>
+@media (max-width: 768px) {
+  .page-header-left h1 { font-size: 1.375rem; }
+  .page-header-left p { font-size: 0.9375rem; }
+  .filters-bar { flex-direction: column; align-items: stretch; gap: 0.75rem; padding: 1rem; }
+  .filter-group { width: 100%; }
+  .filter-group .form-control { width: 100%; }
+  .filter-label { font-size: 0.875rem; }
+  .form-control { font-size: 0.9375rem; padding: 0.625rem 0.875rem; }
+  .data-table { font-size: 0.9375rem; }
+  .data-table thead th,
+  .data-table tbody td { padding: 0.75rem 1rem; }
+  .badge { font-size: 0.8125rem; padding: 0.3rem 0.5rem; }
+  .btn { font-size: 0.875rem; padding: 0.625rem 1rem; }
+  .table-action-btn { width: 36px; height: 36px; }
+  .page-btn { min-width: 36px; height: 36px; font-size: 0.875rem; }
+  .card-header-title { font-size: 1rem; }
+  .card-header-subtitle { font-size: 0.875rem; }
+  .detail-label { font-size: 0.8125rem; }
+  .detail-value { font-size: 0.9375rem; }
+  .detail-value pre { font-size: 0.8125rem; }
+  .modal-header h3 { font-size: 1.125rem; }
+  .modal-header, .modal-body { padding: 1.25rem; }
+}
+
+@media (max-width: 480px) {
+  .filters-bar { padding: 0.75rem; }
+  .data-table { font-size: 0.875rem; }
+  .data-table thead th,
+  .data-table tbody td { padding: 0.625rem 0.75rem; }
+  .badge { font-size: 0.75rem; }
+  .btn { font-size: 0.8125rem; }
+  .page-btn { min-width: 32px; height: 32px; font-size: 0.8125rem; }
+  .modal-header h3 { font-size: 1rem; }
+  .modal-header, .modal-body { padding: 1rem; }
+  .detail-label { font-size: 0.75rem; }
+  .detail-value { font-size: 0.875rem; }
+}
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Audit Log</h1>
+    <p>Complete record of all system activities and user actions</p>
+  </div>
+  <div class="page-header-actions">
+    {% if user.has_executive_access %}
+    <a href="{% url "auditlogs:export" %}?{{ request.GET.urlencode }}" class="btn btn-secondary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Filters -->
+<form method="get" class="filters-bar" id="auditFilterForm" style="flex-wrap:wrap;gap:0.5rem;">
+  <div class="filter-group">
+    <span class="filter-label" style="font-size:0.75rem;">Action:</span>
+    <select name="action" class="form-control" style="width:160px;" onchange="this.form.submit()">
+      <option value="">All Actions</option>
+      {% for value, label in action_choices %}
+        <option value="{{ value }}" {% if action_filter == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label" style="font-size:0.75rem;">Entity:</span>
+    <select name="entity" class="form-control" style="width:160px;" onchange="this.form.submit()">
+      <option value="">All Entities</option>
+      {% for entity in entity_choices %}
+        <option value="{{ entity }}" {% if entity_filter == entity %}selected{% endif %}>{{ entity }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label" style="font-size:0.75rem;">From:</span>
+    <input type="date" name="date_from" class="form-control" style="width:140px;" value="{{ date_from }}" onchange="this.form.submit()">
+  </div>
+  <div class="filter-group">
+    <span class="filter-label" style="font-size:0.75rem;">To:</span>
+    <input type="date" name="date_to" class="form-control" style="width:140px;" value="{{ date_to }}" onchange="this.form.submit()">
+  </div>
+  <div class="filter-group">
+    <span class="filter-label" style="font-size:0.75rem;">User:</span>
+    <input type="text" name="user_search" class="form-control" placeholder="Search user..." style="width:150px;" value="{{ user_search }}" onchange="this.form.submit()">
+  </div>
+  <div style="margin-left:auto;font-size:0.875rem;color:var(--oya-text-secondary);">
+    <strong style="color:var(--oya-text-primary);">{{ paginator.count|default:0 }}</strong> entries
+  </div>
+</form>
+
+<!-- Table -->
+<div class="card">
+  <div class="table-toolbar">
+    <form method="get" class="toolbar-search">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" name="search" placeholder="Search logs..." value="{{ search_term }}" onkeydown="if(event.key==='Enter'){this.form.submit();}">
+      {% if search_term %}
+        <a href="{% url "auditlogs:auditlog_list" %}" class="clear-search" title="Clear search">&times;</a>
+      {% endif %}
+    </form>
+  </div>
+
+<style>
+#auditTable { white-space: nowrap; }
+#auditTable th, #auditTable td { white-space: nowrap; }
+.table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+</style>
+<div class="table-container">
+    <table class="data-table" id="auditTable">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>User</th>
+          <th>Action</th>
+          <th>Entity</th>
+          <th>Description</th>
+          <th>IP Address</th>
+          <th style="width:60px;">View</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td class="cell-muted" style="white-space:nowrap;">
+            {{ log.created_at|date:"M j, Y" }} <span style="font-size:0.75rem;">{{ log.created_at|date:"h:i:s A" }}</span>
+          </td>
+          <td>
+            {% if log.user %}
+              <span class="cell-name">{{ log.user.display_role|default:"User" }} ({{ log.user.full_name|default:log.user.serial_number }})</span>            {% else %}
+              <span class="cell-muted">System</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge badge-{% if log.action == "CREATE" %}success{% elif log.action == "UPDATE" %}warning{% elif log.action == "DELETE" %}danger{% elif log.action == "LOGIN" or log.action == "LOGOUT" %}info{% elif log.action == "EXPORT" %}secondary{% else %}primary{% endif %}">
+              {{ log.action }}
+            </span>
+          </td>
+          <td>{{ log.object_type }}</td>
+          <td style="white-space:nowrap;">{{ log.description|truncatechars:80 }}</td>
+          <td class="cell-muted">{{ log.ip_address|default:"—" }}</td>
+          <td>
+            <button class="table-action-btn" title="Details" onclick="openAuditModal({{ log.id }})">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center;padding:2rem;color:var(--oya-text-muted);">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:0.5rem;opacity:0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <p>No audit logs found.</p>
+            {% if search_term or action_filter or date_from or date_to %}
+              <a href="{% url "auditlogs:auditlog_list" %}" class="btn btn-sm btn-primary" style="margin-top:0.5rem;">Clear Filters</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if logs.has_other_pages %}
+  <div class="card-footer">
+    <span style="font-size:0.8125rem;color:var(--oya-text-muted);">
+      Showing {{ logs.start_index }}–{{ logs.end_index }} of {{ paginator.count }} entries
+    </span>
+    <div class="pagination">
+      {% if logs.has_previous %}
+        <a href="?{% query_transform page=logs.previous_page_number %}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+      {% endif %}
+
+      {% for num in logs.paginator.page_range %}
+        {% if logs.number == num %}
+          <button class="page-btn active">{{ num }}</button>
+        {% elif num > logs.number|add:"-3" and num < logs.number|add:"3" %}
+          <a href="?{% query_transform page=num %}" class="page-btn">{{ num }}</a>
+        {% elif num == 1 or num == logs.paginator.num_pages %}
+          <a href="?{% query_transform page=num %}" class="page-btn">{{ num }}</a>
+        {% elif num == logs.number|add:"-3" or num == logs.number|add:"3" %}
+          <span class="page-btn" style="cursor:default;border:none;">...</span>
+        {% endif %}
+      {% endfor %}
+
+      {% if logs.has_next %}
+        <a href="?{% query_transform page=logs.next_page_number %}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Audit Log Detail Modal -->
+<div id="auditModal" class="modal" style="display:none;">
+  <div class="modal-overlay" onclick="closeAuditModal()"></div>
+  <div class="modal-content" style="max-width:min(600px,95vw);">
+    <div class="modal-header">
+      <h3>Audit Log Details</h3>
+      <button class="modal-close" onclick="closeAuditModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="auditModalBody">
+      <div class="loading-spinner" style="text-align:center;padding:2rem;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+        <p>Loading details...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.modal { position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center; }
+.modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.5); }
+.modal-content { background:var(--oya-surface);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.3);position:relative;z-index:1001;width:100%;margin:1rem;overflow:hidden; }
+.modal-header { display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-bottom:1px solid var(--oya-border); }
+.modal-header h3 { margin:0;font-size:1.125rem; }
+.modal-close { background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--oya-text-secondary); }
+.modal-close:hover { color:var(--oya-text-primary); }
+.modal-body { padding:1.5rem; }
+.modal-footer { display:flex;justify-content:flex-end;gap:0.5rem;padding:1rem 1.5rem;border-top:1px solid var(--oya-border); }
+
+.detail-grid { display:grid;grid-template-columns:120px 1fr;gap:0.75rem 1rem; }
+.detail-label { color:var(--oya-text-muted);font-size:0.8125rem;font-weight:500; }
+.detail-value { color:var(--oya-text-primary);font-size:0.875rem; }
+.detail-value pre { background:var(--oya-bg);padding:0.75rem;border-radius:6px;font-size:0.75rem;overflow-x:auto;margin:0; }
+
+.spin { animation:spin 1s linear infinite; }
+@keyframes spin { from{transform:rotate(0deg);}to{transform:rotate(360deg);} }
+
+.clear-search { position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);text-decoration:none;color:var(--oya-text-muted);font-size:1.25rem;line-height:1; }
+.clear-search:hover { color:var(--oya-danger); }
+.toolbar-search { position:relative; }
+</style>
+
+<script>
+function openAuditModal(logId) {
+  const modal = document.getElementById('auditModal');
+  const body = document.getElementById('auditModalBody');
+  modal.style.display = 'flex';
+  body.innerHTML = '<div class="loading-spinner" style="text-align:center;padding:2rem;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg><p>Loading details...</p></div>';
+
+  fetch(`/auditlogs/${logId}/detail/`)
+    .then(r => r.text())
+    .then(html => { body.innerHTML = html; })
+    .catch(e => { body.innerHTML = '<p style="color:var(--oya-danger);">Failed to load details.</p>'; });
+}
+function closeAuditModal() {
+  document.getElementById('auditModal').style.display = 'none';
+}
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeAuditModal(); });
+</script>
+
+<style>
+@media (max-width: 768px) {
+  .page-header-left h1 { font-size: 1.375rem; }
+  .page-header-left p { font-size: 0.9375rem; }
+  .filters-bar { flex-direction: column; align-items: stretch; gap: 0.75rem; padding: 1rem; }
+  .filter-group { width: 100%; }
+  .filter-group .form-control { width: 100%; }
+  .filter-label { font-size: 0.875rem; }
+  .form-control { font-size: 0.9375rem; padding: 0.625rem 0.875rem; }
+  .data-table { font-size: 0.9375rem; }
+  .data-table thead th,
+  .data-table tbody td { padding: 0.75rem 1rem; }
+  .badge { font-size: 0.8125rem; padding: 0.3rem 0.5rem; }
+  .btn { font-size: 0.875rem; padding: 0.625rem 1rem; }
+  .table-action-btn { width: 36px; height: 36px; }
+  .page-btn { min-width: 36px; height: 36px; font-size: 0.875rem; }
+  .card-header-title { font-size: 1rem; }
+  .card-header-subtitle { font-size: 0.875rem; }
+  .detail-label { font-size: 0.8125rem; }
+  .detail-value { font-size: 0.9375rem; }
+  .detail-value pre { font-size: 0.8125rem; }
+  .modal-header h3 { font-size: 1.125rem; }
+  .modal-header, .modal-body { padding: 1.25rem; }
+}
+
+@media (max-width: 480px) {
+  .filters-bar { padding: 0.75rem; }
+  .data-table { font-size: 0.875rem; }
+  .data-table thead th,
+  .data-table tbody td { padding: 0.625rem 0.75rem; }
+  .badge { font-size: 0.75rem; }
+  .btn { font-size: 0.8125rem; }
+  .page-btn { min-width: 32px; height: 32px; font-size: 0.8125rem; }
+  .modal-header h3 { font-size: 1rem; }
+  .modal-header, .modal-body { padding: 1rem; }
+  .detail-label { font-size: 0.75rem; }
+  .detail-value { font-size: 0.875rem; }
+}
+</style>
+
+{% endblock %}

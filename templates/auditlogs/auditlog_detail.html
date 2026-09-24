@@ -1,0 +1,58 @@
+{% load humanize %}
+
+<div class="detail-grid">
+  <div class="detail-label">Log ID</div>
+  <div class="detail-value">#{{ log.id }}</div>
+
+  <div class="detail-label">Timestamp</div>
+  <div class="detail-value">{{ log.created_at|date:"l, F j, Y \a\t h:i:s A" }} ({{ log.created_at|naturaltime }})</div>
+
+  <div class="detail-label">User</div>
+  <div class="detail-value">
+    {% if log.user %}
+      <strong>{{ log.user.full_name|default:log.user.serial_number }}</strong><br>
+      <span style="color:var(--oya-text-muted);font-size:0.75rem;">{{ log.user.serial_number }} &bull; {% if member.position %}{{ member.position }}{% else %}{{ user.get_role_display|default:"Member" }}{% endif %}</span>    {% else %}
+      <span class="cell-muted">System / Anonymous</span>
+    {% endif %}
+  </div>
+
+  <div class="detail-label">Action</div>
+  <div class="detail-value">
+    <span class="badge badge-{% if log.action == "CREATE" %}success{% elif log.action == "UPDATE" %}warning{% elif log.action == "DELETE" %}danger{% elif log.action == "LOGIN" or log.action == "LOGOUT" %}info{% elif log.action == "EXPORT" %}secondary{% else %}primary{% endif %}">
+      {{ log.action }}
+    </span>
+  </div>
+
+  <div class="detail-label">Entity Type</div>
+  <div class="detail-value">{{ log.object_type }}</div>
+
+  <div class="detail-label">Object ID</div>
+  <div class="detail-value">{{ log.object_id|default:"N/A" }}</div>
+
+  <div class="detail-label">IP Address</div>
+  <div class="detail-value">{{ log.ip_address|default:"Not recorded" }}</div>
+
+  <div class="detail-label">Description</div>
+  <div class="detail-value"><pre>{{ log.description|default:"No description provided." }}</pre></div>
+</div>
+
+<div class="modal-footer">
+  <button class="btn btn-secondary" onclick="closeAuditModal()">Close</button>
+</div>
+
+<style>
+@media (max-width: 768px) {
+  .detail-grid { grid-template-columns: 1fr !important; gap: 0.5rem 0; }
+  .detail-label { font-size: 0.8125rem; }
+  .detail-value { font-size: 0.9375rem; }
+  .detail-value pre { font-size: 0.8125rem; padding: 0.625rem; }
+  .badge { font-size: 0.8125rem; padding: 0.3rem 0.5rem; }
+  .btn { font-size: 0.875rem; padding: 0.625rem 1rem; }
+}
+
+@media (max-width: 480px) {
+  .detail-label { font-size: 0.75rem; }
+  .detail-value { font-size: 0.875rem; }
+  .detail-value pre { font-size: 0.75rem; }
+}
+</style>

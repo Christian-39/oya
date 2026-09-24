@@ -1,0 +1,411 @@
+{% extends "base.html" %} {% load static %} {% load humanize %}
+{% block title %}Project Details{% endblock %}
+{% block page_title %}Project Detail{% endblock %}
+{% block breadcrumb %}View{% endblock %}
+{% block content %}
+
+<style>
+  /* ─── Responsive Project Detail ─── */
+  @media (max-width: 768px) {
+    .detail-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .detail-header h1 { font-size: 1.25rem !important; }
+    .detail-header p { font-size: 0.8125rem !important; }
+    .page-header-actions { width: 100%; flex-wrap: wrap; }
+    .page-header-actions .btn { flex: 1; min-width: 120px; }
+    .dashboard-grid-2 { grid-template-columns: 1fr !important; }
+    .detail-meta-grid { grid-template-columns: 1fr 1fr !important; }
+    .meta-item { gap: 0.15rem; }
+    .meta-label { font-size: 0.6875rem; }
+    .meta-value { font-size: 0.875rem; }
+    .timeline { padding-left: 1.5rem; }
+    .timeline-dot { left: -1.5rem; width: 14px; height: 14px; }
+    .timeline-content { padding: 0.625rem 0.875rem; }
+    .timeline-title { font-size: 0.8125rem; }
+    .timeline-desc { font-size: 0.75rem; }
+    .timeline-time { font-size: 0.6875rem; }
+    .progress-bar { height: 10px; }
+    .card-body { padding: 1rem 1.25rem; }
+  }
+
+  @media (max-width: 480px) {
+    .detail-header h1 { font-size: 1.125rem !important; }
+    .detail-header p { font-size: 0.75rem !important; }
+    .detail-meta-grid { grid-template-columns: 1fr !important; }
+    .meta-label { font-size: 0.625rem; }
+    .meta-value { font-size: 0.8125rem; }
+    .badge { padding: 0.25rem 0.5rem; font-size: 0.6875rem; }
+    .timeline { padding-left: 1.25rem; }
+    .timeline-dot { left: -1.25rem; width: 12px; height: 12px; }
+    .timeline-content { padding: 0.5rem 0.75rem; }
+    .timeline-title { font-size: 0.75rem; }
+    .timeline-desc { font-size: 0.6875rem; }
+    .card-header-title { font-size: 0.9375rem; }
+    .card-body { padding: 0.875rem 1rem; }
+    .btn { padding: 0.5rem 1rem; font-size: 0.8125rem; }
+  }
+
+  @media (max-width: 360px) {
+    .detail-header h1 { font-size: 1rem !important; }
+    .meta-label { font-size: 0.5625rem; }
+    .meta-value { font-size: 0.75rem; }
+    .timeline-title { font-size: 0.6875rem; }
+    .timeline-desc { font-size: 0.625rem; }
+  }
+</style>
+
+<!-- Project Header -->
+<div class="detail-header">
+  <div>
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+      <h1 style="font-size: 1.5rem">{{ project.title }}</h1>
+      {% if project.status == "FUTURE" %}
+      <span class="badge badge-info">Planned</span>
+      {% elif project.status == "AT_HAND" %}
+      <span class="badge badge-warning">In Progress</span>
+      {% elif project.status == "FINISHED" %}
+      <span class="badge badge-success">Completed</span>
+      {% endif %}
+    </div>
+    <p style="color: var(--oya-text-secondary); font-size: 0.9375rem">
+      {% if project.description %} {{ project.description|truncatewords:20 }} {% else %} No description provided. {% endif %}
+    </p>
+  </div>
+  <div class="page-header-actions">
+    {% if user.has_executive_access %}
+    <a href="{% url 'projects:project_update' pk=project.pk %}" class="btn btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+      </svg>
+      Update Progress
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Progress Overview -->
+<div class="card" style="margin-bottom: 1.5rem">
+  <div class="card-body">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+      <div>
+        <div style="font-size: 1.25rem; font-weight: 700">
+          {{ project.progress_percentage }}% Complete
+        </div>
+        <div style="font-size: 0.875rem; color: var(--oya-text-muted)">
+          {% if project.status == "FUTURE" %} Project not yet started {% elif project.status == "AT_HAND" %} Project is currently in progress {% elif project.status == "FINISHED" %} Project completed successfully {% endif %}
+        </div>
+      </div>
+      <div style="text-align: right">
+        <div style="font-size: 0.875rem; color: var(--oya-text-muted)">Budget</div>
+        <div style="font-weight: 600; color: var(--oya-primary)">
+          &#x20A6;{{ project.budget|floatformat:0 }}
+        </div>
+      </div>
+    </div>
+    <div class="progress-bar" style="height: 12px">
+      <div class="progress-fill {% if project.progress_percentage == 100 %}success{% elif project.progress_percentage >= 50 %}warning{% else %}{% endif %}" style="width:{{ project.progress_percentage }}%"></div>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.75rem; color: var(--oya-text-muted);">
+      <span>Created: {{ project.created_at|date:"M d, Y" }}</span>
+      <span>Updated: {{ project.updated_at|date:"M d, Y" }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Project Details Grid -->
+<div class="dashboard-grid dashboard-grid-2" style="margin-bottom: 1.5rem">
+  <!-- Project Information -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">Project Information</div>
+    </div>
+    <div class="card-body">
+      <div class="detail-meta-grid">
+        <div class="meta-item">
+          <span class="meta-label">Project Title</span>
+          <span class="meta-value">{{ project.title }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Status</span>
+          <span class="meta-value">
+            {% if project.status == "FUTURE" %}
+            <span class="badge badge-info">Planned</span>
+            {% elif project.status == "AT_HAND" %}
+            <span class="badge badge-warning">In Progress</span>
+            {% elif project.status == "FINISHED" %}
+            <span class="badge badge-success">Completed</span>
+            {% endif %}
+          </span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Budget</span>
+          <span class="meta-value">&#x20A6;{{ project.budget|floatformat:0 }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Progress</span>
+          <span class="meta-value">{{ project.progress_percentage }}%</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Date Created</span>
+          <span class="meta-value">{{ project.created_at|date:"F d, Y \a\t h:i A" }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Last Updated</span>
+          <span class="meta-value">{{ project.updated_at|date:"F d, Y \a\t h:i A" }}</span>
+        </div>
+        <div class="meta-item" style="grid-column: 1 / -1">
+          <span class="meta-label">Description</span>
+          <span class="meta-value" style="font-weight: 400; line-height: 1.6">
+            {% if project.description %} {{ project.description|linebreaksbr }}
+            {% else %}
+            <span class="cell-muted">No description provided.</span>
+            {% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Budget Utilization -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">Budget & Progress Overview</div>
+    </div>
+    <div class="card-body">
+      <div style="display: flex; flex-direction: column; gap: 0.875rem">
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.375rem;">
+            <span>Overall Progress</span>
+            <span style="font-weight: 600">{{ project.progress_percentage }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill {% if project.progress_percentage == 100 %}success{% elif project.progress_percentage >= 50 %}warning{% else %}{% endif %}" style="width:{{ project.progress_percentage }}%"></div>
+          </div>
+        </div>
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.375rem;">
+            <span>Status</span>
+            <span style="font-weight: 600">
+              {% if project.status == "FUTURE" %}
+              <span style="color: var(--oya-info)">Planned</span>
+              {% elif project.status == "AT_HAND" %}
+              <span style="color: var(--oya-warning)">In Progress</span>
+              {% elif project.status == "FINISHED" %}
+              <span style="color: var(--oya-success)">Completed</span>
+              {% endif %}
+            </span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill {% if project.status == 'FINISHED' %}success{% elif project.status == 'AT_HAND' %}warning{% else %}info{% endif %}" style="width:{% if project.status == 'FINISHED' %}100{% elif project.status == 'AT_HAND' %}50{% else %}0{% endif %}%"></div>
+          </div>
+        </div>
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.375rem;">
+            <span>Budget Allocated</span>
+            <span style="font-weight: 600">&#x20A6;{{ project.budget|floatformat:0 }}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 100%"></div>
+          </div>
+        </div>
+        <div style="border-top: 1px solid var(--oya-border); padding-top: 0.75rem; margin-top: 0.25rem;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.9375rem; font-weight: 700;">
+            <span>Project ID</span>
+            <span style="color: var(--oya-text-muted)">#{{ project.id }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if project.enable_fundraising and fundraising_data %}
+<!-- Fundraising Section -->
+<div class="card" style="margin-bottom: 1.5rem">
+  <div class="card-header">
+    <div class="card-header-title">Fundraising Campaign</div>
+    <div class="page-header-actions" style="padding: 0">
+      <a href="{% url 'project_donations:project_fundraising_report' project_id=project.pk %}" class="btn btn-secondary btn-sm" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+        </svg>
+        PDF Report
+      </a>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="dashboard-grid dashboard-grid-4" style="margin-bottom: 1.5rem">
+      <div class="kpi-card">
+        <div class="kpi-value">&#x20A6;{{ project.target_amount|floatformat:0|intcomma }}</div>
+        <div class="kpi-label">Target Amount</div>
+      </div>
+      <div class="kpi-card accent-success">
+        <div class="kpi-value" style="color: var(--oya-success)">&#x20A6;{{ project.fundraising_amount_raised|floatformat:0|intcomma }}</div>
+        <div class="kpi-label">Amount Raised</div>
+      </div>
+      <div class="kpi-card accent-warning">
+        <div class="kpi-value" style="color: var(--oya-warning)">&#x20A6;{{ project.fundraising_remaining_amount|floatformat:0|intcomma }}</div>
+        <div class="kpi-label">Remaining</div>
+      </div>
+      <div class="kpi-card accent-info">
+        <div class="kpi-value" style="color: var(--oya-info)">{{ project.fundraising_progress_percentage }}%</div>
+        <div class="kpi-label">Progress</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 1.5rem">
+      <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
+        <span>Fundraising Progress</span>
+        <span style="font-weight: 600">{{ project.fundraising_progress_percentage }}%</span>
+      </div>
+      <div class="progress-bar" style="height: 14px">
+        <div class="progress-fill {% if project.fundraising_progress_percentage == 100 %}success{% elif project.fundraising_progress_percentage >= 50 %}warning{% endif %}" style="width:{{ project.fundraising_progress_percentage }}%"></div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid dashboard-grid-2" style="margin-bottom: 1.5rem">
+      <div>
+        <h4 style="font-size: 0.9375rem; margin-bottom: 0.75rem">Statistics</h4>
+        <div class="detail-meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">Total Donors</span><span class="meta-value">{{ fundraising_data.total_donors }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Member Donations</span><span class="meta-value">&#x20A6;{{ fundraising_data.member_donations_total|floatformat:0|intcomma }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Outside Donations</span><span class="meta-value">&#x20A6;{{ fundraising_data.outside_donations_total|floatformat:0|intcomma }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Records</span><span class="meta-value">{{ fundraising_data.total_donations_recorded }}</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size: 0.9375rem; margin-bottom: 0.75rem">Top Individual Donors</h4>
+        {% if fundraising_data.top_member_donors or fundraising_data.top_outside_donors %}
+        <div style="display: flex; flex-direction: column; gap: 0.5rem">
+          {% for d in fundraising_data.top_member_donors %}
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--oya-bg); border-radius: var(--oya-radius);">
+            <span style="font-size: 0.875rem">{{ d.member__full_name }}</span>
+            <span style="font-weight: 600; font-size: 0.875rem">&#x20A6;{{ d.total|floatformat:0|intcomma }}</span>
+          </div>
+          {% endfor %}
+          {% for d in fundraising_data.top_outside_donors %}
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--oya-bg); border-radius: var(--oya-radius);">
+            <span style="font-size: 0.875rem">{{ d.outside_donor__full_name }} <span class="badge badge-info" style="font-size: 0.625rem">Outside</span></span>
+            <span style="font-weight: 600; font-size: 0.875rem">&#x20A6;{{ d.total|floatformat:0|intcomma }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p style="font-size: 0.875rem; color: var(--oya-text-muted)">No donations yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if fundraising_data.top_inviters %}
+    <div style="margin-bottom: 1rem">
+      <h4 style="font-size: 0.9375rem; margin-bottom: 0.75rem">Top Inviters (Members Who Raised the Most)</h4>
+      <div style="display: flex; flex-direction: column; gap: 0.5rem">
+        {% for i in fundraising_data.top_inviters %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--oya-bg); border-radius: var(--oya-radius);">
+          <span style="font-size: 0.875rem">{{ i.invited_by__full_name }}</span>
+          <span style="font-weight: 600; font-size: 0.875rem">&#x20A6;{{ i.total|floatformat:0|intcomma }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if fundraising_data.recent_donations %}
+    <div>
+      <h4 style="font-size: 0.9375rem; margin-bottom: 0.75rem">Recent Activity</h4>
+      <div class="table-container" style="overflow-x: auto">
+        <table class="data-table" style="white-space: nowrap">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Donor</th>
+              <th>Amount</th>
+              <th>Method</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in fundraising_data.recent_donations %}
+            <tr>
+              <td>{{ d.donation_date|date:"M d, Y" }}</td>
+              <td>{% if d.member %}{{ d.member.full_name }}{% elif d.outside_donor %}{{ d.outside_donor.full_name }}{% else %}Anonymous{% endif %}</td>
+              <td style="font-weight: 600">&#x20A6;{{ d.amount|floatformat:0|intcomma }}</td>
+              <td><span class="cell-muted">{{ d.get_payment_method_display }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Project Timeline / Milestones -->
+<div class="card" style="margin-bottom: 1.5rem">
+  <div class="card-header">
+    <div class="card-header-title">Project Timeline</div>
+  </div>
+  <div class="card-body">
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background: var(--oya-success)"></div>
+        <div class="timeline-content">
+          <div class="timeline-title">Project Created</div>
+          <div class="timeline-desc">Project "{{ project.title }}" was registered in the system</div>
+          <div class="timeline-time">{{ project.created_at|date:"M d, Y \a\t h:i A" }}</div>
+        </div>
+      </div>
+      {% if project.status == "AT_HAND" or project.status == "FINISHED" %}
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background: var(--oya-warning)"></div>
+        <div class="timeline-content">
+          <div class="timeline-title">Project Started</div>
+          <div class="timeline-desc">Project moved from planned to in-progress status</div>
+          <div class="timeline-time">Status updated to "At Hand"</div>
+        </div>
+      </div>
+      {% endif %}
+      {% if project.progress_percentage > 0 and project.progress_percentage < 100 %}
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background: var(--oya-primary); box-shadow: 0 0 0 3px var(--oya-primary-50);"></div>
+        <div class="timeline-content">
+          <div class="timeline-title">In Progress</div>
+          <div class="timeline-desc">Project is currently {{ project.progress_percentage }}% complete</div>
+          <div class="timeline-time">Current status</div>
+        </div>
+      </div>
+      {% endif %}
+      {% if project.status == "FINISHED" %}
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background: var(--oya-success)"></div>
+        <div class="timeline-content">
+          <div class="timeline-title">Project Completed</div>
+          <div class="timeline-desc">Project "{{ project.title }}" has been successfully completed</div>
+          <div class="timeline-time">{{ project.updated_at|date:"M d, Y \a\t h:i A" }}</div>
+        </div>
+      </div>
+      {% else %}
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background: var(--oya-text-muted); box-shadow: 0 0 0 3px var(--oya-border);"></div>
+        <div class="timeline-content">
+          <div class="timeline-title">Pending Completion</div>
+          <div class="timeline-desc">{{ 100|add:project.progress_percentage|add:"-100" }}% remaining to complete this project</div>
+          <div class="timeline-time">Awaiting completion</div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

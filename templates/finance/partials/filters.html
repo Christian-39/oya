@@ -1,0 +1,35 @@
+{% comment %}
+  NOTE: Not currently included anywhere. Rewritten to use the project's
+  design-system card/form/button classes instead of Bootstrap grid and
+  form classes, which have no matching CSS in this project.
+{% endcomment %}
+<div class="card" style="margin-bottom: 1.5rem;">
+  <div class="card-body">
+    <form method="get" class="form-row" style="align-items: end;">
+      <div class="form-group">
+        <label class="form-label">Search</label>
+        <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ search_term }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select name="category" class="form-control">
+          <option value="">All</option>
+          {% for code, label in category_choices %}
+          <option value="{{ code }}" {% if category_filter == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">From</label>
+        <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">To</label>
+        <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Filter</button>
+      </div>
+    </form>
+  </div>
+</div>

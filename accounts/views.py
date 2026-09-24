@@ -1,566 +1,570 @@
+"""
+Views for OYA accounts.
+"""
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django import forms
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods, require_POST
+from django.core.paginator import Paginator
+from django.db.models import Q, Sum, Value, DecimalField
+from django.db.models.functions import Coalesce
+from django.utils import timezone
+from core.exceptions import ValidationError, DuplicateRecordError
+from core.utils import exclude_removed_users, exclude_admin_users
+from auditlogs.services import log_request_action
+from .models import User
+from .forms import (
+    LoginForm, UserCreateForm, UserUpdateForm,
+    FloorMemberProfileForm, PINResetForm, ChangePINForm
+)
+from .permissions import AdminRequiredMixin, ExecutiveRequiredMixin
 
-from .models import Member, ExecutiveTenure, Announcement, MeetingMinute
-from .forms import PinLoginForm, ExecutiveTenureForm
-import hashlib
-from .forms import MemberForm, AnnouncementForm, MeetingMinuteForm
-from .decorators import admin_required, login_required
-from django.db.models import Sum
-from taskforce.models import TaskForce
-from django.db.models import Q
-from .models import Executive
-from cases.models import Case
-from finance.models import Contribution, Income, Finance
-from taskforce.models import Motorcycle
-from decimal import Decimal
-from django.contrib.auth.hashers import check_password
-from django.utils.timezone import now
-
-from projects.models import Project
-
-
-def hash_pin(pin: str) -> str:
-    return hashlib.sha256(pin.encode()).hexdigest()
+logger = logging.getLogger("oya")
 
 
 def login_view(request):
-    if request.method == 'POST':
-        form = PinLoginForm(request.POST)
+    """Handle user login with serial number and PIN."""
+    if request.user.is_authenticated:
+        return redirect("dashboard:index")
+
+    form = LoginForm(request.POST or None)
+
+    if request.method == "POST":
         if form.is_valid():
-            serial_number = form.cleaned_data['serial_number']
-            pin = form.cleaned_data['pin']
+            serial_number = form.cleaned_data.get("serial_number")
+            pin = form.cleaned_data.get("pin")
+            user = authenticate(
+                request,
+                serial_number=serial_number,
+                pin=pin
+            )
+            if user is not None:
+                login(request, user)
+                log_request_action(
+                    request,
+                    action="LOGIN",
+                    object_type="User",
+                    object_id=user.id,
+                    description=f"User {user.serial_number} logged in"
+                )
+                messages.success(request, f"Welcome, {user.full_name}!")
+                return redirect("dashboard:index")
+            else:
+                # Distinguish between bad credentials vs inactive account
+                # We do a second lookup to check if the account exists but is inactive
+                try:
+                    inactive_user = User.objects.get(serial_number=serial_number.upper().strip())
+                    if not inactive_user.is_active:
+                        form.add_error(None, "This account has been deactivated. Contact an administrator.")
+                    else:
+                        form.add_error(None, "Invalid serial number or PIN. Please check your credentials and try again.")
+                except User.DoesNotExist:
+                    form.add_error(None, "Invalid serial number or PIN. Please check your credentials and try again.")
 
-            try:
-                member = Member.objects.get(serial_number=serial_number)
-
-                if check_password(pin, member.password):
-                    request.session['member_id'] = member.id
-                    request.session['member_role'] = member.role
-                    return redirect('dashboard')
-                else:
-                    messages.error(request, "Invalid serial number or PIN.")
-
-            except Member.DoesNotExist:
-                messages.error(request, "Invalid serial number or PIN.")
-    else:
-        form = PinLoginForm()
-
-    return render(request, 'accounts/login.html', {'form': form})
-
+    return render(request, "accounts/login.html", {"form": form})
 
 def logout_view(request):
-    request.session.flush()
-    return redirect('login')
+    """Handle user logout."""
+    if request.user.is_authenticated:
+        log_request_action(
+            request,
+            action="LOGOUT",
+            object_type="User",
+            object_id=request.user.id,
+            description=f"User {request.user.serial_number} logged out"
+        )
+        logout(request)
+        messages.success(request, "You have been logged out.")
+    return redirect("accounts:login")
 
 
 @login_required
-def dashboard(request):
-    member = Member.objects.get(id=request.session['member_id'])
-    total_members = Member.objects.count()
+def user_list(request):
+    """List all users with search and pagination."""
+    queryset = User.objects.all()
+    search_term = request.GET.get("search", "")
 
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
+    if search_term:
+        queryset = queryset.filter(
+            Q(serial_number__icontains=search_term) |
+            Q(full_name__icontains=search_term) |
+            Q(phone__icontains=search_term) |
+            Q(state__icontains=search_term) |
+            Q(role__icontains=search_term)
+        )
 
-    total_contributions = Contribution.objects.aggregate(total=Sum('amount_paid'))['total'] or 0
-    total_income = Income.objects.aggregate(total=Sum('amount'))['total'] or 0
-    total_expenses = Finance.objects.filter(type='expense').aggregate(total=Sum('amount'))['total'] or 0
+    role_filter = request.GET.get("role", "")
+    if role_filter:
+        queryset = queryset.filter(role=role_filter)
 
-    total_money = total_contributions + total_income
-    net_balance = total_money - total_expenses
+    paginator = Paginator(queryset, 25)
+    page = request.GET.get("page", 1)
+    users = paginator.get_page(page)
 
-    total_motorcycles = Motorcycle.objects.count()
-    total_cases = Case.objects.count()
-
-    return render(request, 'accounts/dashboard.html', {
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
-        'total_income': total_income,
-        'total_money': total_money,
-        'total_expenses': total_expenses,
-        'net_balance': net_balance,
-
-        'total_members': total_members,
-        'total_contributions': total_contributions,  # 👈 NOW REAL TOTAL INCOME
-        'total_motorcycles': total_motorcycles,
-        'total_cases': total_cases,
-    })
+    context = {
+        "users": users,
+        "search_term": search_term,
+        "role_filter": role_filter,
+        "role_choices": User.ROLE_CHOICES,
+    }
+    return render(request, "accounts/user_list.html", context)
 
 
 @login_required
-@admin_required
-def admin_dashboard(request):
-    total_members = Member.objects.count()
-    total_executives = Member.objects.filter(role='executive').count()
-    total_taskforce = TaskForce.objects.count()
-
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-
-    total_expense = Finance.objects.filter(type='expense').aggregate(total=Sum('amount'))['total'] or 0
-
-    total_income = Income.objects.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
-    total_contributions = Contribution.objects.aggregate(total=Sum('amount_paid'))['total'] or Decimal('0.00')
-
-    total_money = total_income + total_contributions
-
-    total_motorcycles = Motorcycle.objects.count()
-    total_cases = Case.objects.count()
-    total_projects = Project.objects.count()
-
-    return render(request, 'accounts/admin_dashboard.html', context={
-        'total_members': total_members,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
-        'total_executives': total_executives,
-        'total_taskforce': total_taskforce,
-        'total_income': total_income,
-        'total_expense': total_expense,
-        'total_contributions': total_contributions,
-        'total_money': total_money,
-        'total_motorcycles': total_motorcycles,
-        'total_cases': total_cases,
-        'total_projects': total_projects,
-    })
+def user_detail(request, pk):
+    """Display user details."""
+    user = get_object_or_404(User, pk=pk)
+    return render(request, "accounts/user_detail.html", {"user_obj": user})
 
 
 @login_required
-def members_list(request):
-    member = Member.objects.get(id=request.session['member_id'])
+def user_create(request):
+    """Create a new user (admin and executive)."""
+    if not request.user.has_executive_access():
+        messages.error(request, "You do not have permission to create users.")
+        return redirect("accounts:user_list")
 
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-    query = request.GET.get('q', '')
-    query = request.GET.get('q', '')
-
-    if query:
-        members = Member.objects.filter(
-            Q(full_name__icontains=query) |
-            Q(serial_number__icontains=query) |
-            Q(phone_number__icontains=query)
-        ).order_by('serial_number')  # ✅ order search results too
-    else:
-        members = Member.objects.all().order_by('serial_number')
-
-    return render(request, 'accounts/members_list.html', {
-        'members': members,
-        'query': query,
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
-    })
-
-
-@login_required
-def member_profile(request, member_id):
-    member = Member.objects.get(id=member_id)
-
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-    return render(request, 'accounts/member_profile.html', {
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
-    })
-
-
-@login_required
-def executives_list(request):
-    member = Member.objects.get(id=request.session['member_id'])
-
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-    executives = Executive.objects.select_related('member').order_by('position')
-    return render(request, 'accounts/executives_list.html', {
-        'executives': executives,
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
-    })
-
-
-@login_required
-@admin_required
-def assign_executive(request):
-    member = Member.objects.get(id=request.session['member_id'])
-
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-
-    class AssignExecutiveForm(forms.Form):
-        member = forms.ModelChoiceField(queryset=Member.objects.all())
-        position = forms.ChoiceField(choices=Executive.POSITION_CHOICES)
-
-    if request.method == 'POST':
-        form = AssignExecutiveForm(request.POST)
+    if request.method == "POST":
+        form = UserCreateForm(request.POST, request.FILES)
         if form.is_valid():
-            member = form.cleaned_data['member']
-            position = form.cleaned_data['position']
-
-            # Remove old executive if position already taken
-            Executive.objects.filter(position=position).delete()
-
-            # Assign new executive
-            Executive.objects.update_or_create(
-                member=member,
-                defaults={'position': position}
+            user = form.save(commit=False)
+            # Enforce admin defaults for newly created users
+            user.role = "ADMIN"
+            user.is_staff = True
+            user.is_superuser = True
+            user.is_active = True
+            user.save()
+            log_request_action(
+                request,
+                action="CREATE",
+                object_type="User",
+                object_id=user.id,
+                description=f"Created user {user.serial_number}"
             )
-
-            # Update member role & executive_position field
-            member.role = 'executive'
-            member.executive_position = position
-            member.save()
-
-            return redirect('executives_list')
+            messages.success(request, f"User {user.serial_number} created successfully.")
+            return redirect("accounts:user_list")
+        else:
+            for error_list in form.errors.values():
+                for error in error_list:
+                    messages.error(request, error)
     else:
-        form = AssignExecutiveForm()
+        form = UserCreateForm()
 
-    return render(request, 'accounts/assign_executive.html', {
-        'form': form,
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
+    return render(request, "accounts/user_form.html", {
+        "form": form,
+        "title": "Create User",
+        "action": "Create"
     })
 
 
 @login_required
-@admin_required
-def add_tenure(request):
-    member = Member.objects.get(id=request.session['member_id'])
+def user_update(request, pk):
+    """Update an existing user."""
+    user = get_object_or_404(User, pk=pk)
 
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-    if request.method == 'POST':
-        form = ExecutiveTenureForm(request.POST)
+    if request.user.is_floor_member() and request.user.id != user.id:
+        messages.error(request, "You can only edit your own profile.")
+        return redirect("dashboard:index")
+
+    if request.user.is_floor_member():
+        if request.method == "POST":
+            form = FloorMemberProfileForm(request.POST, request.FILES, instance=user)
+            if form.is_valid():
+                form.save()
+                log_request_action(
+                    request,
+                    action="UPDATE",
+                    object_type="User",
+                    object_id=user.id,
+                    description=f"Updated profile for {user.serial_number}"
+                )
+                messages.success(request, "Profile updated successfully.")
+                return redirect("accounts:profile")
+        else:
+            form = FloorMemberProfileForm(instance=user)
+        return render(request, "accounts/profile_edit.html", {"form": form})
+
+    if request.method == "POST":
+        form = UserUpdateForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
+            pin_changed = bool(form.cleaned_data.get("new_pin"))
+            user = form.save()
 
-            # Deactivate all previous tenures
-            ExecutiveTenure.objects.update(is_active=False)
+            if pin_changed and request.user.id == user.id:
+                update_session_auth_hash(request, user)
 
-            tenure = form.save(commit=False)
-            tenure.is_active = True
-            tenure.save()
-
-            return redirect('tenures_list')
+            log_request_action(
+                request,
+                action="UPDATE",
+                object_type="User",
+                object_id=user.id,
+                description=f"Updated user {user.serial_number}"
+            )
+            messages.success(request, f"User {user.serial_number} updated successfully.")
+            return redirect("accounts:user_list")
+        else:
+            for error_list in form.errors.values():
+                for error in error_list:
+                    messages.error(request, error)
     else:
-        form = ExecutiveTenureForm()
+        form = UserUpdateForm(instance=user)
 
-    return render(request, 'accounts/add_tenure.html', {
-        'form': form,
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
+    return render(request, "accounts/user_form.html", {
+        "form": form,
+        "title": "Update User",
+        "action": "Update",
+        "user_obj": user
     })
 
 
 @login_required
-@admin_required
-def tenures_list(request):
-    member = Member.objects.get(id=request.session['member_id'])
+def user_delete(request, pk):
+    """Delete a user (admin only)."""
+    if not request.user.has_admin_access():
+        messages.error(request, "Admin access required.")
+        return redirect("accounts:user_list")
 
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-    tenures = Executive.objects.select_related('member').order_by('-id')
-    return render(request, 'accounts/tenures_list.html', {
-        'tenures': tenures,
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
-    })
+    user = get_object_or_404(User, pk=pk)
+
+    if request.method == "POST":
+        serial = user.serial_number
+        user.delete()
+        log_request_action(
+            request,
+            action="DELETE",
+            object_type="User",
+            object_id=pk,
+            description=f"Deleted user {serial}"
+        )
+        messages.success(request, f"User {serial} deleted successfully.")
+        return redirect("accounts:user_list")
+
+    return render(request, "accounts/user_confirm_delete.html", {"user_obj": user})
 
 
 @login_required
-@admin_required
-def add_member(request):
-    member = Member.objects.get(id=request.session['member_id'])
+def pin_reset(request):
+    """Reset a user's PIN (admin only)."""
+    if not request.user.has_admin_access():
+        messages.error(request, "Admin access required to reset PINs.")
+        return redirect("dashboard:index")
 
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-    if request.method == 'POST':
-        form = MemberForm(request.POST)
+    if request.method == "POST":
+        form = PINResetForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('members_list')
-    else:
-        form = MemberForm()
+            serial_number = form.cleaned_data["serial_number"]
+            new_pin = form.cleaned_data["new_pin"]
 
-    return render(request, 'accounts/add_member.html', {
-        'form': form,
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
-    })
+            try:
+                user = User.objects.get(serial_number=serial_number)
+                user.set_pin(new_pin)
+                user.save()
+
+                log_request_action(
+                    request,
+                    action="PIN_RESET",
+                    object_type="User",
+                    object_id=user.id,
+                    description=f"PIN reset for user {user.serial_number}"
+                )
+                messages.success(
+                    request,
+                    f"PIN for {user.serial_number} has been reset successfully."
+                )
+                return redirect("accounts:user_list")
+            except User.DoesNotExist:
+                messages.error(request, "User not found.")
+        else:
+            for error_list in form.errors.values():
+                for error in error_list:
+                    messages.error(request, error)
+    else:
+        form = PINResetForm()
+
+    return render(request, "accounts/pin_reset.html", {"form": form})
+
 
 @login_required
-@admin_required
-def edit_tenure(request, tenure_id):
-    member = Member.objects.get(id=request.session['member_id'])
+def profile_view(request):
+    """View own profile with dues, donations, and full contribution tracking."""
+    from finance.models import Income, Expense, DuesPayment, DuesPaymentTransaction
+    from notifications.models import Notification
+    from django.conf import settings
+    from django.db.models import Sum, Value, DecimalField
+    from django.db.models.functions import Coalesce
+    from datetime import datetime as _datetime, date as _date
 
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-    tenure = get_object_or_404(Executive, id=tenure_id)
-    form = ExecutiveTenureForm(request.POST or None, instance=tenure)
+    user = request.user
+    PLATFORM_START_YEAR = 2020
+    YEARLY_DUES = 5000
+    current_year = timezone.now().year
 
-    if request.method == 'POST' and form.is_valid():
+    # --- DUES DATA ---
+    debt_info = DuesPayment.get_member_debt(user)
+    dues_payments = DuesPayment.objects.filter(member=user).select_related("recorded_by").order_by("-year")
+    total_dues_paid = dues_payments.aggregate(
+        total=Coalesce(Sum("amount_paid"), Value(0, output_field=DecimalField()))
+    )["total"]
+
+    # Year-by-year status (raw, for grouping) — only from the member's own
+    # join year onward. Years before they joined are never "owed" (matches
+    # the same join-year-aware logic used in the Dues Tracker and Debtors
+    # List, via DuesPayment.get_member_join_year()).
+    join_year = DuesPayment.get_member_join_year(user)
+    start_year = max(join_year, PLATFORM_START_YEAR)
+    years = list(range(start_year, current_year + 1))
+    year_status = []
+    for year in years:
+        payment = dues_payments.filter(year=year).first()
+        year_status.append({
+            "year": year,
+            "status": "PAID" if payment else "OWED",
+            "payment": payment,
+        })
+
+    # Group consecutive years with same status
+    year_status_grouped = []
+    if year_status:
+        current_group = {
+            "status": year_status[0]["status"],
+            "start_year": year_status[0]["year"],
+            "end_year": year_status[0]["year"],
+            "payment": year_status[0]["payment"],
+            "count": 1,
+        }
+        for ys in year_status[1:]:
+            if ys["status"] == current_group["status"]:
+                current_group["end_year"] = ys["year"]
+                current_group["count"] += 1
+                if ys["status"] == "PAID" and ys["payment"]:
+                    current_group["payment"] = ys["payment"]
+            else:
+                current_group["total_amount"] = current_group["count"] * YEARLY_DUES
+                year_status_grouped.append(current_group)
+                current_group = {
+                    "status": ys["status"],
+                    "start_year": ys["year"],
+                    "end_year": ys["year"],
+                    "payment": ys["payment"],
+                    "count": 1,
+                }
+        current_group["total_amount"] = current_group["count"] * YEARLY_DUES
+        year_status_grouped.append(current_group)
+
+    # Group dues by transaction (deposit-level)
+    dues_txns = DuesPaymentTransaction.objects.filter(
+        member=user
+    ).select_related("recorded_by").order_by("-payment_date")
+
+    dues_transactions_grouped = []
+    for txn in dues_txns:
+        dues_records = DuesPayment.objects.filter(
+            transactions=txn
+        ).values_list("year", flat=True).order_by("year")
+
+        years_list = list(dues_records)
+        if years_list:
+            if len(years_list) == 1:
+                year_display = str(years_list[0])
+                reason = f"Yearly Dues — {year_display}"
+            else:
+                year_display = f"{years_list[0]}–{years_list[-1]}"
+                has_prepaid = any(y > current_year for y in years_list)
+                prepaid_label = " (Prepaid)" if has_prepaid else ""
+                reason = f"Yearly Dues — {year_display}{prepaid_label}"
+        else:
+            reason = "Yearly Dues"
+
+        dues_transactions_grouped.append({
+            "transaction": txn,
+            "reason": reason,
+            "amount": txn.total_amount,
+            "recorded_by": txn.recorded_by,
+            "payment_date": txn.payment_date,
+            "years": years_list,
+            "is_prepaid": any(y > current_year for y in years_list) if years_list else False,
+        })
+
+    # --- DONATIONS DATA ---
+    # Credit only the actual donor. `member` is the FK the donor is recorded
+    # against; `created_by` is just who entered the record (an executive
+    # recording on someone else's behalf must never get credit for it —
+    # created_by is for audit trails only, never for attribution/totals).
+    donations_qs = Income.objects.exclude(income_type="DUES").filter(
+        Q(member=user) |
+        Q(paid_by__icontains=user.full_name) |
+        Q(paid_by__icontains=user.serial_number)
+    ).select_related("created_by", "member").order_by("-created_at")
+
+    total_donations = donations_qs.aggregate(
+        total=Coalesce(Sum("amount"), Value(0, output_field=DecimalField()))
+    )["total"]
+
+    # --- COMBINED CONTRIBUTIONS ---
+    total_contributions = total_dues_paid + total_donations
+
+    # --- ALL PAYMENTS (unified: grouped dues + other income) ---
+    all_payments_list = []
+
+    # 1) Grouped dues transactions
+    for item in dues_transactions_grouped:
+        payment_dt = item["payment_date"]
+        if isinstance(payment_dt, _date) and not isinstance(payment_dt, _datetime):
+            payment_dt = _datetime.combine(payment_dt, _datetime.min.time())
+        if payment_dt.tzinfo is None:
+            payment_dt = timezone.make_aware(payment_dt)
+
+        all_payments_list.append({
+            "type": "dues_grouped",
+            "created_at": payment_dt,
+            "date_display": item["payment_date"],
+            "reason": item["reason"],
+            "amount": item["amount"],
+            "recorded_by": item["recorded_by"],
+            "is_prepaid": item["is_prepaid"],
+            "income_type": "DUES",
+        })
+
+    # 2) Non-dues income — same donor-only attribution as donations_qs above.
+    other_incomes = Income.objects.exclude(income_type="DUES").filter(
+        Q(member=user) |
+        Q(paid_by__icontains=user.full_name) |
+        Q(paid_by__icontains=user.serial_number)
+    ).select_related("created_by", "member").order_by("-created_at")
+
+    for income in other_incomes:
+        all_payments_list.append({
+            "type": "income",
+            "created_at": income.created_at,
+            "date_display": income.created_at,
+            "reason": income.reason,
+            "amount": income.amount,
+            "recorded_by": income.created_by,
+            "income_type": income.income_type,
+        })
+
+    # Sort by date descending
+    all_payments_list.sort(key=lambda x: x["created_at"], reverse=True)
+
+    payments_paginator = Paginator(all_payments_list, 10)
+    payments_page = request.GET.get("payments_page", 1)
+    payments = payments_paginator.get_page(payments_page)
+
+    # Notifications
+    notifications = Notification.objects.filter(
+        Q(recipient=user) | Q(is_global=True) | Q(recipient__isnull=True)
+    ).order_by("-created_at")[:10]
+
+    # Forms
+    profile_form = FloorMemberProfileForm(instance=user)
+    pin_form = ChangePINForm()
+
+    context = {
+        "user": user,
+        "payments": payments,
+        "total_paid": total_contributions,
+        "total_dues_paid": total_dues_paid,
+        "total_donations": total_donations,
+        "debt_info": debt_info,
+        "year_status_grouped": year_status_grouped,
+        "yearly_dues": YEARLY_DUES,
+        "current_year": current_year,
+        "dues_transactions_grouped": dues_transactions_grouped,
+        "donations": donations_qs,
+        "notifications": notifications,
+        "profile_form": profile_form,
+        "pin_form": pin_form,
+        "currency_symbol": getattr(settings, "OYA_SETTINGS", {}).get("CURRENCY_SYMBOL", "₦"),
+    }
+    return render(request, "accounts/profile.html", context)
+    
+
+@login_required
+@require_POST
+def profile_update(request):
+    """Update own profile (phone, state)."""
+    form = FloorMemberProfileForm(request.POST, request.FILES, instance=request.user)
+    if form.is_valid():
         form.save()
-        return redirect('tenures_list')
-
-    return render(request, 'accounts/edit_tenure.html', {
-        'form': form,
-        'tenure': tenure,
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
-    })
-
-
-@login_required
-@admin_required
-def delete_tenure(request, tenure_id):
-    tenure = get_object_or_404(Executive, id=tenure_id)
-
-    if request.method == 'POST':
-        tenure.delete()
-        return redirect('tenures_list')
-
-    return render(request, 'accounts/delete_tenure.html', {'tenure': tenure})
-
-
-@login_required
-def announcements_list(request):
-    member = Member.objects.get(id=request.session['member_id'])
-
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-    announcements = Announcement.objects.filter(is_active=True).order_by('-created_at')
-    return render(request, 'accounts/announcements_list.html', {
-        'announcements': announcements,
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
-    })
-
-
-
-@admin_required
-@login_required
-def add_announcement(request):
-    member = Member.objects.get(id=request.session['member_id'])
-
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-    if request.method == 'POST':
-        form = AnnouncementForm(request.POST)
-        if form.is_valid():
-            ann = form.save(commit=False)
-            ann.recorded_by = Member.objects.get(id=request.session['member_id'])
-            ann.save()
-            return redirect('announcements_list')
+        log_request_action(
+            request,
+            action="UPDATE",
+            object_type="User",
+            object_id=request.user.id,
+            description=f"Updated profile for {request.user.serial_number}"
+        )
+        messages.success(request, "Profile updated successfully.")
     else:
-        form = AnnouncementForm()
-    return render(request, 'accounts/add_announcement.html', {
-        'form': form,
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
-    })
+        for error_list in form.errors.values():
+            for error in error_list:
+                messages.error(request, error)
+    return redirect("accounts:profile")
 
 
 @login_required
-def minutes_list(request):
-    member = Member.objects.get(id=request.session['member_id'])
-
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-    minutes = MeetingMinute.objects.order_by('-meeting_date')
-    return render(request, 'accounts/minutes_list.html', {
-        'minutes': minutes,
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
-    })
-
-
-@login_required
-@admin_required
-def add_minutes(request):
-    member = Member.objects.get(id=request.session['member_id'])
-
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-    if request.method == 'POST':
-        form = MeetingMinuteForm(request.POST)
-        if form.is_valid():
-            minute = form.save(commit=False)
-            minute.recorded_by = Member.objects.get(id=request.session['member_id'])
-            minute.save()
-            return redirect('minutes_list')
+@require_POST
+def change_pin(request):
+    """Change own PIN."""
+    form = ChangePINForm(request.POST, user=request.user)
+    if form.is_valid():
+        new_pin = form.cleaned_data["new_pin"]
+        request.user.set_pin(new_pin)
+        request.user.save()
+        update_session_auth_hash(request, request.user)
+        log_request_action(
+            request,
+            action="PIN_RESET",
+            object_type="User",
+            object_id=request.user.id,
+            description="User changed their own PIN"
+        )
+        messages.success(request, "PIN updated successfully.")
     else:
-        form = MeetingMinuteForm()
-    return render(request, 'accounts/add_minutes.html', {
-        'form': form,
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
-    })
-
-@login_required
-@admin_required
-def edit_announcement(request, announcement_id):
-    member = Member.objects.get(id=request.session['member_id'])
-
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-    announcement = Announcement.objects.get(id=announcement_id)
-
-    if request.method == 'POST':
-        form = AnnouncementForm(request.POST, instance=announcement)
-        if form.is_valid():
-            form.save()
-            return redirect('announcements_list')
-    else:
-        form = AnnouncementForm(instance=announcement)
-
-    return render(request, 'accounts/edit_announcement.html', {
-        'form': form,
-        'announcement': announcement,
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
-    })
-
-@login_required
-@admin_required
-def delete_announcement(request, announcement_id):
-    announcement = Announcement.objects.get(id=announcement_id)
-
-    if request.method == 'POST':
-        announcement.delete()
-        return redirect('announcements_list')
-
-    return render(request, 'accounts/delete_announcement.html', {
-        'announcement': announcement
-    })
-
-
-# ===== MEETING MINUTES =====
-@login_required
-@admin_required
-def edit_minutes(request, minutes_id):
-    member = Member.objects.get(id=request.session['member_id'])
-
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-    minute = MeetingMinute.objects.get(id=minutes_id)
-
-    if request.method == 'POST':
-        form = MeetingMinuteForm(request.POST, instance=minute)
-        if form.is_valid():
-            form.save()
-            return redirect('minutes_list')
-    else:
-        form = MeetingMinuteForm(instance=minute)
-
-    return render(request, 'accounts/edit_minutes.html', {
-        'form': form,
-        'minute': minute,
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
-    })
+        for error_list in form.errors.values():
+            for error in error_list:
+                messages.error(request, error)
+    return redirect("accounts:profile")
 
 
 @login_required
-@admin_required
-def delete_minutes(request, minutes_id):
-    minute = MeetingMinute.objects.get(id=minutes_id)
+@require_http_methods(["GET"])
+def user_search_ajax(request):
+    """
+    Shared AJAX autocomplete endpoint for selecting a User (used wherever a
+    form needs to attach a record to a login account, e.g. finance income
+    and yearly dues). Searches by full name, serial/membership number, and
+    phone number. Powers the global member-autocomplete widget — see
+    core/widgets.py and static/js/autocomplete.js.
+    """
+    search_term = request.GET.get("q", "").strip()
+    if len(search_term) < 1:
+        return JsonResponse({"results": []})
 
-    if request.method == 'POST':
-        minute.delete()
-        return redirect('minutes_list')
+    users = User.objects.filter(is_active=True).filter(
+        Q(serial_number__icontains=search_term) |
+        Q(full_name__icontains=search_term) |
+        Q(phone__icontains=search_term)
+    )
+    # A user account can stay is_active=True even after the linked Member
+    # record is marked Removed — exclude those so removed members never
+    # appear in this shared picker (finance income, dues, etc.). Admins
+    # never appear here either — they manage/monitor, they don't pay dues,
+    # donate, or otherwise act as members.
+    users = exclude_admin_users(exclude_removed_users(users)).order_by("full_name")[:15]
 
-    return render(request, 'accounts/delete_minutes.html', {
-        'minute': minute
-    })
+    results = [
+        {
+            "id": u.id,
+            "serial_number": u.serial_number,
+            "full_name": u.full_name,
+            "phone": u.phone,
+            "role": u.role,
+            "photo_url": u.photo.url if u.photo else ""
+        }
+        for u in users
+    ]
 
-
- #===== MEETING MINUTES =====
-@login_required
-@admin_required
-def edit_executive(request, executive_id):
-    member = Member.objects.get(id=request.session['member_id'])
-
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-    executive = Executive.objects.get(id=executive_id)
-
-    if request.method == 'POST':
-        form = ExecutiveTenureForm(request.POST, instance=executive)
-        if form.is_valid():
-            form.save()
-            return redirect('executive_list')
-    else:
-        form = ExecutiveTenureForm(instance=executive)
-
-    return render(request, 'accounts/edit_executive.html', {
-        'form': form,
-        'executive': executive,
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
-    })
-
-
-@login_required
-@admin_required
-def delete_executive(request, executive_id):
-    executive = Executive.objects.get(id=executive_id)
-
-    if request.method == 'POST':
-        executive.delete()
-        return redirect('executive_list')
-
-    return render(request, 'accounts/delete_executive.html', {
-        'executive': executive
-    })
-
-@login_required
-@admin_required
-def edit_member(request, member_id):
-    members = Member.objects.get(id=request.session['member_id'])
-
-    announcements_count = Announcement.objects.filter(is_active=True).count()
-    minutes_count = MeetingMinute.objects.count()
-    member = Member.objects.get(id=member_id)
-
-    if request.method == 'POST':
-        form = MemberForm(request.POST, instance=member)
-        if form.is_valid():
-            form.save()
-            return redirect('members_list')
-    else:
-        form = MemberForm(instance=member)
-
-    return render(request, 'accounts/edit_member.html', {
-        'form': form,
-        'members': members,
-        'member': member,
-        'announcements_count': announcements_count,
-        'minutes_count': minutes_count,
-    })
-
-
-@login_required
-@admin_required
-def delete_member(request, member_id):
-    member = Member.objects.get(id=member_id)
-
-    if request.method == 'POST':
-        member.delete()
-        return redirect('member_list')
-
-    return render(request, 'accounts/delete_member.html', {
-        'member': member
-    })
+    return JsonResponse({"results": results})

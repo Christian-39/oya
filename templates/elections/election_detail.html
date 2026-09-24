@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ election.title }}{% endblock %}
+{% block page_title %}{{ election.title }}{% endblock %}
+{% block breadcrumb %}<a href="{% url 'elections:election_list' %}">Elections</a> &rsaquo; {{ election.title }}{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 style="font-size:clamp(1.125rem, 3vw, 1.5rem);">{{ election.title }}</h1>
+    <p>
+      <span class="badge badge-{% if election.status == 'UPCOMING' %}info{% elif election.status == 'ONGOING' %}success{% elif election.status == 'COMPLETED' %}primary{% else %}danger{% endif %}">
+        {{ election.get_status_display }}
+      </span>
+      <span style="font-size:0.875rem;color:var(--oya-text-muted);margin-left:0.5rem;">
+        {{ candidates|length }} candidate{{ candidates|length|pluralize }}
+      </span>
+    </p>
+  </div>
+  {% if user.has_executive_access %}
+  <div class="page-header-actions" style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+    <a href="{% url 'elections:candidate_create' %}?election={{ election.pk }}" class="btn btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Candidate
+    </a>
+    <a href="{% url 'elections:election_update' election.pk %}" class="btn btn-secondary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Edit Election
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Election Image & Info -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <div style="display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap;">
+
+      <!-- Election Image Preview -->
+      {% if election.image and election.image.name %}
+      <div 
+        class="avatar" 
+        style="width:140px;height:140px;flex-shrink:0;cursor:pointer;overflow:hidden;border:3px solid var(--oya-border);box-shadow:var(--oya-shadow);border-radius:12px;"
+        onclick="openImagePreview('{{ election.image.url }}', '{{ election.title|escapejs }}')"
+        title="Click to view image"
+      >
+        <img src="{{ election.image.url }}" alt="{{ election.title }}" style="width:100%;height:100%;object-fit:cover;transition:transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      {% endif %}
+
+      <!-- Election Details -->
+      <div style="flex:1;min-width:250px;">
+        <p style="color:var(--oya-text-secondary);line-height:1.6;margin-bottom:1rem;">{{ election.description|default:"No description provided."|linebreaks }}</p>
+        <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:0.875rem;color:var(--oya-text-muted);">
+          <span style="display:flex;align-items:center;gap:0.375rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Start: {{ election.start_date|date:"M j, Y g:i A" }}
+          </span>
+          <span style="display:flex;align-items:center;gap:0.375rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            End: {{ election.end_date|date:"M j, Y g:i A" }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Candidates -->
+<h2 style="font-size:clamp(1rem, 2.5vw, 1.125rem);margin-bottom:1rem;">Candidates</h2>
+<div class="dashboard-grid" style="grid-template-columns:repeat(auto-fill, minmax(min(100%, 280px), 1fr));gap:1rem;">
+  {% for candidate in candidates %}
+  <div class="card" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:1.5rem 1rem;transition:transform 0.2s ease,box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='var(--oya-shadow-lg)';" onmouseout="this.style.transform='';this.style.boxShadow='';">
+
+    <!-- Candidate Photo with Image Preview -->
+    <div 
+      class="avatar" 
+      style="width:88px;height:88px;font-size:1.75rem;{% if not candidate.photo or not candidate.photo.name %}background:{% cycle 'var(--oya-primary)' 'var(--oya-accent)' 'var(--oya-success)' 'var(--oya-warning)' 'var(--oya-danger)' 'var(--oya-info)' %};color:#fff;{% else %}cursor:pointer;{% endif %}overflow:hidden;border:3px solid var(--oya-border);box-shadow:var(--oya-shadow);margin-bottom:0.75rem;"
+      {% if candidate.photo and candidate.photo.name %}
+      onclick="openImagePreview('{{ candidate.photo.url }}', '{{ candidate.member.full_name|escapejs }}')"
+      title="Click to view photo"
+      {% endif %}
+    >
+      {% if candidate.photo and candidate.photo.name %}
+        <img src="{{ candidate.photo.url }}" alt="{{ candidate.member.full_name }}" style="width:100%;height:100%;object-fit:cover;transition:transform 0.3s ease;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+      {% else %}
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      {% endif %}
+    </div>
+
+    <!-- Name & Post -->
+    <h3 style="font-size:1rem;font-weight:600;margin-bottom:0.25rem;word-break:break-word;">{{ candidate.member.full_name }}</h3>
+    <p style="font-size:0.8125rem;color:var(--oya-text-muted);margin-bottom:0.75rem;">{{ candidate.post }}</p>
+
+    <!-- Manifesto -->
+    <p style="font-size:0.875rem;color:var(--oya-text-secondary);margin-bottom:1rem;line-height:1.5;max-height:3.9em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;">
+      {{ candidate.manifesto|truncatechars:140|default:"No manifesto provided." }}
+    </p>
+
+    <!-- Votes -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;font-size:0.875rem;margin-bottom:1rem;">
+      <span style="display:flex;align-items:center;gap:0.25rem;color:var(--oya-text-muted);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        <strong style="color:var(--oya-text-primary);">{{ candidate.votes }}</strong> vote{{ candidate.votes|pluralize }}
+      </span>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:0.5rem;width:100%;margin-top:auto;">
+      {% if election.status == "ONGOING" %}
+        {% if candidate.post in voted_posts %}
+          <button type="button" class="btn btn-secondary" disabled style="flex:1;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            Voted
+          </button>
+        {% else %}
+          <form method="post" action="{% url 'elections:cast_vote' candidate.pk %}" style="flex:1;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary" style="width:100%;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Vote
+            </button>
+          </form>
+        {% endif %}
+      {% endif %}
+      {% if user.has_executive_access %}
+      <a href="{% url 'elections:candidate_update' candidate.pk %}" class="btn btn-secondary" style="flex:1;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="card" style="grid-column:1 / -1;text-align:center;padding:3rem;">
+    <div class="empty-state">
+      <div class="empty-state-icon" style="width:clamp(48px, 15vw, 60px);height:clamp(48px, 15vw, 60px);margin-bottom:1rem;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <h3 style="font-size:clamp(0.875rem, 2.5vw, 1rem);">No candidates yet</h3>
+      <p style="font-size:clamp(0.75rem, 2vw, 0.875rem);color:var(--oya-text-muted);">Candidates will appear here once added.</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

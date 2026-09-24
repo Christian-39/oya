@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load static %}
+
+{% block title %}Expenses{% endblock %}
+{% block page_title %}Expenses{% endblock %}
+{% block breadcrumb %}Expenses{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 style="font-size:clamp(1.125rem, 3vw, 1.5rem);">Expenses</h1>
+    <p style="font-size:clamp(0.75rem, 2vw, 0.875rem);">Track all association expenditures</p>
+  </div>
+  <div class="page-header-actions" style="flex-wrap:wrap;gap:0.5rem;">
+    {% if user.has_executive_access %}
+    <a href="{% url 'finance:expense_create' %}" class="btn btn-danger">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Record Expense
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="dashboard-grid dashboard-grid-4" style="grid-template-columns:repeat(auto-fit, minmax(min(100%, 220px), 1fr)); margin-bottom:clamp(0.75rem, 3vw, 1.5rem);">
+  <div class="kpi-card accent-danger">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-danger-bg);color:var(--oya-danger);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-danger);">&#8358;{{ total_expenses|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Total Expenses</div>
+  </div>
+  <div class="kpi-card accent-warning">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-warning-bg);color:var(--oya-warning);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-warning);">&#8358;{{ this_month_expenses|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">This Month</div>
+  </div>
+  <div class="kpi-card accent-secondary">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-surface-hover);color:var(--oya-text-muted);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-text);">{{ total_records|intcomma }}</div>
+    <div class="kpi-label">Total Records</div>
+  </div>
+  <div class="kpi-card accent-info">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-info-bg);color:var(--oya-info);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12.01" y2="16"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-info);">{{ expenses.paginator.count|default:0|intcomma }}</div>
+    <div class="kpi-label">Showing</div>
+  </div>
+</div>
+
+<!-- Treasury Banner -->
+<div class="treasury-alert" style="margin-bottom:clamp(0.75rem, 3vw, 1.5rem);">
+  <div class="treasury-alert-left">
+    <div class="treasury-label">Current Treasury Balance</div>
+    <div class="treasury-value">&#8358;{{ treasury_balance|floatformat:0|intcomma }}</div>
+  </div>
+  <div class="treasury-alert-right">
+    <div class="treasury-stat">
+      <div class="treasury-stat-label">Total Expenses</div>
+      <div class="treasury-stat-value" style="color:var(--oya-danger);">&#8358;{{ total_expenses|floatformat:0|intcomma }}</div>
+    </div>
+    <div class="treasury-stat">
+      <div class="treasury-stat-label">This Month</div>
+      <div class="treasury-stat-value" style="color:var(--oya-warning);">&#8358;{{ this_month_expenses|floatformat:0|intcomma }}</div>
+    </div>
+    <div class="treasury-stat">
+      <div class="treasury-stat-label">Records</div>
+      <div class="treasury-stat-value">{{ total_records|intcomma }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="filters-bar" style="flex-wrap:wrap;gap:0.5rem;">
+  <form method="get" style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+    <div class="filter-group">
+      <span class="filter-label" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);">Category:</span>
+      <select name="category" class="form-control" style="width:140px;" onchange="this.form.submit()">
+        <option value="" {% if not category_filter %}selected{% endif %}>All</option>
+        {% for code, label in category_choices %}
+        <option value="{{ code }}" {% if category_filter == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% if search_term %}
+      <input type="hidden" name="search" value="{{ search_term }}">
+    {% endif %}
+  </form>
+  <div style="margin-left:auto;font-size:clamp(0.75rem, 2vw, 0.875rem);color:var(--oya-text-secondary);">
+    <strong style="color:var(--oya-text-primary);">{{ expenses.paginator.count|default:0 }}</strong> records
+  </div>
+</div>
+
+<!-- Search -->
+<div class="table-toolbar" style="flex-wrap:wrap;">
+  <div class="toolbar-search" style="max-width:100%;">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <form method="get" style="width:100%;">
+      <input type="text" name="search" placeholder="Search expenses by description, category, or recorder..." 
+             value="{{ search_term }}" data-search-table="expensesTable"
+             onkeydown="if(event.key==='Enter') this.form.submit()">
+      {% if category_filter %}
+        <input type="hidden" name="category" value="{{ category_filter }}">
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+  <div class="table-container" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table class="data-table" id="expensesTable" data-sortable style="white-space:nowrap;">
+      <thead>
+        <tr>
+          <th data-sort="text">Category</th>
+          <th data-sort="text">Description</th>
+          <th class="text-end" data-sort="number">Amount</th>
+          <th>Receipt</th>
+          <th data-sort="text">Recorded By</th>
+          <th data-sort="date">Date</th>
+          <th class="text-end" style="width:80px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for expense in expenses %}
+        <tr>
+          <td><span class="badge badge-category">{{ expense.get_category_display }}</span></td>
+          <td>
+            <a href="{% url 'finance:expense_detail' expense.pk %}" class="cell-name" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);white-space:nowrap;">{{ expense.description|truncatechars:35 }}</a>
+          </td>
+          <td class="text-end fw-bold" style="color:var(--oya-danger);font-size:clamp(0.8125rem, 2vw, 0.875rem);white-space:nowrap;">&#8358;{{ expense.amount|floatformat:0|intcomma }}</td>
+          <td style="white-space:nowrap;">
+            {% if expense.receipt_file %}
+            <a href="{{ expense.receipt_file.url }}" target="_blank" class="table-action-btn" title="View Receipt">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </a>
+            {% else %}
+            <span class="cell-muted" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);">No Receipt</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap;">{% if expense.created_by %}{{ expense.created_by.get_full_name }}{% else %}—{% endif %}</td>
+          <td class="cell-muted" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);white-space:nowrap;">{{ expense.created_at|date:"M d, Y" }}</td>
+          <td style="white-space:nowrap;">
+            <div class="table-actions" style="flex-wrap:nowrap;gap:0.25rem;">
+              <a href="{% url 'finance:expense_detail' expense.pk %}" class="table-action-btn" title="View">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </a>
+              {% if user.has_admin_access %}
+              <a href="{% url 'finance:expense_delete' expense.pk %}" class="table-action-btn" title="Delete" style="color:var(--oya-danger);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center;padding:3rem;">
+            <div class="empty-state" style="padding:0;">
+              <div class="empty-state-icon" style="width:clamp(48px, 15vw, 60px);height:clamp(48px, 15vw, 60px);margin-bottom:1rem;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <h3 style="font-size:clamp(0.875rem, 2.5vw, 1rem);">No expense records found</h3>
+              <p style="font-size:clamp(0.75rem, 2vw, 0.875rem);">
+                {% if search_term or category_filter %}
+                  No expenses match your search/filter criteria.
+                {% else %}
+                  No expenses have been recorded yet. Click "Record Expense" to get started.
+                {% endif %}
+              </p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if expenses.has_other_pages %}
+  <div class="card-footer">
+    <span style="font-size:clamp(0.6875rem, 1.5vw, 0.8125rem);color:var(--oya-text-muted);">Showing {{ expenses.start_index }}-{{ expenses.end_index }} of {{ expenses.paginator.count }} records</span>
+    <div class="pagination">
+      {% if expenses.has_previous %}
+        <a href="?page={{ expenses.previous_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      {% endif %}
+
+      {% for num in expenses.paginator.page_range %}
+        {% if expenses.number == num %}
+          <button class="page-btn active">{{ num }}</button>
+        {% elif num > expenses.number|add:'-3' and num < expenses.number|add:'3' %}
+          <a href="?page={{ num }}{% if search_term %}&search={{ search_term }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}" class="page-btn">{{ num }}</a>
+        {% elif num == 1 or num == expenses.paginator.num_pages %}
+          <a href="?page={{ num }}{% if search_term %}&search={{ search_term }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}" class="page-btn">{{ num }}</a>
+        {% elif num == expenses.number|add:'-3' or num == expenses.number|add:'3' %}
+          <span class="page-btn" style="cursor:default;border:none;background:transparent;">...</span>
+        {% endif %}
+      {% endfor %}
+
+      {% if expenses.has_next %}
+        <a href="?page={{ expenses.next_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .treasury-alert { background: linear-gradient(135deg, var(--oya-primary) 0%, var(--oya-primary-dark, #16213e) 100%); color: #fff; border-radius: 12px; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+  .treasury-label { font-size: 0.75rem; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; }
+  .treasury-value { font-weight: 700; }
+  .treasury-alert-right { display: flex; gap: 2rem; }
+  .treasury-stat { text-align: center; }
+  .treasury-stat-label { font-size: 0.75rem; opacity: 0.75; }
+  .treasury-stat-value { font-weight: 600; }
+  .badge-category { background: var(--oya-surface-hover); color: var(--oya-text); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 500; border: 1px solid var(--oya-border); }
+  @media (max-width: 768px) {
+    .treasury-alert { flex-direction: column; align-items: flex-start; }
+    .treasury-alert-right { width: 100%; justify-content: space-between; gap: 1rem; }
+  }
+  @media (max-width: 480px) {
+    .treasury-alert-right { gap: 0.75rem; }
+  }
+</style>
+{% endblock %}

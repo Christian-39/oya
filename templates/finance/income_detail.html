@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load static %}
+
+{% block title %}{{ income.reason }} — Income Detail{% endblock %}
+{% block page_title %}Income Detail{% endblock %}
+{% block breadcrumb %}Income / Detail{% endblock %}
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 style="font-size: clamp(1.125rem, 3vw, 1.5rem)">Income Detail</h1>
+    <p style="font-size: clamp(0.75rem, 2vw, 0.875rem)">
+      {{ income.reason|truncatechars:50 }}
+    </p>
+  </div>
+  <div class="page-header-actions" style="flex-wrap: wrap; gap: 0.5rem">
+    {% if user.has_admin_access %}
+      <a href="{% url 'finance:income_delete' income.pk %}" class="btn btn-danger">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        </svg>
+        Delete
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+{% if income.project_donation %}
+  <div class="col-12">
+    <div style="
+      font-size: clamp(0.6875rem, 1.5vw, 0.75rem);
+      text-transform: uppercase;
+      color: var(--oya-text-muted);
+      letter-spacing: 0.5px;
+      margin-bottom: 0.25rem;
+    ">
+      Linked Project Donation
+    </div>
+    <div style="font-size: clamp(0.9375rem, 2.5vw, 1.1rem); font-weight: 600">
+      <a href="{% url 'project_donations:donation_detail' income.project_donation.id %}" class="cell-name">
+        {{ income.project_donation.project.title }} — &#x20A6;{{ income.project_donation.amount|floatformat:0 }}
+      </a>
+    </div>
+  </div>
+{% endif %}
+
+{% if income.case %}
+  <div class="col-12 mb-3">
+    <div style="
+      font-size: clamp(0.6875rem, 1.5vw, 0.75rem);
+      text-transform: uppercase;
+      color: var(--oya-text-muted);
+      letter-spacing: 0.5px;
+      margin-bottom: 0.25rem;
+    ">
+      Linked Case
+    </div>
+    <div style="font-size: clamp(0.9375rem, 2.5vw, 1.1rem); font-weight: 600">
+      <a href="{% url 'operations:case_detail' income.case.pk %}" class="cell-name">
+        {{ income.case.case_number }} — {{ income.case.title }}
+      </a>
+      <span class="badge badge-case" style="margin-left: 0.5rem">Case Fine</span>
+    </div>
+    <div style="
+      font-size: clamp(0.8125rem, 2vw, 0.875rem);
+      color: var(--oya-text-secondary);
+      margin-top: 0.25rem;
+    ">
+      Respondent: {{ income.case.respondent.full_name }} &nbsp;|&nbsp; Fine: &#x20A6;{{ income.case.fine_amount|floatformat:0|intcomma }}
+    </div>
+  </div>
+{% endif %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+
+    <!-- Amount Card -->
+    <div class="card mb-4" style="text-align: center; padding: clamp(1.5rem, 5vw, 2.5rem)">
+      <div style="margin-bottom: 1rem">
+        {% if income.income_type == "DUES" %}
+          <span class="badge badge-dues">Dues</span>
+        {% elif income.income_type == "DONATION" %}
+          <span class="badge badge-donation">Donation</span>
+        {% elif income.income_type == "EVENT" %}
+          <span class="badge badge-event">Event</span>
+        {% else %}
+          <span class="badge badge-other">Other</span>
+        {% endif %}
+      </div>
+      <div style="
+        font-size: clamp(2rem, 6vw, 2.75rem);
+        font-weight: 800;
+        color: var(--oya-success);
+      ">
+        &#8358;{{ income.amount|floatformat:0|intcomma }}
+      </div>
+      <p style="
+        color: var(--oya-text-secondary);
+        font-size: clamp(0.875rem, 2vw, 1rem);
+        margin: 0.5rem 0 0;
+      ">
+        {{ income.reason }}
+      </p>
+    </div>
+
+    <!-- Details Card -->
+    <div class="card mb-4">
+      <div class="card-header" style="
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--oya-border);
+      ">
+        <div style="display: flex; align-items: center; gap: 0.5rem">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--oya-primary)" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          <span style="font-weight: 600; font-size: clamp(0.875rem, 2.5vw, 1rem)">
+            Transaction Details
+          </span>
+        </div>
+      </div>
+      <div class="card-body" style="padding: 1.25rem">
+        <div class="row g-4">
+
+          <div class="col-sm-6">
+            <div style="
+              font-size: clamp(0.6875rem, 1.5vw, 0.75rem);
+              text-transform: uppercase;
+              color: var(--oya-text-muted);
+              letter-spacing: 0.5px;
+              margin-bottom: 0.25rem;
+            ">
+              Paid By
+            </div>
+            <div style="
+              font-size: clamp(0.9375rem, 2.5vw, 1.1rem);
+              font-weight: 600;
+              color: var(--oya-text);
+            ">
+              {% if income.member %}
+                <a href="{% url 'finance:member_dues_detail' income.member.id %}" class="cell-name">
+                  {{ income.member.get_full_name }}
+                </a>
+              {% else %}
+                {{ income.paid_by|default:"—" }}
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="col-sm-6">
+            <div style="
+              font-size: clamp(0.6875rem, 1.5vw, 0.75rem);
+              text-transform: uppercase;
+              color: var(--oya-text-muted);
+              letter-spacing: 0.5px;
+              margin-bottom: 0.25rem;
+            ">
+              Recorded By
+            </div>
+            <div style="
+              font-size: clamp(0.9375rem, 2.5vw, 1.1rem);
+              font-weight: 600;
+              color: var(--oya-text);
+            ">
+              {% if income.created_by %}
+                {{ income.created_by.get_full_name }}
+              {% else %}
+                —
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="col-sm-6">
+            <div style="
+              font-size: clamp(0.6875rem, 1.5vw, 0.75rem);
+              text-transform: uppercase;
+              color: var(--oya-text-muted);
+              letter-spacing: 0.5px;
+              margin-bottom: 0.25rem;
+            ">
+              Date Recorded
+            </div>
+            <div style="
+              font-size: clamp(0.9375rem, 2.5vw, 1.1rem);
+              font-weight: 600;
+              color: var(--oya-text);
+            ">
+              {{ income.created_at|date:"F d, Y" }} at {{ income.created_at|time:"g:i A" }}
+            </div>
+          </div>
+
+          <div class="col-sm-6">
+            <div style="
+              font-size: clamp(0.6875rem, 1.5vw, 0.75rem);
+              text-transform: uppercase;
+              color: var(--oya-text-muted);
+              letter-spacing: 0.5px;
+              margin-bottom: 0.25rem;
+            ">
+              Last Updated
+            </div>
+            <div style="
+              font-size: clamp(0.9375rem, 2.5vw, 1.1rem);
+              font-weight: 600;
+              color: var(--oya-text);
+            ">
+              {{ income.updated_at|date:"F d, Y" }} at {{ income.updated_at|time:"g:i A" }}
+            </div>
+          </div>
+
+          {% if income.dues_payment %}
+            <div class="col-12">
+              <div style="
+                font-size: clamp(0.6875rem, 1.5vw, 0.75rem);
+                text-transform: uppercase;
+                color: var(--oya-text-muted);
+                letter-spacing: 0.5px;
+                margin-bottom: 0.25rem;
+              ">
+                Linked Dues Record
+              </div>
+              <div style="font-size: clamp(0.9375rem, 2.5vw, 1.1rem); font-weight: 600">
+                <a href="{% url 'finance:member_dues_detail' income.dues_payment.member.id %}" class="cell-name">
+                  {{ income.dues_payment.member.get_full_name }} — {{ income.dues_payment.year }}
+                </a>
+              </div>
+            </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .badge-case {
+    background: var(--oya-danger-bg);
+    color: var(--oya-danger);
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .badge-dues {
+    background: var(--oya-primary-bg);
+    color: var(--oya-primary);
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .badge-donation {
+    background: var(--oya-success-bg);
+    color: var(--oya-success);
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .badge-event {
+    background: var(--oya-warning-bg);
+    color: var(--oya-warning);
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .badge-other {
+    background: var(--oya-info-bg);
+    color: var(--oya-info);
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+</style>
+{% endblock %}

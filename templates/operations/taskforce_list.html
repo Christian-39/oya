@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Task Force{% endblock %}
+{% block page_title %}Task Force Members{% endblock %}
+{% block breadcrumb %}Operations{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 style="font-size:clamp(1.125rem, 3vw, 1.5rem);">Task Force Members</h1>
+    <p style="font-size:clamp(0.75rem, 2vw, 0.875rem);">Manage security and operations task force assignments</p>
+  </div>
+  <div class="page-header-actions" style="flex-wrap:wrap;gap:0.5rem;">
+    {% if user.has_executive_access or user.has_executive_access %}
+    <a href="{% url 'operations:taskforce_create' %}" class="btn btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Assign Member
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="dashboard-grid dashboard-grid-3" style="grid-template-columns:repeat(auto-fit, minmax(min(100%, 260px), 1fr));" style="margin-bottom:clamp(0.75rem, 3vw, 1.5rem);">
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+    </div>
+    <div class="kpi-value" style="font-size:clamp(1.25rem, 4vw, 1.75rem);">{{ total_taskforce }}</div>
+    <div class="kpi-label">Total Assigned</div>
+  </div>
+  <div class="kpi-card accent-success">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-success-bg);color:var(--oya-success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-success);font-size:clamp(1.25rem, 4vw, 1.75rem);">{{ active_count }}</div>
+    <div class="kpi-label">Active</div>
+  </div>
+  <div class="kpi-card accent-secondary">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-bg);color:var(--oya-text-muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-text-muted);font-size:clamp(1.25rem, 4vw, 1.75rem);">{{ inactive_count }}</div>
+    <div class="kpi-label">Inactive</div>
+  </div>
+</div>
+
+<div class="filters-bar" style="flex-wrap:wrap;gap:0.5rem;">
+  <form method="get" style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+    <div class="filter-group">
+      <span class="filter-label" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);">Status:</span>
+      <select name="status" class="form-control" style="width:140px;" onchange="this.form.submit()">
+        <option value="" {% if not status_filter %}selected{% endif %}>All</option>
+        <option value="active" {% if status_filter == "active" %}selected{% endif %}>Active</option>
+        <option value="inactive" {% if status_filter == "inactive" %}selected{% endif %}>Inactive</option>
+      </select>
+    </div>
+  </form>
+  <div style="margin-left:auto;font-size:clamp(0.75rem, 2vw, 0.875rem);color:var(--oya-text-secondary);">
+    <strong style="color:var(--oya-text-primary);">{{ total_taskforce }}</strong> members
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-container" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table class="data-table" id="taskforceTable" data-sortable style="white-space:nowrap;">
+      <thead>
+        <tr>
+          <th data-sort="text">Name</th>
+          <th data-sort="text">Serial Number</th>
+          <th data-sort="text">Phone</th>
+          <th data-sort="text">Clan</th>
+          <th data-sort="date">Assigned Date</th>
+          <th data-sort="text">Status</th>
+          <th style="width:120px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tf in taskforce %}
+        <tr>
+          <td style="white-space:nowrap;">
+            <div style="display:flex;align-items:center;gap:0.625rem;">
+              {% if tf.member.photo %}
+                <img src="{{ tf.member.photo.url }}" alt="" class="avatar avatar-sm" style="object-fit:cover;flex-shrink:0;">
+              {% else %}
+                <div class="avatar avatar-sm" style="background:{% cycle 'var(--oya-primary)' 'var(--oya-accent)' 'var(--oya-success)' 'var(--oya-warning)' 'var(--oya-danger)' 'var(--oya-info)' as tfcolor %};color:#fff;flex-shrink:0;">
+                  {{ tf.member.full_name|first }}{% if tf.member.full_name.split|length > 1 %}{{ tf.member.full_name.split|last|first }}{% endif %}
+                </div>
+              {% endif %}
+              <span class="cell-name" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);white-space:nowrap;">{{ tf.member.full_name }}</span>
+            </div>
+          </td>
+          <td class="cell-muted" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);white-space:nowrap;">{{ tf.member.serial_number }}</td>
+          <td class="cell-muted" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);white-space:nowrap;">{{ tf.member.phone|default:"N/A" }}</td>
+          <td style="white-space:nowrap;">{{ tf.member.umu_nna_clan.name|default:"N/A" }}</td>
+          <td class="cell-muted" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);white-space:nowrap;">{{ tf.assigned_date|date:"M d, Y" }}</td>
+          <td style="white-space:nowrap;">
+            {% if tf.is_active %}
+              <span class="badge badge-success" style="font-size:clamp(0.625rem, 1.5vw, 0.75rem);white-space:nowrap;">Active</span>
+            {% else %}
+              <span class="badge badge-secondary" style="white-space:nowrap;">Inactive</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap;">
+            <div class="table-actions" style="flex-wrap:nowrap;gap:0.25rem;">
+              <a href="#" class="table-action-btn" title="View" onclick="event.preventDefault(); document.getElementById('tf-modal-{{ tf.pk }}').showModal();">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </a>
+              {% if user.has_executive_access or user.has_executive_access %}
+                <a href="{% url 'operations:taskforce_update' pk=tf.pk %}" class="table-action-btn" title="Edit">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </a>
+                {% if tf.is_active %}
+                  <form method="post" action="{% url 'operations:taskforce_remove' pk=tf.pk %}" style="display:inline;" onsubmit="return confirm('Remove {{ tf.member.full_name }} from task force?');">
+                    {% csrf_token %}
+                    <button type="submit" class="table-action-btn danger" title="Delete">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                  </form>
+                {% else %}
+                  <button class="table-action-btn" style="opacity:0.3;cursor:default;" title="Already removed" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                {% endif %}
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center;padding:3rem;">
+            <div class="empty-state" style="padding:0;">
+              <div class="empty-state-icon" style="width:clamp(48px, 15vw, 60px);height:clamp(48px, 15vw, 60px);margin-bottom:1rem;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <h3 style="font-size:clamp(0.875rem, 2.5vw, 1rem);">No task force members found</h3>
+              <p style="font-size:clamp(0.75rem, 2vw, 0.875rem);">
+                {% if status_filter %}
+                  No members match your status filter.
+                {% else %}
+                  No task force members have been assigned yet. Click "Assign Member" to get started.
+                {% endif %}
+              </p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if taskforce.has_other_pages %}
+  <div class="card-footer">
+    <span style="font-size:clamp(0.6875rem, 1.5vw, 0.8125rem);color:var(--oya-text-muted);">Showing {{ taskforce.start_index }}-{{ taskforce.end_index }} of {{ taskforce.paginator.count }} members</span>
+    <div class="pagination">
+      {% if taskforce.has_previous %}
+        <a href="?page={{ taskforce.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      {% endif %}
+
+      {% for num in taskforce.paginator.page_range %}
+        {% if taskforce.number == num %}
+          <button class="page-btn active">{{ num }}</button>
+        {% elif num > taskforce.number|add:'-3' and num < taskforce.number|add:'3' %}
+          <a href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">{{ num }}</a>
+        {% elif num == 1 or num == taskforce.paginator.num_pages %}
+          <a href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">{{ num }}</a>
+        {% elif num == taskforce.number|add:'-3' or num == taskforce.number|add:'3' %}
+          <span class="page-btn" style="cursor:default;border:none;background:transparent;">...</span>
+        {% endif %}
+      {% endfor %}
+
+      {% if taskforce.has_next %}
+        <a href="?page={{ taskforce.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% for tf in taskforce %}
+<dialog id="tf-modal-{{ tf.pk }}" style="border:none;border-radius:var(--oya-radius,8px);padding:0;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+  <div style="padding:clamp(1.25rem, 4vw, 1.75rem);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <h3 style="font-size:clamp(1rem, 3vw, 1.125rem);margin:0;">Member Details</h3>
+      <button onclick="document.getElementById('tf-modal-{{ tf.pk }}').close();" style="background:none;border:none;cursor:pointer;padding:0.25rem;color:var(--oya-text-muted);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;">
+      {% if tf.member.photo %}
+        <img src="{{ tf.member.photo.url }}" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;">
+      {% else %}
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--oya-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:600;">
+          {{ tf.member.full_name|first }}{% if tf.member.full_name.split|length > 1 %}{{ tf.member.full_name.split|last|first }}{% endif %}
+        </div>
+      {% endif %}
+      <div>
+        <div style="font-weight:600;font-size:clamp(0.9375rem, 2.5vw, 1rem);">{{ tf.member.full_name }}</div>
+        <div style="font-size:clamp(0.75rem, 2vw, 0.8125rem);color:var(--oya-text-muted);">{{ tf.member.serial_number }}</div>
+        <div style="margin-top:0.25rem;">
+          {% if tf.is_active %}
+            <span class="badge badge-success" style="font-size:clamp(0.625rem, 1.5vw, 0.75rem);">Active</span>
+          {% else %}
+            <span class="badge badge-secondary" style="font-size:clamp(0.625rem, 1.5vw, 0.75rem);">Inactive</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;font-size:clamp(0.8125rem, 2vw, 0.875rem);">
+      <div>
+        <span style="color:var(--oya-text-muted);display:block;font-size:clamp(0.6875rem, 1.5vw, 0.75rem);">Phone</span>
+        <span style="color:var(--oya-text-primary);font-weight:500;">{{ tf.member.phone|default:"N/A" }}</span>
+      </div>
+      <div>
+        <span style="color:var(--oya-text-muted);display:block;font-size:clamp(0.6875rem, 1.5vw, 0.75rem);">Clan</span>
+        <span style="color:var(--oya-text-primary);font-weight:500;">{{ tf.member.umu_nna_clan.name|default:"N/A" }}</span>
+      </div>
+      <div>
+        <span style="color:var(--oya-text-muted);display:block;font-size:clamp(0.6875rem, 1.5vw, 0.75rem);">Assigned Date</span>
+        <span style="color:var(--oya-text-primary);font-weight:500;">{{ tf.assigned_date|date:"F d, Y" }}</span>
+      </div>
+      <div>
+        <span style="color:var(--oya-text-muted);display:block;font-size:clamp(0.6875rem, 1.5vw, 0.75rem);">Task Force ID</span>
+        <span style="color:var(--oya-text-primary);font-weight:500;">#{{ tf.pk }}</span>
+      </div>
+    </div>
+    {% if tf.notes %}
+    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--oya-border);">
+      <span style="color:var(--oya-text-muted);display:block;font-size:clamp(0.6875rem, 1.5vw, 0.75rem);margin-bottom:0.25rem;">Notes</span>
+      <p style="margin:0;color:var(--oya-text-secondary);font-size:clamp(0.8125rem, 2vw, 0.875rem);line-height:1.5;">{{ tf.notes|linebreaksbr }}</p>
+    </div>
+    {% endif %}
+    <div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--oya-border);">
+      <button onclick="document.getElementById('tf-modal-{{ tf.pk }}').close();" class="btn btn-secondary" style="font-size:clamp(0.75rem, 2vw, 0.8125rem);">Close</button>
+    </div>
+  </div>
+</dialog>
+{% endfor %}
+
+{% endblock %}

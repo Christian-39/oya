@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Projects{% endblock %}
+{% block page_title %}Projects{% endblock %}
+{% block breadcrumb %}Operations{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Community Projects</h1>
+    <p>Track and manage OYA development projects and initiatives</p>
+  </div>
+  <div class="page-header-actions">
+    <button class="btn btn-secondary" data-export="projectsTable">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
+    </button>
+    {% if user.has_executive_access %}
+    <a href="{% url 'projects:project_create' %}" class="btn btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Project
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Project Stats -->
+<div class="dashboard-grid dashboard-grid-4" style="margin-bottom:1.5rem;">
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/></svg></div>
+    </div>
+    <div class="kpi-value">{{ stats.total }}</div>
+    <div class="kpi-label">Total Projects</div>
+  </div>
+  <div class="kpi-card accent-success">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-success-bg);color:var(--oya-success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-success);">{{ stats.finished }}</div>
+    <div class="kpi-label">Completed</div>
+  </div>
+  <div class="kpi-card accent-warning">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-warning-bg);color:var(--oya-warning);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-warning);">{{ stats.at_hand }}</div>
+    <div class="kpi-label">In Progress</div>
+  </div>
+  <div class="kpi-card accent-info">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-info-bg);color:var(--oya-info);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-info);">{{ stats.future }}</div>
+    <div class="kpi-label">Planned</div>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="filters-bar">
+  <form method="get" style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+    <div class="filter-group">
+      <span class="filter-label">Status:</span>
+      <select name="status" class="form-control" style="width:140px;" onchange="this.form.submit()">
+        <option value="" {% if not status_filter %}selected{% endif %}>All</option>
+        {% for value, label in status_choices %}
+          <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% if search_term %}
+      <input type="hidden" name="search" value="{{ search_term }}">
+    {% endif %}
+  </form>
+  <div style="margin-left:auto;font-size:0.875rem;color:var(--oya-text-secondary);">
+    <strong style="color:var(--oya-text-primary);">{{ stats.total }}</strong> projects
+  </div>
+</div>
+
+<!-- Projects Table -->
+<div class="card">
+  <div class="table-toolbar">
+    <div class="toolbar-search">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <form method="get" style="width:100%;">
+        <input type="text" name="search" placeholder="Search projects..." 
+               value="{{ search_term }}" data-search-table="projectsTable"
+               onkeydown="if(event.key==='Enter') this.form.submit()">
+        {% if status_filter %}
+          <input type="hidden" name="status" value="{{ status_filter }}">
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <div class="table-container" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table class="data-table" id="projectsTable" data-sortable style="white-space:nowrap;">
+      <thead>
+        <tr>
+          <th style="width:40px;"><input type="checkbox" class="form-check-input" id="selectAll"></th>
+          <th data-sort="text">Project</th>
+          <th data-sort="text">Status</th>
+          <th data-sort="number">Budget</th>
+          <th data-sort="number">Progress</th>
+          <th data-sort="date">Created</th>
+          <th style="width:80px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for project in projects %}
+        <tr>
+          <td style="white-space:nowrap;"><input type="checkbox" class="form-check-input row-checkbox" value="{{ project.pk }}"></td>
+          <td style="white-space:nowrap;">
+            <span class="cell-name" style="white-space:nowrap;">{{ project.title }}</span>
+            {% if project.description %}
+              <div class="cell-muted" style="white-space:nowrap;">{{ project.description|truncatewords:10 }}</div>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap;">
+            {% if project.status == "FUTURE" %}
+              <span class="badge badge-info" style="white-space:nowrap;">Planned</span>
+            {% elif project.status == "AT_HAND" %}
+              <span class="badge badge-warning" style="white-space:nowrap;">In Progress</span>
+            {% elif project.status == "FINISHED" %}
+              <span class="badge badge-success" style="white-space:nowrap;">Completed</span>
+            {% endif %}
+          </td>
+          <td style="font-weight:600;white-space:nowrap;">&#x20A6;{{ project.budget|floatformat:0 | intcomma }}</td>
+          <td style="white-space:nowrap;">
+            <div style="display:flex;align-items:center;gap:0.5rem;white-space:nowrap;">
+              <div class="progress-bar" style="flex:1;min-width:60px;">
+                <div class="progress-fill {% if project.progress_percentage == 100 %}success{% elif project.progress_percentage >= 50 %}warning{% else %}{% endif %}" style="width:{{ project.progress_percentage }}%"></div>
+              </div>
+              <span style="font-size:0.75rem;font-weight:600;white-space:nowrap;">{{ project.progress_percentage }}%</span>
+            </div>
+          </td>
+          <td class="cell-muted" style="white-space:nowrap;">{{ project.created_at|date:"M d, Y" }}</td>
+          <td style="white-space:nowrap;">
+            <div class="table-actions" style="flex-wrap:nowrap;gap:0.25rem;">
+              <a href="{% url 'projects:project_detail' pk=project.pk %}" class="table-action-btn" title="View">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </a>
+              {% if user.has_executive_access %}
+              <a href="{% url 'projects:project_update' pk=project.pk %}" class="table-action-btn" title="Edit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center;padding:3rem;">
+            <div class="empty-state" style="padding:0;">
+              <div class="empty-state-icon" style="width:60px;height:60px;margin-bottom:1rem;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/></svg>
+              </div>
+              <h3 style="font-size:1rem;">No projects found</h3>
+              <p style="font-size:0.875rem;">
+                {% if search_term or status_filter %}
+                  No projects match your search/filter criteria.
+                {% else %}
+                  No projects have been created yet. Click "New Project" to get started.
+                {% endif %}
+              </p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if projects.has_other_pages %}
+  <div class="card-footer">
+    <span style="font-size:0.8125rem;color:var(--oya-text-muted);">Showing {{ projects.start_index }}-{{ projects.end_index }} of {{ projects.paginator.count }} projects</span>
+    <div class="pagination">
+      {% if projects.has_previous %}
+        <a href="?page={{ projects.previous_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      {% endif %}
+
+      {% for num in projects.paginator.page_range %}
+        {% if projects.number == num %}
+          <button class="page-btn active">{{ num }}</button>
+        {% elif num > projects.number|add:'-3' and num < projects.number|add:'3' %}
+          <a href="?page={{ num }}{% if search_term %}&search={{ search_term }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">{{ num }}</a>
+        {% elif num == 1 or num == projects.paginator.num_pages %}
+          <a href="?page={{ num }}{% if search_term %}&search={{ search_term }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">{{ num }}</a>
+        {% elif num == projects.number|add:'-3' or num == projects.number|add:'3' %}
+          <span class="page-btn" style="cursor:default;border:none;background:transparent;">...</span>
+        {% endif %}
+      {% endfor %}
+
+      {% if projects.has_next %}
+        <a href="?page={{ projects.next_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+/* ─── Responsive Project List ─── */
+@media (max-width: 768px) {
+  .dashboard-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+  .page-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .page-header-left h1 { font-size: 1.25rem !important; }
+  .page-header-left p { font-size: 0.8125rem !important; }
+  .page-header-actions { width: 100%; flex-wrap: wrap; }
+  .page-header-actions .btn { flex: 1; min-width: 120px; }
+  .filters-bar { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+  .filter-group { width: 100%; }
+  .filter-group .form-control { width: 100%; }
+  .toolbar-search { max-width: 100%; }
+  .data-table thead th,
+  .data-table tbody td { padding: 0.625rem 0.75rem; font-size: 0.8125rem; }
+  .table-actions { gap: 0.15rem; }
+  .table-action-btn { width: 28px; height: 28px; }
+  .progress-bar { height: 8px; min-width: 40px; }
+  .kpi-value { font-size: 1.5rem !important; }
+  .kpi-label { font-size: 0.8125rem !important; }
+  .kpi-icon { width: 40px !important; height: 40px !important; }
+  .kpi-icon svg { width: 20px !important; height: 20px !important; }
+  .card-footer { flex-direction: column; gap: 0.75rem; align-items: center; }
+  .pagination { flex-wrap: wrap; justify-content: center; }
+  .empty-state h3 { font-size: 0.9375rem; }
+  .empty-state p { font-size: 0.8125rem; }
+}
+
+@media (max-width: 480px) {
+  .dashboard-grid-4 { grid-template-columns: 1fr !important; }
+  .page-header-left h1 { font-size: 1.125rem !important; }
+  .page-header-left p { font-size: 0.75rem !important; }
+  .kpi-card { padding: 1rem !important; }
+  .kpi-value { font-size: 1.25rem !important; }
+  .kpi-label { font-size: 0.75rem !important; }
+  .data-table { font-size: 0.75rem; }
+  .data-table thead th,
+  .data-table tbody td { padding: 0.5rem 0.625rem; }
+  .cell-name { font-size: 0.8125rem; }
+  .cell-muted { font-size: 0.75rem; }
+  .badge { padding: 0.2rem 0.4rem; font-size: 0.625rem; }
+  .progress-bar { height: 6px; min-width: 30px; }
+  .btn { padding: 0.5rem 1rem; font-size: 0.8125rem; }
+  .btn-sm { padding: 0.375rem 0.75rem; font-size: 0.75rem; }
+  .page-btn { min-width: 32px; height: 32px; font-size: 0.8125rem; }
+  .table-toolbar { padding: 0.75rem 1rem; }
+  .filters-bar { padding: 0.75rem; }
+  .filter-label { font-size: 0.75rem; }
+  .empty-state { padding: 2rem 1rem; }
+  .empty-state-icon { width: 56px; height: 56px; }
+  .empty-state-icon svg { width: 24px; height: 24px; }
+}
+
+@media (max-width: 360px) {
+  .page-header-left h1 { font-size: 1rem !important; }
+  .kpi-value { font-size: 1.125rem !important; }
+  .data-table { font-size: 0.6875rem; }
+  .data-table thead th,
+  .data-table tbody td { padding: 0.4rem 0.5rem; }
+  .page-btn { min-width: 28px; height: 28px; font-size: 0.75rem; }
+  .badge { padding: 0.15rem 0.35rem; font-size: 0.5625rem; }
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,1 @@
+"""Elections app for OYA."""

@@ -1,0 +1,96 @@
+# render.yaml - Render Blueprint for OYA
+services:
+  - type: web
+    name: oya-web
+    runtime: python
+    plan: starter
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+      python manage.py migrate
+    startCommand: gunicorn oya.wsgi:application --workers 3 --threads 2 --worker-class gthread --timeout 30 --max-requests 1000 --max-requests-jitter 50
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: "oya.onrender.com,*.onrender.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: oya-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: oya-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: oya-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: oya-redis
+          property: connectionString
+      - key: MEDIA_STORAGE_MODE
+        value: "b2"
+      - key: B2_KEY_ID
+        sync: false  # Set manually in Render dashboard
+      - key: B2_APPLICATION_KEY
+        sync: false
+      - key: B2_BUCKET_NAME
+        sync: false
+      - key: B2_BUCKET_REGION
+        value: "us-west-004"
+      - key: B2_ENDPOINT_URL
+        sync: false
+      - key: B2_CUSTOM_DOMAIN
+        sync: false
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+
+  - type: worker
+    name: oya-worker
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A oya worker -l info
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: oya-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: oya-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: oya-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: oya-redis
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
+        fromService:
+          type: web
+          name: oya-web
+          envVarKey: DJANGO_SECRET_KEY
+
+databases:
+  - name: oya-db
+    plan: free
+    databaseName: oya_db
+    user: oya_user
+
+redis:
+  - name: oya-redis
+    plan: free
+    ipAllowList: []

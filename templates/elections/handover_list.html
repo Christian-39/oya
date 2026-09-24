@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Handover Ledgers{% endblock %}
+{% block page_title %}Handover Ledgers{% endblock %}
+{% block breadcrumb %}<a href="{% url 'elections:election_list' %}">Elections</a> &rsaquo; Handovers{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 style="font-size:clamp(1.125rem, 3vw, 1.5rem);">Handover Ledgers</h1>
+    <p>Document executive transitions with full operations, finance & projects data</p>
+  </div>
+  <div class="page-header-actions" style="display:flex;gap:0.5rem;">
+    <a href="{% url 'elections:administration_list' %}" class="btn btn-secondary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Previous Administrations
+    </a>
+    {% if user.has_executive_access %}
+    <a href="{% url 'elections:handover_create' %}" class="btn btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Handover
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Stats Bar -->
+<div class="dashboard-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:1rem;margin-bottom:1.5rem;">
+  <div class="card" style="padding:1rem;">
+    <div style="font-size:0.75rem;color:var(--oya-text-muted);margin-bottom:0.25rem;">Total Handovers</div>
+    <div style="font-size:1.5rem;font-weight:700;color:var(--oya-text-primary);">{{ stats.total }}</div>
+  </div>
+  <div class="card" style="padding:1rem;">
+    <div style="font-size:0.75rem;color:var(--oya-text-muted);margin-bottom:0.25rem;">Total Physical Cash at Hand</div>
+    <div style="font-size:1.5rem;font-weight:700;color:var(--oya-success);">₦{{ stats.total_cash_remaining|floatformat:0|intcomma }}</div>
+  </div>
+  <div class="card" style="padding:1rem;">
+    <div style="font-size:0.75rem;color:var(--oya-text-muted);margin-bottom:0.25rem;">Total Revenue Recorded</div>
+    <div style="font-size:1.5rem;font-weight:700;color:var(--oya-primary);">₦{{ stats.total_revenue|floatformat:0|intcomma }}</div>
+  </div>
+</div>
+
+<!-- Search -->
+<form method="get" style="margin-bottom:1rem;">
+  <div style="display:flex;gap:0.5rem;max-width:400px;">
+    <input type="text" name="search" value="{{ search_term }}" class="form-control" placeholder="Search executive, post, election...">
+    <button type="submit" class="btn btn-secondary">Search</button>
+    {% if search_term %}
+    <a href="{% url 'elections:handover_list' %}" class="btn btn-ghost">Clear</a>
+    {% endif %}
+  </div>
+</form>
+
+<!-- Handover Grid -->
+<div class="dashboard-grid" style="grid-template-columns:repeat(auto-fill, minmax(min(100%, 380px), 1fr));gap:1rem;">
+  {% for handover in handovers %}
+  <div class="card" style="display:flex;flex-direction:column;">
+    <div class="card-body" style="flex:1;">
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+        <span class="badge badge-primary">Handover</span>
+        <span style="font-size:0.75rem;color:var(--oya-text-muted);margin-left:auto;">{{ handover.tenure_start|date:"M Y" }} – {{ handover.tenure_end|date:"M Y" }}</span>
+      </div>
+      <h3 style="font-size:clamp(1rem, 2.5vw, 1.125rem);margin-bottom:0.25rem;">
+        {{ handover.executive.member.full_name }}
+      </h3>
+      <p style="font-size:0.875rem;color:var(--oya-text-secondary);margin-bottom:0.75rem;">
+        {{ handover.executive.post }}
+      </p>
+      {% if handover.election %}
+      <p style="font-size:0.8125rem;color:var(--oya-text-muted);margin-bottom:0.75rem;">
+        <span style="display:flex;align-items:center;gap:0.25rem;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          {{ handover.election.title }}
+        </span>
+      </p>
+      {% endif %}
+      
+      <!-- Finance Snapshot -->
+      <div style="background:var(--oya-bg-secondary);padding:0.75rem;border-radius:0.5rem;margin-bottom:0.75rem;">
+        <div style="font-size:0.75rem;color:var(--oya-text-muted);margin-bottom:0.5rem;font-weight:600;">Financial Snapshot</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.8125rem;">
+          <div>
+            <span style="color:var(--oya-text-muted);display:block;">Revenue</span>
+            <strong style="color:var(--oya-success);">₦{{ handover.total_revenue|floatformat:0|intcomma }}</strong>
+          </div>
+          <div>
+            <span style="color:var(--oya-text-muted);display:block;">Expenses</span>
+            <strong style="color:var(--oya-danger);">₦{{ handover.total_expenses|floatformat:0|intcomma }}</strong>
+          </div>
+          <div>
+            <span style="color:var(--oya-text-muted);display:block;">Physical Balance</span>
+            <strong style="color:var(--oya-text-primary);">₦{{ handover.total_balance|floatformat:0|intcomma }}</strong>
+          </div>
+          <div>
+            <span style="color:var(--oya-text-muted);display:block;">Net Position</span>
+            <strong style="color:var(--oya-primary);">₦{{ handover.net_financial_position|floatformat:0|intcomma }}</strong>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Operations Snapshot -->
+      <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:0.5rem;font-size:0.75rem;margin-bottom:0.75rem;">
+        <div style="text-align:center;background:var(--oya-bg-secondary);padding:0.5rem;border-radius:0.375rem;">
+          <div style="color:var(--oya-text-muted);">Taskforce</div>
+          <strong>{{ handover.taskforce_active }}/{{ handover.taskforce_total }}</strong>
+        </div>
+        <div style="text-align:center;background:var(--oya-bg-secondary);padding:0.5rem;border-radius:0.375rem;">
+          <div style="color:var(--oya-text-muted);">Motorcycles</div>
+          <strong>{{ handover.motorcycle_total }}</strong>
+        </div>
+        <div style="text-align:center;background:var(--oya-bg-secondary);padding:0.5rem;border-radius:0.375rem;">
+          <div style="color:var(--oya-text-muted);">Cases</div>
+          <strong>{{ handover.cases_resolved }}/{{ handover.cases_total }}</strong>
+        </div>
+      </div>
+      
+      <!-- Projects Snapshot -->
+      <div style="display:flex;gap:0.5rem;font-size:0.75rem;flex-wrap:wrap;">
+        <span class="badge badge-success">{{ handover.projects_completed }} Completed</span>
+        <span class="badge badge-warning">{{ handover.projects_at_hand }} Ongoing</span>
+        <span class="badge badge-info">{{ handover.projects_future }} Planned</span>
+      </div>
+    </div>
+    <div class="card-footer" style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+      <a href="{% url 'elections:handover_detail' handover.pk %}" class="btn btn-secondary" style="flex:1;min-width:80px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        View
+      </a>
+      {% if user.has_executive_access %}
+      <a href="{% url 'elections:handover_update' handover.pk %}" class="btn btn-primary" style="flex:1;min-width:80px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit
+      </a>
+      {% endif %}
+      {% if user.has_admin_access %}
+      <a href="{% url 'elections:handover_delete' handover.pk %}" class="btn btn-danger" style="flex:1;min-width:80px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        Delete
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="card" style="grid-column:1 / -1;text-align:center;padding:3rem;">
+    <div class="empty-state">
+      <div class="empty-state-icon" style="width:clamp(48px, 15vw, 60px);height:clamp(48px, 15vw, 60px);margin-bottom:1rem;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      </div>
+      <h3 style="font-size:clamp(0.875rem, 2.5vw, 1rem);">No handover records</h3>
+      <p style="font-size:clamp(0.75rem, 2vw, 0.875rem);color:var(--oya-text-muted);">Handover ledgers will appear here once created.</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if handovers.has_other_pages %}
+<div style="display:flex;justify-content:center;padding:1rem 0;">
+  <div class="pagination">
+    {% if handovers.has_previous %}
+      <a href="?page={{ handovers.previous_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}" class="page-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+    {% else %}
+      <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+    {% endif %}
+
+    {% for num in handovers.paginator.page_range %}
+      {% if handovers.number == num %}
+        <button class="page-btn active">{{ num }}</button>
+      {% elif num > handovers.number|add:'-3' and num < handovers.number|add:'3' %}
+        <a href="?page={{ num }}{% if search_term %}&search={{ search_term }}{% endif %}" class="page-btn">{{ num }}</a>
+      {% elif num == 1 or num == handovers.paginator.num_pages %}
+        <a href="?page={{ num }}{% if search_term %}&search={{ search_term }}{% endif %}" class="page-btn">{{ num }}</a>
+      {% elif num == handovers.number|add:'-3' or num == handovers.number|add:'3' %}
+        <span class="page-btn" style="cursor:default;border:none;background:transparent;">...</span>
+      {% endif %}
+    {% endfor %}
+
+    {% if handovers.has_next %}
+      <a href="?page={{ handovers.next_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}" class="page-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+    {% else %}
+      <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

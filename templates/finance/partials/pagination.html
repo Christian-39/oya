@@ -1,0 +1,29 @@
+{% comment %}
+  NOTE: Not currently included anywhere. Rewritten to match the design-system
+  pagination pattern (.pagination / .page-btn, see static/css/components.css)
+  used elsewhere (e.g. finance/income_list.html) instead of Bootstrap's
+  .pagination/.page-item/.page-link, which have no matching CSS in this project.
+{% endcomment %}
+{% if page_obj.has_other_pages %}
+<div class="pagination" aria-label="Page navigation">
+  {% if page_obj.has_previous %}
+  <a href="?page={{ page_obj.previous_page_number }}{{ extra_params }}" class="page-btn">Previous</a>
+  {% else %}
+  <button class="page-btn" disabled>Previous</button>
+  {% endif %}
+
+  {% for num in page_obj.paginator.page_range %}
+    {% if page_obj.number == num %}
+    <button class="page-btn active">{{ num }}</button>
+    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+    <a href="?page={{ num }}{{ extra_params }}" class="page-btn">{{ num }}</a>
+    {% endif %}
+  {% endfor %}
+
+  {% if page_obj.has_next %}
+  <a href="?page={{ page_obj.next_page_number }}{{ extra_params }}" class="page-btn">Next</a>
+  {% else %}
+  <button class="page-btn" disabled>Next</button>
+  {% endif %}
+</div>
+{% endif %}

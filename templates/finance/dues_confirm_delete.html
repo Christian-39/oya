@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}Delete Dues Record — OYA{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 text-center">
+          <div class="mb-3"><i class="bi bi-exclamation-triangle-fill display-4 text-warning"></i></div>
+          <h4 class="fw-bold mb-2">Delete Dues Record?</h4>
+          <p class="text-muted mb-4">You are about to delete the dues record for:<br><strong>{{ dues.member.get_full_name }}</strong><br><span class="badge bg-danger">{{ dues.year }}</span></p>
+          <p class="text-muted small">This will also delete the linked income record of &#8358;{{ dues.amount_paid|floatformat:0|intcomma }}.<br>This action <strong>cannot be undone</strong>.</p>
+          <form method="post" class="d-flex gap-2 justify-content-center mt-4">
+            {% csrf_token %}
+            <a href="{% url 'finance:dues_tracker' %}" class="btn btn-outline-secondary btn-lg">Cancel</a>
+            <button type="submit" class="btn btn-danger btn-lg"><i class="bi bi-trash me-1"></i> Delete Permanently</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

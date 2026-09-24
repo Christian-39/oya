@@ -1,0 +1,615 @@
+{% extends "base.html" %} 
+{% load static %} {% load humanize %}<!-- prettier-ignore -->
+
+{% block title %}Finance Dashboard{% endblock %} 
+{% block page_title %}Finance Overview{% endblock %}<!-- prettier-ignore -->
+{% block breadcrumb %}Finance{% endblock %}<!-- prettier-ignore -->
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 style="font-size: clamp(1.125rem, 3vw, 1.5rem)">Financial Dashboard</h1>
+    <p>Comprehensive overview of OYA's financial health and transactions</p>
+  </div>
+  <div class="page-header-actions">
+    {% if user.has_executive_access %}
+    <a href="{% url 'finance:dues_create' %}" class="btn btn-primary">
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+      Record Dues
+    </a>
+    <a href="{% url 'finance:donation_create' %}" class="btn btn-success">
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+      Record Contribution
+    </a>
+    <a href="{% url 'finance:expense_create' %}" class="btn btn-danger">
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+      Record Expense
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="dashboard-grid dashboard-grid-4" style="margin-bottom: 1.5rem">
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div class="kpi-icon">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <line x1="12" y1="1" x2="12" y2="23" />
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+      </div>
+    </div>
+    <div class="kpi-value">
+      &#x20A6;{{ treasury_balance|floatformat:0|intcomma }}
+    </div>
+    <div class="kpi-label">Treasury Balance (&#x20A6;)</div>
+  </div>
+
+  <div class="kpi-card accent-success">
+    <div class="kpi-header">
+      <div
+        class="kpi-icon"
+        style="background: var(--oya-success-bg); color: var(--oya-success)"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+        </svg>
+      </div>
+    </div>
+    <div
+      class="kpi-value"
+      style="color: var(--oya-success); "
+    >
+      &#x20A6;{{ total_dues|floatformat:0|intcomma }}
+    </div>
+    <div class="kpi-label">Total Dues Collected (&#x20A6;)</div>
+    <div
+      style="
+        font-size: 0.75rem;
+        color: var(--oya-text-muted);
+        margin-top: 0.25rem;
+      "
+    >
+      {{ dues_collection_rate }}% collection rate
+    </div>
+  </div>
+
+  <div class="kpi-card accent-info">
+    <div class="kpi-header">
+      <div
+        class="kpi-icon"
+        style="background: var(--oya-info-bg); color: var(--oya-info)"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        </svg>
+      </div>
+    </div>
+    <div
+      class="kpi-value"
+      style="color: var(--oya-info); "
+    >
+      &#x20A6;{{ total_donations|floatformat:0|intcomma }}
+    </div>
+    <div class="kpi-label">Donations &amp; Contributions (&#x20A6;)</div>
+  </div>
+
+  <div class="kpi-card accent-danger">
+    <div class="kpi-header">
+      <div
+        class="kpi-icon"
+        style="background: var(--oya-danger-bg); color: var(--oya-danger)"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+        </svg>
+      </div>
+    </div>
+    <div
+      class="kpi-value"
+      style="color: var(--oya-danger); "
+    >
+      &#x20A6;{{ total_expenses|floatformat:0|intcomma }}
+    </div>
+    <div class="kpi-label">Total Expenses YTD (&#x20A6;)</div>
+  </div>
+</div>
+
+<!-- Secondary Stats Row -->
+<div class="dashboard-grid dashboard-grid-3" style="margin-bottom: 1.5rem">
+  <div class="kpi-card accent-warning">
+    <div class="kpi-header">
+      <div
+        class="kpi-icon"
+        style="background: var(--oya-warning-bg); color: var(--oya-warning)"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+          <line x1="8" y1="21" x2="16" y2="21" />
+          <line x1="12" y1="17" x2="12" y2="21" />
+        </svg>
+      </div>
+    </div>
+    <div
+      class="kpi-value"
+      style="color: var(--oya-warning); "
+    >
+      {{ this_year_dues_paid }} / {{ active_members }}
+    </div>
+    <div class="kpi-label">{{ current_year }} Dues Paid</div>
+    <div
+      style="
+        font-size: 0.75rem;
+        color: var(--oya-text-muted);
+        margin-top: 0.25rem;
+      "
+    >
+      {{ this_year_dues_rate }}% of active members
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div class="kpi-icon">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      </div>
+    </div>
+    <div class="kpi-value">
+      {{ total_transactions }}
+    </div>
+    <div class="kpi-label">Total Transactions</div>
+  </div>
+
+  <div class="kpi-card accent-success">
+    <div class="kpi-header">
+      <div
+        class="kpi-icon"
+        style="background: var(--oya-success-bg); color: var(--oya-success)"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+        </svg>
+      </div>
+    </div>
+    <div
+      class="kpi-value"
+      style="color: var(--oya-success); "
+    >
+      &#x20A6;{{ total_income|floatformat:0|intcomma }}
+    </div>
+    <div class="kpi-label">Total Income (&#x20A6;)</div>
+  </div>
+</div>
+
+<div class="dashboard-grid dashboard-grid-2">
+  <!-- Recent Transactions -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Recent Transactions</div>
+        <div class="card-header-subtitle">Latest financial activities</div>
+      </div>
+      <a href="{% url 'finance:donation_list' %}" class="btn btn-sm btn-ghost">View All</a>
+    </div>
+    <div class="card-body" style="padding: 0">
+      <div class="activity-feed" style="padding: 0 1.25rem">
+        {% for transaction in recent_transactions %}
+        <div
+          class="activity-item transaction-row"
+          style="cursor: pointer; align-items: flex-start;"
+          {% if transaction.type == "dues_transaction" %}
+            onclick="window.location.href='{% url 'finance:member_dues_detail' transaction.member.id %}'"
+          {% elif transaction.type == "income" and transaction.income_object %}
+            onclick="window.location.href='{% url 'finance:income_detail' transaction.income_object.id %}'"
+          {% elif transaction.type == "expense" and transaction.expense_object %}
+            onclick="window.location.href='{% url 'finance:expense_detail' transaction.expense_object.id %}'"
+          {% elif transaction.type == "project_donation" and transaction.project %}
+            onclick="window.location.href='{% url 'projects:project_detail' transaction.project.id %}'"
+          {% endif %}
+        >
+          {% if transaction.type == "dues_transaction" %}
+          <div class="activity-icon warning">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+            </svg>
+          </div>
+          <div class="activity-content">
+            <div class="activity-text" style="flex-wrap: wrap; gap: 0.25rem;">
+              <strong>{{ transaction.member.get_full_name }}</strong>
+              <span>—</span>
+              <strong>&#x20A6;{{ transaction.amount|floatformat:2|intcomma }}</strong>
+              <span>— {{ transaction.description }}</span>
+              <span class="badge badge-warning" style="margin-left: 0.5rem">Yearly Dues</span>
+              {% if transaction.is_prepaid %}
+              <span class="badge badge-info" style="margin-left: 0.25rem">Prepaid</span>
+              {% endif %}
+            </div>
+            <div class="activity-time">
+              {{ transaction.created_at|date:"M d, Y \a\t h:i A" }}
+            </div>
+          </div>
+
+          {% elif transaction.type == "income" %}
+          <div class="activity-icon success">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+            </svg>
+          </div>
+          <div class="activity-content">
+            <div class="activity-text" style="flex-wrap: wrap; gap: 0.25rem;">
+              {% if transaction.income_type == "CASE_FINE" and transaction.income_object.case %}
+                <strong>{{ transaction.income_object.case.case_number }}</strong>
+              {% elif transaction.member %}
+                <strong>{{ transaction.member.get_full_name }}</strong>
+              {% elif transaction.paid_by %}
+                <strong>{{ transaction.paid_by }}</strong>
+              {% endif %}
+              <span>—</span>
+              <strong>&#x20A6;{{ transaction.amount|floatformat:2|intcomma }}</strong>
+              <span>— {{ transaction.reason }}</span>
+              {% if transaction.income_type == "CASE_FINE" %}
+              <span class="badge badge-case" style="margin-left: 0.5rem">Case Fine</span>
+              {% else %}
+              <span class="badge badge-success" style="margin-left: 0.5rem">
+                {{ transaction.income_object.get_income_type_display }}
+              </span>
+              {% endif %}
+            </div>
+            <div class="activity-time">
+              {{ transaction.created_at|date:"M d, Y \a\t h:i A" }}
+            </div>
+          </div>
+
+          {% elif transaction.type == "expense" %}
+          <div class="activity-icon danger">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+            </svg>
+          </div>
+          <div class="activity-content">
+            <div class="activity-text" style="flex-wrap: wrap; gap: 0.25rem;">
+              <strong>&#x20A6;{{ transaction.amount|floatformat:2|intcomma }}</strong>
+              <span>— {{ transaction.description }}</span>
+              {% if transaction.category %}
+              <strong>({{ transaction.expense_object.get_category_display }})</strong>
+              {% endif %}
+            </div>
+            <div class="activity-time">
+              {{ transaction.created_at|date:"M d, Y \a\t h:i A" }}
+            </div>
+          </div>
+
+          {% elif transaction.type == "project_donation" %}
+          <div class="activity-icon success">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+            </svg>
+          </div>
+          <div class="activity-content">
+            <div class="activity-text" style="flex-wrap: wrap; gap: 0.25rem;">
+              <strong>{{ transaction.donor_name }}</strong>
+              <span>—</span>
+              <strong>&#x20A6;{{ transaction.amount|floatformat:2|intcomma }}</strong>
+              <span>— {{ transaction.reason }}</span>
+              <span class="badge badge-success" style="margin-left: 0.5rem">Project Donation</span>
+            </div>
+            <div class="activity-time">
+              {{ transaction.created_at|date:"M d, Y \a\t h:i A" }}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        {% empty %}
+        <div class="activity-item" style="justify-content: center; padding: 2rem 0">
+          <div class="empty-state" style="padding: 0; text-align: center">
+            <p style="color: var(--oya-text-muted)">No transactions recorded yet.</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  <!-- Project Donations Section -->
+  <div class="card" style="margin-bottom: 1.5rem">
+    <div class="card-header">
+      <div class="card-header-title">Project Donations</div>
+    </div>
+    <div class="card-body">
+      <div class="dashboard-grid dashboard-grid-4" style="margin-bottom: 1rem">
+        <div class="kpi-card">
+          <div class="kpi-value">
+            &#x20A6;{{ total_project_donations|floatformat:2|intcomma }}
+          </div>
+          <div class="kpi-label">Total Project Donations</div>
+        </div>
+        <div class="kpi-card accent-success">
+          <div class="kpi-value" style="color: var(--oya-success)">
+            &#x20A6;{{ total_member_project_donations|floatformat:2|intcomma }}
+          </div>
+          <div class="kpi-label">Member Donations</div>
+        </div>
+        <div class="kpi-card accent-info">
+          <div class="kpi-value" style="color: var(--oya-info)">
+            &#x20A6;{{ total_outside_project_donations|floatformat:2|intcomma }}
+          </div>
+          <div class="kpi-label">Outside Donor Donations</div>
+        </div>
+        <div class="kpi-card accent-warning">
+          <div class="kpi-value" style="color: var(--oya-warning)">
+            {{ total_outside_donors_count }}
+          </div>
+          <div class="kpi-label">Total Outside Donors</div>
+        </div>
+      </div>
+
+      {% if donations_by_project %}
+      <h4 style="font-size: 0.9375rem; margin-bottom: 0.75rem">
+        Donations by Project
+      </h4>
+      <div
+        class="table-container"
+        style="overflow-x: auto; margin-bottom: 1rem"
+      >
+        <table class="data-table" style="white-space: nowrap">
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>Donations</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in donations_by_project %}
+            <tr>
+              <td>{{ p.project__title }}</td>
+              <td>{{ p.count }}</td>
+              <td style="font-weight: 600">
+                &#x20A6;{{ p.total|floatformat:2|intcomma }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %} {% if highest_fundraising_project %}
+      <div
+        style="
+          background: var(--oya-bg);
+          padding: 1rem;
+          border-radius: var(--oya-radius);
+        "
+      >
+        <div
+          style="
+            font-size: 0.75rem;
+            color: var(--oya-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+          "
+        >
+          Highest Fundraising Project
+        </div>
+        <div style="font-size: 1.125rem; font-weight: 700; margin-top: 0.25rem">
+          {{ highest_fundraising_project.project__title }}
+        </div>
+        <div
+          style="
+            font-size: 0.875rem;
+            color: var(--oya-success);
+            font-weight: 600;
+          "
+        >
+          &#x20A6;{{ highest_fundraising_project.total|floatformat:2|intcomma }}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Top Debtors -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Top Debtors</div>
+        <div class="card-header-subtitle">Members with highest unpaid dues</div>
+      </div>
+      <a href="{% url 'finance:dues_debtors_list' %}" class="btn btn-sm btn-ghost"
+        >View All</a
+      >
+    </div>
+    <div class="card-body" style="padding: 0">
+      <div class="activity-feed" style="padding: 0 1.25rem">
+        {% for debtor in top_debtors %}
+        <div class="activity-item">
+          <div class="activity-icon danger">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            </svg>
+          </div>
+          <div class="activity-content">
+            <div class="activity-text">
+              <strong>{{ debtor.member.get_full_name }}</strong>
+              <span style="color: var(--oya-danger); font-weight: 600">
+                &#x20A6;{{ debtor.debt|floatformat:0|intcomma }}
+              </span>
+            </div>
+            <div class="activity-time">
+              {{ debtor.years_missed }} year{{ debtor.years_missed|pluralize }}
+              missed
+            </div>
+          </div>
+          <a
+            href="{% url 'finance:member_dues_detail' debtor.member.id %}"
+            class="btn btn-sm btn-ghost"
+            >View</a
+          >
+        </div>
+        {% empty %}
+        <div
+          class="activity-item"
+          style="justify-content: center; padding: 2rem 0"
+        >
+          <div class="empty-state" style="padding: 0; text-align: center">
+            <p style="color: var(--oya-text-muted)">
+              All members are up to date on dues!
+            </p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Expense Breakdown -->
+<div class="card" style="margin-top: 1.5rem">
+  <div class="card-header">
+    <div>
+      <div class="card-header-title">Expense Breakdown</div>
+      <div class="card-header-subtitle">Expenses by category</div>
+    </div>
+  </div>
+  <div class="card-body">
+    {% if expenses_by_category %}
+    <div style="display: flex; flex-direction: column; gap: 0.625rem">
+      {% for category in expenses_by_category %}
+      <div>
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+          "
+        >
+          <span>{{ category.category }}</span>
+          <span style="font-weight: 600">
+            &#x20A6;{{ category.total|floatformat:0|intcomma }}
+            <span
+              style="
+                font-weight: 400;
+                color: var(--oya-text-muted);
+                font-size: 0.75rem;
+              "
+            >
+              ({{ category.percentage }}%)
+            </span>
+          </span>
+        </div>
+        <div class="progress-bar">
+          <div
+            class="progress-fill danger"
+            style="width: {{ category.percentage }}%"
+          ></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding: 2rem 0; text-align: center">
+      <p style="color: var(--oya-text-muted)">No expenses recorded yet.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+    .badge-case {
+    background: var(--oya-danger-bg);
+    color: var(--oya-danger);
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .transaction-row {
+    transition: background-color 0.15s ease;
+  }
+  .transaction-row:hover {
+    background-color: var(--oya-surface-hover);
+  }
+</style>
+
+{% endblock %}

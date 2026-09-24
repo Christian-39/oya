@@ -1,0 +1,593 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if member.pk %}Edit Member{% else %}Add Member{% endif %}{% endblock %}
+{% block page_title %}{% if member.pk %}Edit Member{% else %}Add New Member{% endif %}{% endblock %}
+{% block breadcrumb %}{% if member.pk %}Edit{% else %}New{% endif %}{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 style="font-size:clamp(1.125rem, 3vw, 1.5rem);">{% if member.pk %}Edit Member{% else %}Add New Member{% endif %}</h1>
+    <p>{% if member.pk %}Update member information{% else %}Register a new member into the OYA system{% endif %}</p>
+  </div>
+  <div class="page-header-actions" style="flex-wrap:wrap;gap:0.5rem;">
+    <a href="{% url 'members:member_list' %}" class="btn btn-secondary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Cancel
+    </a>
+  </div>
+</div>
+
+{% if generated_pin %}
+<!-- PIN Display Banner (shown once after creation) -->
+<div class="card" style="margin-bottom:1.25rem;border:2px solid var(--oya-success);background:var(--oya-success-bg);">
+  <div class="card-body" style="display:flex;align-items:center;gap:1rem;">
+    <div style="width:clamp(36px, 12vw, 48px);height:clamp(36px, 12vw, 48px);border-radius:50%;background:var(--oya-success);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div>
+      <div style="font-weight:700;color:var(--oya-success);font-size:clamp(0.875rem, 2.5vw, 1rem);">Member Created Successfully!</div>
+      <div style="color:var(--oya-text-primary);margin-top:0.25rem;">
+        Login PIN for <strong>{{ member.full_name }}</strong>: 
+        <span style="font-family:monospace;font-size:clamp(1rem, 3.5vw, 1.25rem);font-weight:700;background:#fff;padding:0.25rem 0.5rem;border-radius:4px;border:1px solid var(--oya-border);letter-spacing:2px;">{{ generated_pin }}</span>
+      </div>
+      <div style="font-size:clamp(0.625rem, 1.5vw, 0.75rem);color:var(--oya-text-muted);margin-top:0.25rem;">
+        Please share this PIN with the member. It will not be displayed again.
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if updated_pin %}
+<!-- PIN Update Banner -->
+<div class="card" style="margin-bottom:1.25rem;border:2px solid var(--oya-warning);background:var(--oya-warning-bg);">
+  <div class="card-body" style="display:flex;align-items:center;gap:1rem;">
+    <div style="width:clamp(36px, 12vw, 48px);height:clamp(36px, 12vw, 48px);border-radius:50%;background:var(--oya-warning);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </div>
+    <div>
+      <div style="font-weight:700;color:var(--oya-warning);font-size:clamp(0.875rem, 2.5vw, 1rem);">PIN Updated!</div>
+      <div style="color:var(--oya-text-primary);margin-top:0.25rem;">
+        New PIN for <strong>{{ member.full_name }}</strong>: 
+        <span style="font-family:monospace;font-size:clamp(1rem, 3.5vw, 1.25rem);font-weight:700;background:#fff;padding:0.25rem 0.5rem;border-radius:4px;border:1px solid var(--oya-border);letter-spacing:2px;">{{ updated_pin }}</span>
+      </div>
+      <div style="font-size:clamp(0.625rem, 1.5vw, 0.75rem);color:var(--oya-text-muted);margin-top:0.25rem;">
+        Please share this new PIN with the member. It will not be displayed again.
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" style="max-width:min(900px, 100%);">
+  {% csrf_token %}
+
+  <!-- Account Information -->
+  <div class="card" style="margin-bottom:clamp(0.625rem, 2.5vw, 1.25rem);">
+    <div class="card-header">
+      <div class="card-header-title" style="font-size:clamp(0.9375rem, 2.5vw, 1rem);">Account Information</div>
+    </div>
+    <div class="card-body">
+      <div class="form-row" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 240px), 1fr));gap:1rem;margin-bottom:1rem;">
+        <div class="form-group">
+          <label class="form-label" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);">Serial Number <span style="color:var(--oya-danger);">*</span></label>
+          {{ form.serial_number }}
+          <div style="font-size:clamp(0.625rem, 1.5vw, 0.75rem);color:var(--oya-text-muted);margin-top:0.25rem;">Format: OYA-2026-0001. Used for login.</div>
+          {% if form.serial_number.errors %}
+            <div class="form-error">{{ form.serial_number.errors.0 }}</div>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);">PIN (6 digits) {% if not member.pk %}<span style="color:var(--oya-text-muted);font-weight:400;">(Optional)</span>{% endif %}</label>
+          {{ form.pin }}
+          <div style="font-size:clamp(0.625rem, 1.5vw, 0.75rem);color:var(--oya-text-muted);margin-top:0.25rem;">
+            {% if member.pk %}Leave blank to keep current PIN.{% else %}Leave blank to auto-generate a 6-digit PIN.{% endif %}
+          </div>
+          {% if form.pin.errors %}
+            <div class="form-error">{{ form.pin.errors.0 }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Basic Information -->
+  <div class="card" style="margin-bottom:clamp(0.625rem, 2.5vw, 1.25rem);">
+    <div class="card-header">
+      <div class="card-header-title" style="font-size:clamp(0.9375rem, 2.5vw, 1rem);">Basic Information</div>
+    </div>
+    <div class="card-body">
+
+      <!-- Row 1: Full Name & Age -->
+      <div class="form-row" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 240px), 1fr));gap:1rem;margin-bottom:1rem;">
+        <div class="form-group">
+          <label class="form-label" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);">Full Name <span style="color:var(--oya-danger);">*</span></label>
+          {{ form.full_name }}
+          {% if form.full_name.errors %}
+            <div class="form-error">{{ form.full_name.errors.0 }}</div>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);">Age <span style="color:var(--oya-danger);">*</span></label>
+          {{ form.age }}
+          <div style="font-size:clamp(0.625rem, 1.5vw, 0.75rem);color:var(--oya-text-muted);margin-top:0.25rem;">Must be between 18 and 55 years old</div>
+          {% if form.age.errors %}
+            <div class="form-error">{{ form.age.errors.0 }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Row 2: Phone & Clan -->
+      <div class="form-row" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 240px), 1fr));gap:1rem;margin-bottom:1rem;">
+        <div class="form-group">
+          <label class="form-label" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);">Phone Number</label>
+          {{ form.phone }}
+          {% if form.phone.errors %}
+            <div class="form-error">{{ form.phone.errors.0 }}</div>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);">Umu Nna Clan <span style="color:var(--oya-danger);">*</span></label>
+          {{ form.umu_nna_clan }}
+          {% if form.umu_nna_clan.errors %}
+            <div class="form-error">{{ form.umu_nna_clan.errors.0 }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Row 3: Location Type -->
+      <div class="form-row" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 240px), 1fr));gap:1rem;margin-bottom:1rem;">
+        <div class="form-group">
+          <label class="form-label" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);">Location Type</label>
+          <div style="display:flex;gap:1.5rem;align-items:center;margin-top:0.5rem;">
+            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:clamp(0.75rem, 2vw, 0.875rem);font-weight:500;">
+              <input type="radio" name="location_type" value="nigeria" id="loc_nigeria" checked style="width:clamp(14px, 4vw, 18px);height:clamp(14px, 4vw, 18px);accent-color:var(--oya-primary);">
+              <span>In Nigeria</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:clamp(0.75rem, 2vw, 0.875rem);font-weight:500;">
+              <input type="radio" name="location_type" value="abroad" id="loc_abroad"
+                     {% if form.is_abroad.value %}checked{% endif %}
+                     style="width:clamp(14px, 4vw, 18px);height:clamp(14px, 4vw, 18px);accent-color:var(--oya-primary);">
+              <span>Abroad</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);">Status</label>
+          {{ form.status }}
+          {% if form.status.errors %}
+            <div class="form-error">{{ form.status.errors.0 }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Row 3.5: Year Joined -->
+      <div class="form-row" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 240px), 1fr));gap:1rem;margin-bottom:1rem;">
+        <div class="form-group">
+          <label class="form-label" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);">Year Joined <span style="color:var(--oya-danger);">*</span></label>
+          {{ form.year_joined }}
+          <div style="font-size:clamp(0.625rem, 1.5vw, 0.75rem);color:var(--oya-text-muted);margin-top:0.25rem;">The year this member joined the association. Dues tracking starts from this year.</div>
+          {% if form.year_joined.errors %}
+            <div class="form-error">{{ form.year_joined.errors.0 }}</div>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <!-- spacer -->
+        </div>
+      </div>
+
+      <!-- Row 4: Nigerian State -->
+      <div class="form-row" id="nigeria_state_row" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 240px), 1fr));gap:1rem;margin-bottom:1rem;">
+        <div class="form-group">
+          <label class="form-label" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);">Nigerian State <span style="color:var(--oya-danger);">*</span></label>
+          {{ form.nigerian_state }}
+          {% if form.nigerian_state.errors %}
+            <div class="form-error">{{ form.nigerian_state.errors.0 }}</div>
+          {% endif %}
+          <div style="font-size:clamp(0.625rem, 1.5vw, 0.75rem);color:var(--oya-text-muted);margin-top:0.25rem;display:flex;align-items:center;gap:0.25rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Type first letter to jump to a state (36 states + FCT)
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 5: Country (Abroad) -->
+      <div class="form-row" id="abroad_country_row" style="display:none;grid-template-columns:repeat(auto-fit, minmax(min(100%, 200px), 1fr));gap:1rem;margin-bottom:1rem;">
+        <div class="form-group">
+          <label class="form-label" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);">Country <span style="color:var(--oya-danger);">*</span></label>
+          {{ form.abroad_country }}
+          {% if form.abroad_country.errors %}
+            <div class="form-error">{{ form.abroad_country.errors.0 }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Hidden field for is_abroad -->
+      {{ form.is_abroad }}
+
+      <!-- Row 6: Legacy State/Abroad -->
+      <div class="form-group" style="margin-bottom:clamp(0.5rem, 2vw, 1rem);">
+        <label class="form-label" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);">State or Abroad (Auto-populated)</label>
+        {{ form.state_or_abroad }}
+        <div style="font-size:clamp(0.625rem, 1.5vw, 0.75rem);color:var(--oya-text-muted);margin-top:0.25rem;">This field is auto-populated from the location selection above.</div>
+        {% if form.state_or_abroad.errors %}
+          <div class="form-error">{{ form.state_or_abroad.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <!-- Row 7: Photo -->
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label" style="font-size:clamp(0.8125rem, 2vw, 0.875rem);">Photo</label>
+        {{ form.photo }}
+        {% if member.photo %}
+          <div style="margin-top:0.5rem;">
+            <img src="{{ member.photo.url }}" alt="Current photo" style="max-width:100px;max-height:100px;border-radius:var(--oya-radius);border:2px solid var(--oya-border);object-fit:cover;">
+          </div>
+        {% endif %}
+        {% if form.photo.errors %}
+          <div class="form-error">{{ form.photo.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Form Actions -->
+  <div style="display:flex;gap:0.75rem;justify-content:flex-end;flex-wrap:wrap;padding:1rem 0;">
+    <a href="{% url 'members:member_list' %}" class="btn btn-secondary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Cancel
+    </a>
+    <button type="submit" class="btn btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      {% if member.pk %}Save Changes{% else %}Register Member{% endif %}
+    </button>
+  </div>
+
+</form>
+
+<script>
+(function() {
+    // Toggle between Nigeria/Abroad
+    const locNigeria = document.getElementById('loc_nigeria');
+    const locAbroad = document.getElementById('loc_abroad');
+    const nigeriaRow = document.getElementById('nigeria_state_row');
+    const abroadRow = document.getElementById('abroad_country_row');
+    const isAbroadField = document.getElementById('id_is_abroad');
+    const stateSelect = document.getElementById('id_nigerian_state');
+    const countryInput = document.getElementById('id_abroad_country');
+    const stateAbroadInput = document.getElementById('id_state_or_abroad');
+
+    function toggleLocation() {
+        if (locAbroad.checked) {
+            nigeriaRow.style.display = 'none';
+            abroadRow.style.display = 'grid';
+            if (isAbroadField) isAbroadField.checked = true;
+            if (stateSelect) stateSelect.required = false;
+            if (countryInput) countryInput.required = true;
+            if (countryInput && countryInput.value) {
+                stateAbroadInput.value = countryInput.value;
+            }
+        } else {
+            nigeriaRow.style.display = 'grid';
+            abroadRow.style.display = 'none';
+            if (isAbroadField) isAbroadField.checked = false;
+            if (stateSelect) stateSelect.required = true;
+            if (countryInput) countryInput.required = false;
+            if (stateSelect && stateSelect.value) {
+                stateAbroadInput.value = stateSelect.value;
+            }
+        }
+    }
+
+    if (locNigeria) locNigeria.addEventListener('change', toggleLocation);
+    if (locAbroad) locAbroad.addEventListener('change', toggleLocation);
+
+    // Initialize on load
+    const isAbroadVal = document.getElementById('id_is_abroad');
+    if (isAbroadVal && isAbroadVal.checked) {
+        if (locAbroad) locAbroad.checked = true;
+    }
+    toggleLocation();
+
+    // Auto-update legacy field when state/country changes
+    if (stateSelect) {
+        stateSelect.addEventListener('change', function() {
+            if (!locAbroad.checked) {
+                stateAbroadInput.value = this.value;
+            }
+        });
+    }
+    if (countryInput) {
+        countryInput.addEventListener('input', function() {
+            if (locAbroad.checked) {
+                stateAbroadInput.value = this.value;
+            }
+        });
+    }
+
+    // Age validation (client-side)
+    const ageInput = document.getElementById('id_age');
+    if (ageInput) {
+        ageInput.addEventListener('input', function() {
+            const val = parseInt(this.value);
+            if (isNaN(val)) {
+                this.setCustomValidity('');
+            } else if (val < 18) {
+                this.setCustomValidity('Age must be at least 18 years old.');
+            } else if (val > 55) {
+                this.setCustomValidity('Age must not exceed 55 years old.');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+
+    // Keyboard search for state dropdown
+    if (stateSelect) {
+        let searchStr = '';
+        let searchTimeout;
+
+        stateSelect.addEventListener('keydown', function(e) {
+            if (e.key.length === 1 && e.key.match(/[a-zA-Z]/)) {
+                e.preventDefault();
+                clearTimeout(searchTimeout);
+                searchStr += e.key.toLowerCase();
+
+                const options = Array.from(this.options);
+                const match = options.find(opt =>
+                    opt.text.toLowerCase().startsWith(searchStr)
+                );
+                if (match) {
+                    this.value = match.value;
+                    this.dispatchEvent(new Event('change'));
+                }
+
+                searchTimeout = setTimeout(() => {
+                    searchStr = '';
+                }, 800);
+            }
+        });
+    }
+})();
+</script>
+
+
+
+<style>
+/* ─── Mobile Responsive Overrides ─── */
+@media (max-width: 768px) {
+  .page-header-left h1 { font-size: 1.375rem !important; }
+  .page-header-left p { font-size: 0.9375rem !important; }
+  .form-control, .form-select, .form-input, .form-textarea { font-size: 0.9375rem !important; padding: 0.625rem 0.875rem !important; }
+  .form-label { font-size: 0.9375rem !important; }
+  .form-error, .form-help { font-size: 0.8125rem !important; }
+  .card-header-title { font-size: 1rem !important; }
+  .card-header-subtitle { font-size: 0.875rem !important; }
+  .card-body { padding: 1.25rem !important; }
+  .btn { font-size: 0.875rem !important; padding: 0.625rem 1rem !important; }
+  .btn-sm { font-size: 0.8125rem !important; padding: 0.5rem 0.875rem !important; }
+  .btn-lg { font-size: 0.9375rem !important; padding: 0.75rem 1.25rem !important; }
+  .badge { font-size: 0.8125rem !important; padding: 0.3rem 0.5rem !important; }
+  .data-table { font-size: 0.9375rem !important; }
+  .data-table thead th, .data-table tbody td { padding: 0.75rem 1rem !important; }
+  .cell-name { font-size: 0.9375rem !important; }
+  .cell-muted { font-size: 0.875rem !important; }
+  .table-action-btn { width: 36px !important; height: 36px !important; }
+  .avatar { width: 40px !important; height: 40px !important; font-size: 0.875rem !important; }
+  .avatar-sm { width: 32px !important; height: 32px !important; font-size: 0.8125rem !important; }
+  .avatar-lg { width: 52px !important; height: 52px !important; font-size: 1.125rem !important; }
+  .kpi-value { font-size: 1.5rem !important; }
+  .kpi-label { font-size: 0.9375rem !important; }
+  .kpi-icon { width: 44px !important; height: 44px !important; }
+  .kpi-icon svg { width: 22px !important; height: 22px !important; }
+  .activity-text { font-size: 0.9375rem !important; }
+  .activity-time { font-size: 0.8125rem !important; }
+  .timeline-title { font-size: 0.9375rem !important; }
+  .timeline-desc { font-size: 0.875rem !important; }
+  .timeline-time { font-size: 0.8125rem !important; }
+  .meta-label { font-size: 0.8125rem !important; }
+  .meta-value { font-size: 0.9375rem !important; }
+  .detail-label { font-size: 0.8125rem !important; }
+  .detail-value { font-size: 0.9375rem !important; }
+  .filter-label { font-size: 0.875rem !important; }
+  .page-btn { min-width: 36px !important; height: 36px !important; font-size: 0.875rem !important; }
+  .modal-title { font-size: 1.125rem !important; }
+  .modal-header, .modal-body { padding: 1.25rem !important; }
+  .modal-footer { padding: 1rem 1.25rem !important; }
+  .dropdown-item { font-size: 0.875rem !important; padding: 0.625rem 1rem !important; }
+  .notification-title { font-size: 0.9375rem !important; }
+  .notification-desc { font-size: 0.875rem !important; }
+  .notification-time { font-size: 0.8125rem !important; }
+  .urgent-case-title { font-size: 0.9375rem !important; }
+  .urgent-case-meta { font-size: 0.8125rem !important; }
+  .settings-info h4 { font-size: 1rem !important; }
+  .settings-info p { font-size: 0.875rem !important; }
+  .quick-action-btn { font-size: 0.875rem !important; padding: 1rem 0.75rem !important; }
+  .quick-action-btn svg { width: 24px !important; height: 24px !important; }
+  .chart-card-title { font-size: 1rem !important; }
+  .chart-card-subtitle { font-size: 0.875rem !important; }
+  .tab-btn { font-size: 0.9375rem !important; padding: 0.625rem 1rem !important; }
+  .alert { font-size: 0.9375rem !important; padding: 1rem 1.25rem !important; }
+  .toast { font-size: 0.9375rem !important; padding: 1rem 1.25rem !important; }
+  .empty-state h3 { font-size: 1.0625rem !important; }
+  .empty-state p { font-size: 0.875rem !important; }
+  .toolbar-search input { font-size: 0.9375rem !important; }
+  .pagination-info { font-size: 0.875rem !important; }
+  .progress-bar-label { font-size: 0.875rem !important; }
+  .progress-bar-value { font-size: 0.875rem !important; }
+  .directory-info h4 { font-size: 0.9375rem !important; }
+  .directory-info p { font-size: 0.875rem !important; }
+  .stat-card-value { font-size: 1.375rem !important; }
+  .stat-card-label { font-size: 0.875rem !important; }
+  .stat-card-change { font-size: 0.8125rem !important; }
+  .finance-hero-amount { font-size: 1.75rem !important; }
+  .receipt-dropzone div { font-size: 0.875rem !important; }
+  .category-card div { font-size: 0.8125rem !important; }
+  .export-btn-text { font-size: 0.875rem !important; }
+  .chart-legend { font-size: 0.8125rem !important; }
+  .chart-tooltip { font-size: 0.875rem !important; }
+  .detail-badge { font-size: 0.8125rem !important; }
+  .mobile-nav-link { font-size: 0.875rem !important; }
+  .mobile-bottom-nav-item { font-size: 0.625rem !important; }
+  .mobile-logo-text { font-size: 0.9375rem !important; }
+  .search-dropdown .dropdown-item { font-size: 0.875rem !important; }
+  .search-dropdown .dropdown-header { font-size: 0.75rem !important; }
+  .form-card-title { font-size: 1rem !important; }
+  .form-card-header { padding: 1rem 1.25rem !important; }
+  .form-card-body { padding: 1.25rem !important; }
+  .form-actions .btn { width: 100% !important; justify-content: center !important; }
+  .form-row { grid-template-columns: 1fr !important; gap: 0 !important; }
+  .dashboard-grid-4, .dashboard-grid-3, .dashboard-grid-2 { grid-template-columns: 1fr !important; }
+  .detail-meta-grid { grid-template-columns: 1fr 1fr !important; }
+  .user-detail-grid { grid-template-columns: 1fr !important; }
+  .quick-actions { grid-template-columns: repeat(2, 1fr) !important; }
+  .directory-grid { grid-template-columns: 1fr !important; }
+  .profile-card { flex-direction: column !important; text-align: center !important; }
+  .filters-bar { flex-direction: column !important; align-items: stretch !important; gap: 0.75rem !important; padding: 1rem !important; }
+  .filters-bar form { flex-direction: column !important; align-items: stretch !important; }
+  .filter-group { width: 100% !important; }
+  .filter-group .form-control { width: 100% !important; }
+  .table-toolbar { flex-direction: column !important; align-items: stretch !important; }
+  .toolbar-search { max-width: 100% !important; }
+  .page-header { flex-direction: column !important; align-items: flex-start !important; }
+  .page-header-actions { width: 100% !important; flex-wrap: wrap !important; }
+  .card-header { flex-direction: column !important; align-items: flex-start !important; gap: 0.75rem !important; }
+  .card-header .btn { width: 100% !important; justify-content: center !important; }
+  .detail-header { flex-direction: column !important; align-items: flex-start !important; gap: 1rem !important; }
+  .detail-header .page-header-actions { width: 100% !important; flex-wrap: wrap !important; }
+  .detail-header .page-header-actions .btn { flex: 1 !important; min-width: 120px !important; }
+  .modal-footer { flex-direction: column !important; gap: 0.5rem !important; }
+  .modal-footer .btn { width: 100% !important; justify-content: center !important; }
+  .settings-row { flex-direction: column !important; align-items: flex-start !important; gap: 0.875rem !important; padding: 1.125rem 0 !important; }
+  .radio-group { flex-direction: column !important; align-items: flex-start !important; gap: 0.75rem !important; }
+  .location-section { padding: 0.875rem 1rem !important; }
+  .photo-preview img { max-width: 90px !important; max-height: 90px !important; }
+  .content-area { padding: 1rem !important; padding-bottom: 80px !important; }
+  .app-footer { padding-bottom: 80px !important; font-size: 0.875rem !important; }
+  .hide-mobile { display: none !important; }
+}
+
+@media (max-width: 480px) {
+  .page-header-left h1 { font-size: 1.25rem !important; }
+  .page-header-left p { font-size: 0.875rem !important; }
+  .form-control, .form-select, .form-input, .form-textarea { font-size: 0.875rem !important; padding: 0.5rem 0.75rem !important; }
+  .form-label { font-size: 0.875rem !important; }
+  .form-error, .form-help { font-size: 0.75rem !important; }
+  .card-header-title { font-size: 0.9375rem !important; }
+  .card-header-subtitle { font-size: 0.8125rem !important; }
+  .card-body { padding: 1rem !important; }
+  .btn { font-size: 0.8125rem !important; padding: 0.5rem 0.875rem !important; }
+  .btn-sm { font-size: 0.75rem !important; padding: 0.375rem 0.75rem !important; }
+  .btn-lg { font-size: 0.875rem !important; padding: 0.625rem 1rem !important; }
+  .badge { font-size: 0.75rem !important; padding: 0.25rem 0.4rem !important; }
+  .data-table { font-size: 0.875rem !important; }
+  .data-table thead th, .data-table tbody td { padding: 0.625rem 0.75rem !important; }
+  .cell-name { font-size: 0.875rem !important; }
+  .cell-muted { font-size: 0.8125rem !important; }
+  .table-action-btn { width: 32px !important; height: 32px !important; }
+  .avatar { width: 36px !important; height: 36px !important; font-size: 0.8125rem !important; }
+  .avatar-sm { width: 28px !important; height: 28px !important; font-size: 0.75rem !important; }
+  .avatar-lg { width: 48px !important; height: 48px !important; font-size: 1rem !important; }
+  .kpi-value { font-size: 1.375rem !important; }
+  .kpi-label { font-size: 0.875rem !important; }
+  .kpi-icon { width: 40px !important; height: 40px !important; }
+  .kpi-icon svg { width: 20px !important; height: 20px !important; }
+  .activity-text { font-size: 0.875rem !important; }
+  .activity-time { font-size: 0.75rem !important; }
+  .timeline-title { font-size: 0.875rem !important; }
+  .timeline-desc { font-size: 0.8125rem !important; }
+  .timeline-time { font-size: 0.75rem !important; }
+  .meta-label { font-size: 0.75rem !important; }
+  .meta-value { font-size: 0.875rem !important; }
+  .detail-label { font-size: 0.75rem !important; }
+  .detail-value { font-size: 0.875rem !important; }
+  .filter-label { font-size: 0.8125rem !important; }
+  .page-btn { min-width: 32px !important; height: 32px !important; font-size: 0.8125rem !important; }
+  .modal-title { font-size: 1rem !important; }
+  .modal-header, .modal-body { padding: 1rem !important; }
+  .modal-footer { padding: 0.75rem 1rem !important; }
+  .dropdown-item { font-size: 0.8125rem !important; padding: 0.5rem 0.875rem !important; }
+  .notification-title { font-size: 0.875rem !important; }
+  .notification-desc { font-size: 0.8125rem !important; }
+  .notification-time { font-size: 0.75rem !important; }
+  .urgent-case-title { font-size: 0.875rem !important; }
+  .urgent-case-meta { font-size: 0.75rem !important; }
+  .settings-info h4 { font-size: 0.9375rem !important; }
+  .settings-info p { font-size: 0.8125rem !important; }
+  .quick-action-btn { font-size: 0.8125rem !important; padding: 0.875rem 0.5rem !important; }
+  .quick-action-btn svg { width: 22px !important; height: 22px !important; }
+  .chart-card-title { font-size: 0.9375rem !important; }
+  .chart-card-subtitle { font-size: 0.8125rem !important; }
+  .tab-btn { font-size: 0.875rem !important; padding: 0.5rem 0.75rem !important; }
+  .alert { font-size: 0.875rem !important; padding: 0.75rem 1rem !important; }
+  .toast { font-size: 0.875rem !important; padding: 0.75rem 1rem !important; }
+  .empty-state h3 { font-size: 0.9375rem !important; }
+  .empty-state p { font-size: 0.8125rem !important; }
+  .toolbar-search input { font-size: 0.875rem !important; }
+  .pagination-info { font-size: 0.8125rem !important; }
+  .progress-bar-label { font-size: 0.8125rem !important; }
+  .progress-bar-value { font-size: 0.8125rem !important; }
+  .directory-info h4 { font-size: 0.875rem !important; }
+  .directory-info p { font-size: 0.8125rem !important; }
+  .stat-card-value { font-size: 1.25rem !important; }
+  .stat-card-label { font-size: 0.8125rem !important; }
+  .stat-card-change { font-size: 0.75rem !important; }
+  .finance-hero-amount { font-size: 1.5rem !important; }
+  .receipt-dropzone div { font-size: 0.8125rem !important; }
+  .category-card div { font-size: 0.75rem !important; }
+  .export-btn-text { font-size: 0.8125rem !important; }
+  .chart-legend { font-size: 0.75rem !important; }
+  .chart-tooltip { font-size: 0.8125rem !important; }
+  .detail-badge { font-size: 0.75rem !important; }
+  .mobile-nav-link { font-size: 0.8125rem !important; }
+  .mobile-bottom-nav-item { font-size: 0.5625rem !important; }
+  .mobile-logo-text { font-size: 0.875rem !important; }
+  .search-dropdown .dropdown-item { font-size: 0.8125rem !important; }
+  .search-dropdown .dropdown-header { font-size: 0.6875rem !important; }
+  .form-card-title { font-size: 0.9375rem !important; }
+  .form-card-header { padding: 0.875rem 1rem !important; }
+  .form-card-body { padding: 1rem !important; }
+  .card-footer { padding: 0.75rem 1rem !important; }
+  .detail-meta-grid { grid-template-columns: 1fr !important; }
+  .content-area { padding: 0.75rem !important; padding-bottom: 72px !important; }
+  .app-footer { padding: 0.875rem 1rem !important; padding-bottom: 72px !important; }
+}
+
+@media (max-width: 360px) {
+  .page-header-left h1 { font-size: 1.125rem !important; }
+  .page-header-left p { font-size: 0.8125rem !important; }
+  .form-control, .form-select, .form-input, .form-textarea { font-size: 0.8125rem !important; padding: 0.375rem 0.625rem !important; }
+  .form-label { font-size: 0.8125rem !important; }
+  .card-header-title { font-size: 0.875rem !important; }
+  .card-header-subtitle { font-size: 0.75rem !important; }
+  .btn { font-size: 0.75rem !important; padding: 0.375rem 0.75rem !important; }
+  .btn-sm { font-size: 0.6875rem !important; padding: 0.25rem 0.625rem !important; }
+  .badge { font-size: 0.6875rem !important; padding: 0.2rem 0.35rem !important; }
+  .data-table { font-size: 0.8125rem !important; }
+  .data-table thead th, .data-table tbody td { padding: 0.5rem 0.625rem !important; }
+  .avatar { width: 32px !important; height: 32px !important; font-size: 0.75rem !important; }
+  .kpi-value { font-size: 1.25rem !important; }
+  .kpi-label { font-size: 0.8125rem !important; }
+  .activity-text { font-size: 0.8125rem !important; }
+  .activity-time { font-size: 0.6875rem !important; }
+  .page-btn { min-width: 28px !important; height: 28px !important; font-size: 0.75rem !important; }
+  .modal-title { font-size: 0.9375rem !important; }
+  .dropdown-item { font-size: 0.75rem !important; padding: 0.375rem 0.75rem !important; }
+  .notification-title { font-size: 0.8125rem !important; }
+  .notification-desc { font-size: 0.75rem !important; }
+  .quick-action-btn { font-size: 0.75rem !important; }
+  .tab-btn { font-size: 0.8125rem !important; padding: 0.4rem 0.625rem !important; }
+  .alert { font-size: 0.8125rem !important; }
+  .toast { font-size: 0.8125rem !important; }
+  .empty-state h3 { font-size: 0.875rem !important; }
+  .empty-state p { font-size: 0.75rem !important; }
+  .content-area { padding: 0.625rem !important; padding-bottom: 64px !important; }
+  .app-footer { padding: 0.75rem !important; padding-bottom: 64px !important; font-size: 0.75rem !important; }
+}
+</style>
+
+{% endblock %}

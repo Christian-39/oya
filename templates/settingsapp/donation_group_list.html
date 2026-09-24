@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Donation Groups{% endblock %}
+{% block page_title %}Donation Groups{% endblock %}
+{% block breadcrumb %}Settings{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Donation Groups</h1>
+    <p>Manage donor tiers such as G50, Diamond Members, Platinum Donors</p>
+  </div>
+  <div class="page-header-actions">
+    {% if can_manage %}
+    <a href="{% url 'settingsapp:donation_group_create' %}" class="btn btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Group
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="dashboard-grid dashboard-grid-3" style="margin-bottom:1.5rem;">
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value">{{ stats.total }}</div>
+    <div class="kpi-label">Total Groups</div>
+  </div>
+  <div class="kpi-card accent-success">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-success-bg);color:var(--oya-success);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-success);">{{ stats.active }}</div>
+    <div class="kpi-label">Active Groups</div>
+  </div>
+  <div class="kpi-card accent-info">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-info-bg);color:var(--oya-info);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-info);">{{ stats.total_members_assigned }}</div>
+    <div class="kpi-label">Members Assigned</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-toolbar" style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+    <div class="toolbar-search" style="flex:1;min-width:220px;">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <form method="get" style="width:100%;display:flex;gap:0.5rem;">
+        <input type="text" name="search" placeholder="Search groups..." value="{{ search_term }}" onkeydown="if (event.key === 'Enter') this.form.submit();" />
+        <select name="status" class="form-select" style="max-width:160px;" onchange="this.form.submit()">
+          <option value="" {% if not status_filter %}selected{% endif %}>All Status</option>
+          <option value="ACTIVE" {% if status_filter == "ACTIVE" %}selected{% endif %}>Active</option>
+          <option value="INACTIVE" {% if status_filter == "INACTIVE" %}selected{% endif %}>Inactive</option>
+        </select>
+      </form>
+    </div>
+  </div>
+
+  <div class="table-container" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table class="data-table" style="white-space:nowrap;">
+      <thead>
+        <tr>
+          <th>Group Name</th>
+          <th>Range</th>
+          <th>Members</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th style="width:120px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for group in groups %}
+        <tr>
+          <td>
+            <span class="cell-name">{{ group.name }}</span>
+            {% if group.description %}<br/><span class="cell-muted" style="white-space:normal;">{{ group.description|truncatechars:60 }}</span>{% endif %}
+          </td>
+          <td>
+            &#x20A6;{{ group.minimum_amount|floatformat:0|intcomma }}
+            &ndash;
+            {% if group.maximum_amount %}&#x20A6;{{ group.maximum_amount|floatformat:0|intcomma }}{% else %}Unlimited{% endif %}
+          </td>
+          <td><span class="badge badge-info">{{ group.members_count }}</span></td>
+          <td>
+            {% if group.is_active %}<span class="badge badge-success">Active</span>
+            {% else %}<span class="badge badge-secondary">Inactive</span>{% endif %}
+          </td>
+          <td><span class="cell-muted">{{ group.created_at|date:"M d, Y" }}</span></td>
+          <td>
+            <div class="table-actions" style="flex-wrap:nowrap;gap:0.25rem;">
+              <a href="{% url 'settingsapp:donation_group_detail' pk=group.pk %}" class="table-action-btn" title="View">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </a>
+              {% if can_manage %}
+              <a href="{% url 'settingsapp:donation_group_update' pk=group.pk %}" class="table-action-btn" title="Edit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </a>
+              <form method="post" action="{% url 'settingsapp:donation_group_toggle_active' pk=group.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="table-action-btn" title="{% if group.is_active %}Deactivate{% else %}Activate{% endif %}">
+                  {% if group.is_active %}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                  {% else %}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  {% endif %}
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" style="text-align:center;padding:3rem 1rem;color:var(--oya-text-muted);">
+            No donation groups yet. {% if can_manage %}<a href="{% url 'settingsapp:donation_group_create' %}">Create the first one</a>.{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if groups.paginator.num_pages > 1 %}
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;flex-wrap:wrap;gap:0.75rem;">
+    <span class="cell-muted">Showing {{ groups.start_index }}-{{ groups.end_index }} of {{ groups.paginator.count }} groups</span>
+    <div class="pagination">
+      {% if groups.has_previous %}
+      <a href="?page={{ groups.previous_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">&laquo;</a>
+      {% endif %}
+      <span class="page-btn active">{{ groups.number }}</span>
+      {% if groups.has_next %}
+      <a href="?page={{ groups.next_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">&raquo;</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

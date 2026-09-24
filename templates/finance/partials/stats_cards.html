@@ -1,0 +1,62 @@
+{% load humanize %}
+<!--
+  NOTE: This partial is not currently included by any view/template.
+  Rewritten to use the project's real design system (.kpi-card family,
+  defined in static/css/components.css) instead of Bootstrap utility/grid
+  classes, since Bootstrap CSS/JS/Icons are not loaded anywhere in base.html.
+  If this partial is wired up in future, it will now render correctly and
+  stay visually consistent with the rest of the app.
+-->
+<div class="dashboard-grid dashboard-grid-4 mb-4">
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="1" x2="12" y2="23" />
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+      </div>
+    </div>
+    <div class="kpi-value">&#8358;{{ treasury_balance|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Treasury Balance</div>
+  </div>
+
+  <div class="kpi-card accent-success">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background: var(--oya-success-bg); color: var(--oya-success)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="19 12 12 19 5 12" /><line x1="12" y1="19" x2="12" y2="5" />
+        </svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color: var(--oya-success)">&#8358;{{ total_income|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Total Income</div>
+  </div>
+
+  <div class="kpi-card accent-danger">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background: var(--oya-danger-bg); color: var(--oya-danger)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="5 12 12 5 19 12" /><line x1="12" y1="5" x2="12" y2="19" />
+        </svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color: var(--oya-danger)">&#8358;{{ total_expenses|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Total Expenses</div>
+  </div>
+
+  <div class="kpi-card accent-info">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background: var(--oya-info-bg); color: var(--oya-info)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      </div>
+    </div>
+    <div class="kpi-value">{{ active_members|intcomma }}</div>
+    <div class="kpi-label">Active Members</div>
+  </div>
+</div>

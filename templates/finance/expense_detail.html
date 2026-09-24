@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load static %}
+
+{% block title %}{{ expense.description|truncatechars:30 }} — Expense Detail{% endblock %}
+
+{% block extra_css %}
+<style>
+  .detail-card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .detail-label { font-size: .75rem; text-transform: uppercase; color: var(--oya-text-muted); letter-spacing: .5px; margin-bottom: .25rem; }
+  .detail-value { font-size: 1.1rem; font-weight: 600; color: var(--oya-text); }
+  .amount-display { font-size: 2.5rem; font-weight: 800; }
+  .receipt-box { border: 1px solid var(--oya-border); border-radius: 12px; overflow: hidden; background: var(--oya-surface); }
+  .receipt-img { max-height: 500px; object-fit: contain; }
+  .receipt-pdf { height: 500px; }
+  .download-btn { position: absolute; top: 1rem; right: 1rem; }
+
+  [data-theme="dark"] .detail-card { background: var(--oya-card); box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+  [data-theme="dark"] .detail-value { color: var(--oya-text); }
+  [data-theme="dark"] .card-header { background: var(--oya-card) !important; border-color: var(--oya-border) !important; }
+  [data-theme="dark"] .btn-outline-secondary { color: var(--oya-text); border-color: var(--oya-border); }
+  [data-theme="dark"] .alert-warning { background: var(--oya-warning-bg, #332b00); color: var(--oya-warning-text, #ffca28); border-color: var(--oya-warning-border, #665500); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="fw-bold mb-0" style="color:var(--oya-primary);"><i class="bi bi-receipt me-2"></i>Expense Detail</h2>
+        </div>
+        <div class="d-flex gap-2">
+          {% if user.has_admin_access %}
+          <a href="{% url 'finance:expense_delete' expense.pk %}" class="btn btn-outline-danger">
+            <i class="bi bi-trash me-1"></i> Delete
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="detail-card card mb-4">
+        <div class="card-body p-4 text-center">
+          <span class="badge bg-light text-dark fs-6 px-3 py-2 mb-2">{{ expense.get_category_display }}</span>
+          <div class="amount-display text-danger">&#8358;{{ expense.amount|floatformat:0|intcomma }}</div>
+          <p class="text-muted mb-0">{{ expense.description }}</p>
+        </div>
+      </div>
+
+      <div class="detail-card card mb-4">
+        <div class="card-body p-4">
+          <div class="row g-4">
+            <div class="col-sm-6">
+              <div class="detail-label">Category</div>
+              <div class="detail-value">{{ expense.get_category_display }}</div>
+            </div>
+            <div class="col-sm-6">
+              <div class="detail-label">Recorded By</div>
+              <div class="detail-value">{% if expense.created_by %}{{ expense.created_by.get_full_name }}{% else %}—{% endif %}</div>
+            </div>
+            <div class="col-sm-6">
+              <div class="detail-label">Date Recorded</div>
+              <div class="detail-value">{{ expense.created_at|date:"F d, Y" }} at {{ expense.created_at|time:"g:i A" }}</div>
+            </div>
+            <div class="col-sm-6">
+              <div class="detail-label">Last Updated</div>
+              <div class="detail-value">{{ expense.updated_at|date:"F d, Y" }} at {{ expense.updated_at|time:"g:i A" }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% if expense.receipt_file %}
+      <div class="detail-card card">
+        <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0" style="color:var(--oya-primary);"><i class="bi bi-file-earmark-text me-2"></i>Receipt</h5>
+          <a href="{{ expense.receipt_file.url }}" target="_blank" class="btn btn-sm btn-outline-primary" download>
+            <i class="bi bi-download me-1"></i> Download
+          </a>
+        </div>
+        <div class="card-body">
+          <div class="receipt-box position-relative">
+            {% if expense.receipt_file.url|lower|slice:"-4:" == ".pdf" or expense.receipt_file.url|lower|slice:"-4:" == ".PDF" %}
+            <iframe src="{{ expense.receipt_file.url }}" class="receipt-pdf w-100" frameborder="0"></iframe>
+            {% else %}
+            <img src="{{ expense.receipt_file.url }}" alt="Receipt" class="receipt-img w-100">
+            {% endif %}
+          </div>
+          <div class="mt-2 small text-muted">
+            <i class="bi bi-info-circle me-1"></i>
+            File: {{ expense.receipt_file.name|default:"Unknown" }}
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle me-2"></i>No receipt file uploaded for this expense.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block breadcrumb %}<a href="{% url 'elections:election_list' %}">Elections</a> &rsaquo; {{ action }}{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 style="font-size:clamp(1.125rem, 3vw, 1.5rem);">{{ title }}</h1>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'elections:election_list' %}" class="btn btn-secondary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      Cancel
+    </a>
+  </div>
+</div>
+
+<!-- Form Card -->
+<div class="card" style="max-width:720px;">
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger" style="margin-bottom:1rem;">
+        {% for error in form.non_field_errors %}
+        <p style="margin:0;">{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% for field in form %}
+      <div class="form-group" style="margin-bottom:1.25rem;">
+        <label for="{{ field.id_for_label }}" class="form-label">
+          {{ field.label }}
+          {% if field.field.required %}<span style="color:var(--oya-danger);">*</span>{% endif %}
+        </label>
+        {{ field }}
+        {% if field.help_text %}
+        <small style="color:var(--oya-text-muted);font-size:0.75rem;">{{ field.help_text }}</small>
+        {% endif %}
+        {% if field.errors %}
+        <div style="color:var(--oya-danger);font-size:0.8125rem;margin-top:0.25rem;">
+          {% for error in field.errors %}{{ error }}{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end;padding-top:0.5rem;">
+        <a href="{% url 'elections:election_list' %}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">{{ action }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

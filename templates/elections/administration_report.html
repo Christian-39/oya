@@ -1,0 +1,669 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ administration.name }} — Handover Report{% endblock %}
+{% block page_title %}Executive Handover Report{% endblock %}
+{% block breadcrumb %}
+<a href="{% url 'elections:election_list' %}">Elections</a> &rsaquo;
+<a href="{% url 'elections:administration_list' %}">Previous Administrations</a> &rsaquo;
+{{ administration.name }}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .report-section { margin-bottom: 2rem; }
+  .report-section h2 {
+    font-size: 1.125rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--oya-border);
+  }
+  .stat-mini {
+    background: var(--oya-bg-secondary);
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    text-align: center;
+  }
+  .stat-mini .value { font-size: 1.25rem; font-weight: 700; }
+  .stat-mini .label { font-size: 0.75rem; color: var(--oya-text-muted); margin-top: 0.125rem; }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .subtotal-row {
+    border-top: 1px solid var(--oya-border);
+    padding-top: 0.5rem;
+    margin-top: 0.25rem;
+    display: flex;
+    justify-content: space-between;
+  }
+  .kv-row { display: flex; justify-content: space-between; font-size: 0.875rem; padding: 0.25rem 0; }
+  @media print {
+    .report-section { break-inside: avoid; page-break-inside: avoid; }
+    a[href]:after { content: none !important; }
+    .no-print { display: none !important; }
+    .print-only-header { display: block !important; margin-bottom: 1rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div style="background:#ffeb3b;padding:1rem;margin-bottom:1rem;font-family:monospace;font-size:0.875rem;border-radius:0.375rem;">
+  <strong>DEBUG — Tenure Window</strong><br>
+  Start: {{ administration.tenure_start|default:"?" }} → End: {{ administration.tenure_end|default:"Now" }}<br>
+  Income: {{ report.finance.debug.income_count }} total / {{ report.finance.debug.income_in_range }} in range<br>
+  Expenses: {{ report.finance.debug.expense_count }} total / {{ report.finance.debug.expense_in_range }} in range<br>
+  Dues Txns: {{ report.finance.debug.dues_count }} total / {{ report.finance.debug.dues_in_range }} in range<br>
+  Projects: {{ report.projects.debug.total_projects }} total / {{ report.projects.debug.projects_in_range }} in range<br>
+  Pledges: {{ report.pledges.debug.total_pledges }} total / {{ report.pledges.debug.pledges_in_range }} in range
+</div>
+
+
+<!-- Page Header -->
+<div class="page-header no-print">
+  <div class="page-header-left">
+    <h1 style="font-size:clamp(1.125rem, 3vw, 1.5rem);">{{ administration.name }}</h1>
+    <p style="color:var(--oya-text-secondary);">
+      {{ administration.tenure_start|date:"M j, Y"|default:"—" }} –
+      {% if administration.tenure_end %}{{ administration.tenure_end|date:"M j, Y" }}{% else %}Present{% endif %}
+      · <span class="badge {% if administration.is_current %}badge-success{% else %}badge-secondary{% endif %}">{{ administration.status }}</span>
+    </p>
+  </div>
+  <div class="page-header-actions">
+    <button type="button" class="btn btn-secondary" onclick="window.print()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print Report
+    </button>
+  </div>
+</div>
+
+<!-- Print-only header -->
+<div style="display:none;" class="print-only-header">
+  <h1 style="font-size:1.5rem;margin-bottom:0.25rem;">{{ administration.name }} — Executive Handover Report</h1>
+  <p style="color:var(--oya-text-secondary);margin:0;">
+    {{ administration.tenure_start|date:"M j, Y"|default:"—" }} –
+    {% if administration.tenure_end %}{{ administration.tenure_end|date:"M j, Y" }}{% else %}Present{% endif %}
+    · {{ administration.status }}
+  </p>
+</div>
+
+<!-- ═══ ADMINISTRATION INFORMATION ═══ -->
+<div class="report-section" id="administration-info">
+  <h2>Administration Information</h2>
+  <div class="dashboard-grid" style="grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:1rem;">
+    <div class="card">
+      <div class="card-body">
+        <h3 style="font-size:1rem;margin-bottom:0.75rem;">Overview</h3>
+        <div class="kv-row"><span style="color:var(--oya-text-muted);">Election</span><strong>{{ administration.election.title|default:"Founding / Legacy" }}</strong></div>
+        <div class="kv-row"><span style="color:var(--oya-text-muted);">Tenure Start</span><strong>{{ administration.tenure_start|date:"M j, Y"|default:"—" }}</strong></div>
+        <div class="kv-row"><span style="color:var(--oya-text-muted);">Tenure End</span><strong>{% if administration.tenure_end %}{{ administration.tenure_end|date:"M j, Y" }}{% else %}Present{% endif %}</strong></div>
+        <div class="kv-row"><span style="color:var(--oya-text-muted);">Duration</span>
+          <strong>
+            {% if administration.tenure_end %}{{ administration.tenure_end|timeuntil:administration.tenure_start }}{% else %}Ongoing{% endif %}
+          </strong>
+        </div>
+        <div class="kv-row"><span style="color:var(--oya-text-muted);">Status</span><strong>{{ administration.status }}</strong></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h3 style="font-size:1rem;margin-bottom:0.75rem;">Executive Members</h3>
+        {% for e in administration.executives %}
+        <div class="kv-row">
+          <span>{{ e.member.full_name }}</span>
+          <strong>{{ e.post }}{% if not e.is_current %} <span class="badge badge-secondary" style="font-size:0.625rem;">Ended</span>{% endif %}</strong>
+        </div>
+        {% empty %}
+        <p style="color:var(--oya-text-muted);font-size:0.875rem;">No executives on record for this administration.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ACHIEVEMENTS ═══ -->
+<div class="report-section" id="achievements">
+  <h2>Achievements</h2>
+  <div class="stat-grid">
+    <div class="stat-mini"><div class="value">{{ report.achievements.projects_completed }}</div><div class="label">Projects Completed</div></div>
+    <div class="stat-mini"><div class="value">₦{{ report.achievements.funds_raised|floatformat:0|intcomma }}</div><div class="label">Funds Raised</div></div>
+    <div class="stat-mini"><div class="value">{{ report.achievements.cases_resolved }}</div><div class="label">Cases Resolved</div></div>
+    <div class="stat-mini"><div class="value">{{ report.achievements.assets_acquired }}</div><div class="label">Assets Acquired</div></div>
+    <div class="stat-mini"><div class="value">{{ report.achievements.committees_established }}</div><div class="label">Task Force Added</div></div>
+  </div>
+  {% if report.achievements.major_activities %}
+  <div class="card">
+    <div class="card-body">
+      <h3 style="font-size:0.9375rem;margin-bottom:0.5rem;">Major Financial Activities</h3>
+      {% for a in report.achievements.major_activities %}
+      <div class="kv-row">
+        <span>{{ a.label|default:"—"|truncatechars:60 }} <span class="badge badge-secondary" style="font-size:0.625rem;">{{ a.type }}</span></span>
+        <strong>₦{{ a.amount|floatformat:0|intcomma }}</strong>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ═══ FINANCIAL RECORDS ═══ -->
+<div class="report-section" id="financial-records">
+  <h2>Financial Records</h2>
+  <div class="dashboard-grid" style="grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:1rem;margin-bottom:1rem;">
+    <div class="card">
+      <div class="card-body">
+        <h3 style="font-size:1rem;margin-bottom:0.75rem;">Financial Summary</h3>
+        <div class="kv-row"><span style="color:var(--oya-text-muted);">Yearly Dues Collected</span><strong style="color:var(--oya-success);">₦{{ report.finance.total_dues|floatformat:0|intcomma }}</strong></div>
+        <div class="kv-row"><span style="color:var(--oya-text-muted);">Other Income</span><strong style="color:var(--oya-success);">₦{{ report.finance.total_income|floatformat:0|intcomma }}</strong></div>
+        <div class="kv-row"><span style="color:var(--oya-text-muted);">Project Donations</span><strong style="color:var(--oya-success);">₦{{ report.finance.total_donations|floatformat:0|intcomma }}</strong></div>
+        <div class="kv-row"><span style="color:var(--oya-text-muted);">Task Force Revenue (Fines)</span><strong style="color:var(--oya-success);">₦{{ report.finance.taskforce_revenue|floatformat:0|intcomma }}</strong></div>
+        <div class="subtotal-row"><span><strong>Total Income</strong></span><strong style="color:var(--oya-primary);">₦{{ report.finance.total_revenue|floatformat:0|intcomma }}</strong></div>
+        <div class="kv-row"><span style="color:var(--oya-text-muted);">Total Expenses</span><strong style="color:var(--oya-danger);">₦{{ report.finance.total_expenses|floatformat:0|intcomma }}</strong></div>
+        <div class="subtotal-row"><span><strong>Remaining Balance</strong></span><strong>₦{{ report.finance.remaining_balance|floatformat:0|intcomma }}</strong></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h3 style="font-size:1rem;margin-bottom:0.75rem;">Physical Balances &amp; Closing Position</h3>
+        <div class="kv-row"><span style="color:var(--oya-text-muted);">Bank Balance</span><strong>₦{{ report.finance.bank_balance|floatformat:0|intcomma }}</strong></div>
+        <div class="kv-row"><span style="color:var(--oya-text-muted);">Cash Balance</span><strong>₦{{ report.finance.cash_balance|floatformat:0|intcomma }}</strong></div>
+        <div class="kv-row">
+          <span style="color:var(--oya-text-muted);">Cash Remaining <span class="badge badge-secondary" style="font-size:0.625rem;">Admin-only</span></span>
+          <strong>₦{{ report.finance.cash_remaining|floatformat:0|intcomma }}</strong>
+        </div>
+        <div class="subtotal-row"><span><strong>Closing Balance</strong></span><strong style="color:var(--oya-primary);font-size:1.125rem;">₦{{ report.finance.closing_balance|floatformat:0|intcomma }}</strong></div>
+      </div>
+    </div>
+  </div>
+
+  {% if report.finance.recent_income or report.finance.recent_expenses or report.finance.recent_dues %}
+  <div class="dashboard-grid" style="grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:1rem;">
+    <div class="card">
+      <div class="card-body">
+        <h3 style="font-size:0.9375rem;margin-bottom:0.5rem;">Income Records</h3>
+        <div style="max-height:220px;overflow-y:auto;">
+          {% for inc in report.finance.recent_income %}
+          <div class="kv-row" style="border-bottom:1px solid var(--oya-border);">
+            <span>{{ inc.reason|default:"—"|truncatechars:30 }}</span>
+            <strong style="color:var(--oya-success);">₦{{ inc.amount|floatformat:0|intcomma }}</strong>
+          </div>
+          {% empty %}<p style="color:var(--oya-text-muted);font-size:0.8125rem;">None recorded.</p>{% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h3 style="font-size:0.9375rem;margin-bottom:0.5rem;">Expense Records</h3>
+        <div style="max-height:220px;overflow-y:auto;">
+          {% for exp in report.finance.recent_expenses %}
+          <div class="kv-row" style="border-bottom:1px solid var(--oya-border);">
+            <span>{{ exp.description|truncatechars:30 }}</span>
+            <strong style="color:var(--oya-danger);">₦{{ exp.amount|floatformat:0|intcomma }}</strong>
+          </div>
+          {% empty %}<p style="color:var(--oya-text-muted);font-size:0.8125rem;">None recorded.</p>{% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h3 style="font-size:0.9375rem;margin-bottom:0.5rem;">Dues Payments</h3>
+        <div style="max-height:220px;overflow-y:auto;">
+          {% for due in report.finance.recent_dues %}
+<div class="kv-row" style="border-bottom:1px solid var(--oya-border);">
+  <span>{{ due.member.get_full_name }} · {{ due.payment_date|date:"M j, Y" }}</span>
+  <strong style="color:var(--oya-success);">₦{{ due.total_amount|floatformat:0|intcomma }}</strong>
+</div>
+{% empty %}<p style="color:var(--oya-text-muted);font-size:0.8125rem;">None recorded.</p>{% endfor %}
+
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ═══ PROJECTS ═══ -->
+<div class="report-section" id="projects">
+  <h2>Projects</h2>
+  <div class="stat-grid">
+    <div class="stat-mini"><div class="value">{{ report.projects.counts.created }}</div><div class="label">Created</div></div>
+    <div class="stat-mini"><div class="value" style="color:var(--oya-success);">{{ report.projects.counts.completed }}</div><div class="label">Completed</div></div>
+    <div class="stat-mini"><div class="value" style="color:var(--oya-warning);">{{ report.projects.counts.at_hand }}</div><div class="label">At Hand (Handed Over)</div></div>
+    <div class="stat-mini"><div class="value">{{ report.projects.counts.future }}</div><div class="label">Future / Planned</div></div>
+  </div>
+  <div class="card">
+    <div class="card-body" style="padding:0;">
+      <div class="table-container">
+        <table class="data-table">
+          <thead><tr><th>Project</th><th>Created</th><th>Status</th><th>Handover Note</th></tr></thead>
+          <tbody>
+            {% for p in report.projects.created_in_tenure %}
+            <tr>
+              <td class="cell-name">{{ p.title }}</td>
+              <td class="cell-muted">{{ p.created_at|date:"M j, Y" }}</td>
+              <td><span class="badge {% if p.status == 'FINISHED' %}badge-success{% elif p.status == 'AT_HAND' %}badge-warning{% else %}badge-info{% endif %}">{{ p.get_status_display }}</span></td>
+              <td class="cell-muted">{% if p.status == 'AT_HAND' %}In progress — handed to incoming administration{% elif p.status == 'FINISHED' %}Completed{% else %}—{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="cell-muted" style="text-align:center;">No projects created during this tenure.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CASES ═══ -->
+<div class="report-section" id="cases">
+  <h2>Cases</h2>
+  <div class="stat-grid">
+    <div class="stat-mini"><div class="value">{{ report.cases.counts.handled }}</div><div class="label">Handled</div></div>
+    <div class="stat-mini"><div class="value" style="color:var(--oya-success);">{{ report.cases.counts.resolved }}</div><div class="label">Resolved</div></div>
+    <div class="stat-mini"><div class="value" style="color:var(--oya-danger);">{{ report.cases.counts.open }}</div><div class="label">Open</div></div>
+    <div class="stat-mini"><div class="value" style="color:var(--oya-warning);">{{ report.cases.counts.in_progress }}</div><div class="label">In Progress</div></div>
+    <div class="stat-mini"><div class="value" style="color:var(--oya-warning);">{{ report.cases.counts.pending }}</div><div class="label">Pending / Handed Over</div></div>
+  </div>
+  <div class="card">
+    <div class="card-body" style="padding:0;">
+      <div class="table-container">
+        <table class="data-table">
+          <thead><tr><th>Case #</th><th>Title</th><th>Respondent</th><th>Status</th><th>Resolution</th></tr></thead>
+          <tbody>
+            {% for c in report.cases.handled %}
+            <tr>
+              <td class="cell-muted">{{ c.case_number }}</td>
+              <td class="cell-name">{{ c.title }}</td>
+              <td class="cell-muted">{{ c.respondent.full_name }}</td>
+              <td><span class="badge {% if c.status == 'RESOLVED' %}badge-success{% elif c.status == 'IN_PROGRESS' %}badge-warning{% else %}badge-danger{% endif %}">{{ c.get_status_display }}</span></td>
+              <td class="cell-muted">{{ c.resolution_notes|default:"—"|truncatechars:40 }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="cell-muted" style="text-align:center;">No cases handled during this tenure.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TASK FORCE ═══ -->
+<div class="report-section" id="taskforce">
+  <h2>Task Force</h2>
+  <div class="stat-grid">
+    <div class="stat-mini"><div class="value">{{ report.taskforce.counts.total }}</div><div class="label">Total</div></div>
+    <div class="stat-mini"><div class="value" style="color:var(--oya-success);">{{ report.taskforce.counts.active }}</div><div class="label">Active</div></div>
+    <div class="stat-mini"><div class="value" style="color:var(--oya-danger);">{{ report.taskforce.counts.inactive }}</div><div class="label">Inactive</div></div>
+    <div class="stat-mini"><div class="value">{{ report.taskforce.counts.established_in_tenure }}</div><div class="label">Assigned This Tenure</div></div>
+  </div>
+  <div class="card">
+    <div class="card-body" style="padding:0;">
+      <div class="table-container">
+        <table class="data-table">
+          <thead><tr><th>Member</th><th>Assigned</th><th>Status</th><th>Notes</th></tr></thead>
+          <tbody>
+            {% for tf in report.taskforce.all_current %}
+            <tr>
+              <td class="cell-name">{{ tf.member.full_name }}</td>
+              <td class="cell-muted">{{ tf.assigned_date|date:"M j, Y" }}</td>
+              <td><span class="badge {% if tf.is_active %}badge-success{% else %}badge-danger{% endif %}">{% if tf.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+              <td class="cell-muted">{{ tf.notes|default:"—"|truncatechars:40 }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="cell-muted" style="text-align:center;">No task force members on record.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MOTORCYCLES ═══ -->
+<div class="report-section" id="motorcycles">
+  <h2>Motorcycles</h2>
+  <div class="stat-grid">
+    <div class="stat-mini"><div class="value">{{ report.motorcycles.counts.total }}</div><div class="label">Total</div></div>
+    <div class="stat-mini"><div class="value" style="color:var(--oya-success);">{{ report.motorcycles.counts.excellent }}</div><div class="label">Excellent</div></div>
+    <div class="stat-mini"><div class="value" style="color:var(--oya-warning);">{{ report.motorcycles.counts.needs_service }}</div><div class="label">Needs Service</div></div>
+    <div class="stat-mini"><div class="value" style="color:var(--oya-danger);">{{ report.motorcycles.counts.grounded }}</div><div class="label">Grounded</div></div>
+    <div class="stat-mini"><div class="value">{{ report.motorcycles.counts.acquired }}</div><div class="label">Acquired This Tenure</div></div>
+  </div>
+  <div class="card">
+    <div class="card-body" style="padding:0;">
+      <div class="table-container">
+        <table class="data-table">
+          <thead><tr><th>Asset Tag</th><th>Brand / Model</th><th>Condition</th><th>Assigned To</th></tr></thead>
+          <tbody>
+            {% for m in report.motorcycles.all_motorcycles %}
+            <tr>
+              <td class="cell-name">{{ m.asset_tag }}</td>
+              <td class="cell-muted">{{ m.brand }} {{ m.model }}</td>
+              <td><span class="badge {% if m.condition == 'EXCELLENT' %}badge-success{% elif m.condition == 'NEEDS_SERVICE' %}badge-warning{% else %}badge-danger{% endif %}">{{ m.get_condition_display }}</span></td>
+              <td class="cell-muted">{{ m.assigned_to.full_name|default:"Unassigned" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="cell-muted" style="text-align:center;">No motorcycles on record.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DONATION GROUPS ═══ -->
+<div class="report-section" id="donation-groups">
+  <h2>Donation Groups</h2>
+  <div class="stat-grid">
+    <div class="stat-mini"><div class="value">{{ report.donation_groups.counts.total }}</div><div class="label">Total Groups</div></div>
+    <div class="stat-mini"><div class="value">{{ report.donation_groups.counts.created_in_tenure }}</div><div class="label">Created This Tenure</div></div>
+  </div>
+  <div class="card">
+    <div class="card-body" style="padding:0;">
+      <div class="table-container">
+        <table class="data-table">
+          <thead><tr><th>Group Name</th><th>Total Realized</th><th>Members</th><th>Date Created</th></tr></thead>
+          <tbody>
+            {% for row in report.donation_groups.rows %}
+            <tr>
+              <td class="cell-name">{{ row.group.name }}{% if row.created_in_tenure %} <span class="badge badge-primary" style="font-size:0.625rem;">This tenure</span>{% endif %}</td>
+              <td style="color:var(--oya-success);">₦{{ row.total_realized|floatformat:0|intcomma }}</td>
+              <td class="cell-muted">{{ row.member_count }}</td>
+              <td class="cell-muted">{{ row.group.created_at|date:"M j, Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="cell-muted" style="text-align:center;">No donation groups on record.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DONATIONS ═══ -->
+<div class="report-section" id="donations">
+  <h2>Donations</h2>
+  <div class="stat-grid">
+    <div class="stat-mini"><div class="value">₦{{ report.donations.total_amount|floatformat:0|intcomma }}</div><div class="label">Total Confirmed (Money)</div></div>
+    <div class="stat-mini"><div class="value">{{ report.donations.count }}</div><div class="label">Confirmed Donations</div></div>
+  </div>
+  <div class="card">
+    <div class="card-body" style="padding:0;">
+      <div class="table-container">
+        <table class="data-table">
+          <thead><tr><th>Donor</th><th>Project</th><th>Value</th><th>Purpose</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for d in report.donations.in_tenure %}
+            <tr>
+              <td class="cell-name">{% if d.member %}{{ d.member.full_name }}{% elif d.outside_donor %}{{ d.outside_donor.full_name }}{% else %}Anonymous{% endif %}</td>
+              <td class="cell-muted">{{ d.project.title }}</td>
+              <td>{{ d.display_value }}</td>
+              <td class="cell-muted">{{ d.narration|default:"—"|truncatechars:30 }}</td>
+              <td><span class="badge {% if d.status == 'CONFIRMED' %}badge-success{% elif d.status == 'PENDING' %}badge-warning{% else %}badge-danger{% endif %}">{{ d.get_status_display }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="cell-muted" style="text-align:center;">No donations recorded during this tenure.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PLEDGES ═══ -->
+<div class="report-section" id="pledges">
+  <h2>Pledges</h2>
+  <div class="stat-grid">
+    <div class="stat-mini"><div class="value">{{ report.pledges.counts.created_in_tenure }}</div><div class="label">Made This Tenure</div></div>
+    <div class="stat-mini"><div class="value">₦{{ report.pledges.total_pledged_value|floatformat:0|intcomma }}</div><div class="label">Total Pledge Value (Money)</div></div>
+    <div class="stat-mini"><div class="value" style="color:var(--oya-warning);">{{ report.pledges.counts.outstanding }}</div><div class="label">Outstanding</div></div>
+    <div class="stat-mini"><div class="value" style="color:var(--oya-danger);">₦{{ report.pledges.total_outstanding|floatformat:0|intcomma }}</div><div class="label">Outstanding Balance</div></div>
+  </div>
+  <div class="card">
+    <div class="card-body" style="padding:0;">
+      <div class="table-container">
+        <table class="data-table">
+          <thead><tr><th>Donor</th><th>Type</th><th>Project</th><th>Pledged</th><th>Outstanding</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for p in report.pledges.in_tenure %}
+            <tr>
+              <td class="cell-name">{% if p.member %}{{ p.member.full_name }}{% elif p.outside_donor %}{{ p.outside_donor.full_name }} <span class="badge badge-info" style="font-size:0.625rem;">Outside</span>{% else %}<span class="cell-muted">—</span>{% endif %}</td>
+              <td><span class="badge {{ p.donation_type_badge_class }}">{{ p.get_donation_type_display }}</span></td>
+              <td class="cell-muted">{{ p.project.title }}</td>
+              <td>{{ p.display_value }}</td>
+              <td style="color:var(--oya-warning);">{% if p.donation_type == "MONEY" %}₦{{ p.outstanding_balance|floatformat:0|intcomma }}{% elif p.status == "COMPLETED" %}<span class="cell-muted">Fulfilled</span>{% else %}Outstanding{% endif %}</td>
+              <td><span class="badge {% if p.status == 'COMPLETED' %}badge-success{% elif p.status == 'CANCELLED' %}badge-danger{% else %}badge-warning{% endif %}">{{ p.get_status_display }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="cell-muted" style="text-align:center;">No pledges recorded during this tenure.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MATERIALS & LABOUR ═══ -->
+<div class="report-section" id="materials-labour">
+  <h2>Materials &amp; Labour</h2>
+  <div class="stat-grid">
+    <div class="stat-mini"><div class="value">₦{{ report.materials_labour.total_estimated_value|floatformat:0|intcomma }}</div><div class="label">Total Estimated Value</div></div>
+  </div>
+  <div class="dashboard-grid" style="grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:1rem;">
+    <div class="card">
+      <div class="card-body">
+        <h3 style="font-size:0.9375rem;margin-bottom:0.5rem;">Materials</h3>
+        {% for m in report.materials_labour.materials %}
+        <div class="kv-row" style="border-bottom:1px solid var(--oya-border);">
+          <span>{{ m.material_name }} ({{ m.quantity }}) — {{ m.project.title }}</span>
+          <strong>{% if m.estimated_value %}₦{{ m.estimated_value|floatformat:0|intcomma }}{% else %}—{% endif %}</strong>
+        </div>
+        {% empty %}<p style="color:var(--oya-text-muted);font-size:0.8125rem;">None recorded.</p>{% endfor %}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h3 style="font-size:0.9375rem;margin-bottom:0.5rem;">Labour</h3>
+        {% for l in report.materials_labour.labour %}
+        <div class="kv-row" style="border-bottom:1px solid var(--oya-border);">
+          <span>{{ l.labour_type }} ({{ l.number_of_days }} day(s)) — {{ l.project.title }}</span>
+          <strong>{% if l.estimated_value %}₦{{ l.estimated_value|floatformat:0|intcomma }}{% else %}—{% endif %}</strong>
+        </div>
+        {% empty %}<p style="color:var(--oya-text-muted);font-size:0.8125rem;">None recorded.</p>{% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ASSETS & INVENTORY ═══ -->
+<div class="report-section" id="assets">
+  <h2>Assets &amp; Inventory</h2>
+  <div class="card">
+    <div class="card-body" style="padding:0;">
+      <div class="table-container">
+        <table class="data-table">
+          <thead><tr><th>Asset</th><th>Condition</th><th>Qty</th><th>Status</th><th>Handed Over</th></tr></thead>
+          <tbody>
+            {% for item in report.assets.items %}
+            <tr>
+              <td class="cell-name">{{ item.name }}</td>
+              <td class="cell-muted">{{ item.condition }}</td>
+              <td class="cell-muted">{{ item.quantity }}</td>
+              <td class="cell-muted">{{ item.status }}</td>
+              <td><span class="badge {% if item.handed_over %}badge-success{% else %}badge-secondary{% endif %}">{% if item.handed_over %}Yes{% else %}No{% endif %}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="cell-muted" style="text-align:center;">No assets on record.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MEMBERSHIP STATISTICS ═══ -->
+<div class="report-section" id="membership">
+  <h2>Membership Statistics</h2>
+  <div class="stat-grid">
+    <div class="stat-mini"><div class="value">{{ report.membership.totals.total_members }}</div><div class="label">Total Members</div></div>
+    <div class="stat-mini"><div class="value" style="color:var(--oya-success);">{{ report.membership.totals.active }}</div><div class="label">Active</div></div>
+    <div class="stat-mini"><div class="value">{{ report.membership.totals.new_in_tenure }}</div><div class="label">New This Tenure</div></div>
+    <div class="stat-mini"><div class="value" style="color:var(--oya-danger);">{{ report.membership.totals.removed_in_tenure }}</div><div class="label">Removed This Tenure</div></div>
+  </div>
+  <div class="dashboard-grid" style="grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:1rem;">
+    <div class="card">
+      <div class="card-body">
+        <h3 style="font-size:0.9375rem;margin-bottom:0.5rem;">Active Members by Age Range</h3>
+        {% for range, count in report.membership.age_ranges.items %}
+        <div class="kv-row"><span>{{ range }}</span><strong>{{ count }}</strong></div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h3 style="font-size:0.9375rem;margin-bottom:0.5rem;">Members by Clan</h3>
+        {% for clan in report.membership.by_clan %}
+        <div class="kv-row"><span>{{ clan.name }}</span><strong>{{ clan.member_count }}</strong></div>
+        {% empty %}<p style="color:var(--oya-text-muted);font-size:0.8125rem;">No clan data.</p>{% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ELECTIONS CONDUCTED ═══ -->
+{% if report.elections_conducted.items %}
+<div class="report-section" id="elections-conducted">
+  <h2>Elections Conducted</h2>
+  <div class="card">
+    <div class="card-body" style="padding:0;">
+      <div class="table-container">
+        <table class="data-table">
+          <thead><tr><th>Title</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for el in report.elections_conducted.items %}
+            <tr>
+              <td class="cell-name">{{ el.title }}</td>
+              <td class="cell-muted">{{ el.start_date|date:"M j, Y" }}</td>
+              <td class="cell-muted">{{ el.end_date|date:"M j, Y" }}</td>
+              <td><span class="badge badge-info">{{ el.get_status_display }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ═══ RECORDS HANDED OVER ═══ -->
+<div class="report-section" id="handed-over">
+  <h2>Records Handed Over</h2>
+  {% if report.handed_over.previous_administration %}
+  <p style="color:var(--oya-text-secondary);font-size:0.875rem;margin-bottom:0.75rem;">
+    Inherited from <strong>{{ report.handed_over.previous_administration.name }}</strong>
+    (<a href="{% url 'elections:administration_report' report.handed_over.previous_administration.key %}">view their report</a>)
+  </p>
+  {% if report.handed_over.ledger_entries %}
+  <div class="card" style="margin-bottom:1rem;">
+    <div class="card-body" style="padding:0;">
+      <div class="table-container">
+        <table class="data-table">
+          <thead><tr><th>Item</th><th>Previous Administration</th><th>Condition Received</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for l in report.handed_over.ledger_entries %}
+            <tr>
+              <td class="cell-name">Handover Ledger — {{ l.executive }}</td>
+              <td class="cell-muted">{{ report.handed_over.previous_administration.name }}</td>
+              <td class="cell-muted">{{ l.assets_description|default:"—"|truncatechars:60 }}</td>
+              <td><span class="badge badge-success">Received</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  {% else %}
+  <p style="color:var(--oya-text-muted);font-size:0.875rem;margin-bottom:0.75rem;">This is the earliest administration on record — nothing was inherited from a predecessor.</p>
+  {% endif %}
+
+  <div class="dashboard-grid" style="grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:1rem;">
+    <div class="card">
+      <div class="card-body">
+        <h3 style="font-size:0.9375rem;margin-bottom:0.5rem;">Pending Projects</h3>
+        {% for p in report.handed_over.pending_projects %}
+        <div class="kv-row"><span>{{ p.title|truncatechars:30 }}</span><span class="badge badge-warning">In progress</span></div>
+        {% empty %}<p style="color:var(--oya-text-muted);font-size:0.8125rem;">None outstanding.</p>{% endfor %}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h3 style="font-size:0.9375rem;margin-bottom:0.5rem;">Pending Cases</h3>
+        {% for c in report.handed_over.pending_cases %}
+        <div class="kv-row"><span>{{ c.case_number }} — {{ c.title|truncatechars:20 }}</span><span class="badge badge-warning">{{ c.get_status_display }}</span></div>
+        {% empty %}<p style="color:var(--oya-text-muted);font-size:0.8125rem;">None outstanding.</p>{% endfor %}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h3 style="font-size:0.9375rem;margin-bottom:0.5rem;">Outstanding Pledges</h3>
+        {% for p in report.handed_over.outstanding_pledges %}
+        <div class="kv-row"><span>{{ p.member.full_name|truncatechars:20 }}</span><strong style="color:var(--oya-warning);">₦{{ p.outstanding_balance|floatformat:0|intcomma }}</strong></div>
+        {% empty %}<p style="color:var(--oya-text-muted);font-size:0.8125rem;">None outstanding.</p>{% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EXTRA / AUTO-DISCOVERED SECTIONS (Notifications, Audit Log, etc.) ═══ -->
+{% for section in report.extra_sections %}
+<div class="report-section" id="extra-{{ section.key }}">
+  <h2>{{ section.title }}{% if section.count %} <span class="badge badge-secondary" style="font-size:0.6875rem;vertical-align:middle;">{{ section.count }}</span>{% endif %}</h2>
+  {% if section.description %}<p style="color:var(--oya-text-secondary);font-size:0.8125rem;margin-bottom:0.5rem;">{{ section.description }}</p>{% endif %}
+
+  {% if section.type == "table" %}
+  <div class="card">
+    <div class="card-body" style="padding:0;">
+      <div class="table-container">
+        <table class="data-table">
+          <thead><tr>{% for h in section.headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+          <tbody>
+            {% for row in section.rows %}
+            <tr>{% for cell in row %}<td class="cell-muted">{{ cell }}</td>{% endfor %}</tr>
+            {% empty %}
+            <tr><td class="cell-muted" style="text-align:center;">No records.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% elif section.type == "list" %}
+  <div class="card">
+    <div class="card-body">
+      {% for item in section.items %}
+      <div class="kv-row" style="flex-direction:column;align-items:flex-start;border-bottom:1px solid var(--oya-border);padding-bottom:0.5rem;margin-bottom:0.5rem;">
+        <strong>{{ item.title }}</strong>
+        <span style="color:var(--oya-text-muted);font-size:0.75rem;">{{ item.subtitle }}</span>
+        {% if item.detail %}<span style="font-size:0.8125rem;">{{ item.detail|truncatechars:150 }}</span>{% endif %}
+      </div>
+      {% empty %}<p style="color:var(--oya-text-muted);font-size:0.8125rem;">No records.</p>{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+
+{% endblock %}

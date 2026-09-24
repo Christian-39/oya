@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load static %}
+
+{% block title %}{{ member.get_full_name }} — Prepaid Dues{% endblock %}
+{% block page_title %}{{ member.get_full_name }} — Prepaid Dues{% endblock %}
+{% block breadcrumb %}Prepaid / Detail{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <div style="width:clamp(40px, 10vw, 56px);height:clamp(40px, 10vw, 56px);border-radius:50%;background:linear-gradient(135deg, var(--oya-info) 0%, var(--oya-primary) 100%);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:clamp(1rem, 3vw, 1.4rem);border:3px solid rgba(255,255,255,0.3);flex-shrink:0;">{{ member.get_initials }}</div>
+      <div>
+        <h1 style="font-size:clamp(1.125rem, 3vw, 1.5rem);">{{ member.get_full_name }}</h1>
+        <p style="font-size:clamp(0.75rem, 2vw, 0.875rem);color:var(--oya-text-secondary);margin:0;">{{ member.serial_number }} · {{ member.get_role_display }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="page-header-actions" style="flex-wrap:wrap;gap:0.5rem;">
+    <a href="{% url 'finance:member_dues_detail' member.id %}" class="btn btn-ghost">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Full Dues History
+    </a>
+  </div>
+</div>
+
+<!-- KPI Stats -->
+<div class="dashboard-grid dashboard-grid-3" style="margin-bottom:clamp(0.75rem, 3vw, 1.5rem);">
+  <div class="kpi-card accent-info">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-info-bg);color:var(--oya-info);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-info);">&#8358;{{ total_prepaid|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Total Prepaid Amount</div>
+  </div>
+  <div class="kpi-card accent-primary">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-primary-bg);color:var(--oya-primary);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-primary);">{{ prepaid_records.count }}</div>
+    <div class="kpi-label">Prepaid Years</div>
+  </div>
+  <div class="kpi-card accent-success">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-success-bg);color:var(--oya-success);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-success);">&#8358;{{ debt_info.total_paid|floatformat:0|intcomma }}</div>
+    <div class="kpi-label">Total Dues Paid (All Time)</div>
+  </div>
+</div>
+
+<!-- Prepaid Records Detail -->
+<div class="card mb-4">
+  <div class="card-header" style="padding:1rem 1.25rem;border-bottom:1px solid var(--oya-border);">
+    <div style="display:flex;align-items:center;gap:0.5rem;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--oya-info)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span style="font-weight:600;font-size:clamp(0.875rem, 2.5vw, 1rem);">Prepaid Dues Records</span>
+    </div>
+  </div>
+  <div class="table-container" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table class="data-table" data-sortable style="white-space:nowrap;">
+      <thead>
+        <tr>
+          <th data-sort="number">Year</th>
+          <th class="text-end" data-sort="number">Amount Paid</th>
+          <th data-sort="text">Status</th>
+          <th data-sort="text">Recorded By</th>
+          <th data-sort="date">Date Recorded</th>
+          <th data-sort="text">Linked Income</th>
+          {% if user.has_admin_access %}
+          <th class="text-end" style="width:80px;">Actions</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in prepaid_records %}
+        <tr>
+          <td class="fw-bold" style="white-space:nowrap;">
+            <span class="badge badge-prepaid">{{ record.year }}</span>
+          </td>
+          <td class="text-end fw-bold" style="color:var(--oya-info);font-size:clamp(0.8125rem, 2vw, 0.875rem);white-space:nowrap;">&#8358;{{ record.amount_paid|floatformat:0|intcomma }}</td>
+          <td style="white-space:nowrap;">
+            <span class="badge badge-prepaid">Prepaid</span>
+          </td>
+          <td style="white-space:nowrap;font-size:clamp(0.75rem, 1.5vw, 0.8125rem);">{% if record.recorded_by %}{{ record.recorded_by.get_full_name }}{% else %}—{% endif %}</td>
+          <td class="cell-muted" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);white-space:nowrap;">{{ record.created_at|date:"M d, Y" }}</td>
+          <td style="white-space:nowrap;">
+            {% if record.income %}
+            <a href="{% url 'finance:income_detail' record.income.pk %}" class="cell-name" style="font-size:clamp(0.75rem, 1.5vw, 0.8125rem);">View Income #{{ record.income.pk }}</a>
+            {% else %}
+            <span class="cell-muted">—</span>
+            {% endif %}
+          </td>
+          {% if user.has_admin_access %}
+          <td style="white-space:nowrap;">
+            <div class="table-actions" style="flex-wrap:nowrap;gap:0.25rem;">
+              <a href="{% url 'finance:dues_delete' record.pk %}" class="table-action-btn" title="Delete" style="color:var(--oya-danger);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </a>
+            </div>
+          </td>
+          {% endif %}
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="{% if user.has_admin_access %}7{% else %}6{% endif %}" style="text-align:center;padding:3rem;">
+            <div class="empty-state" style="padding:0;">
+              <div class="empty-state-icon" style="width:clamp(48px, 15vw, 60px);height:clamp(48px, 15vw, 60px);margin-bottom:1rem;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </div>
+              <h3 style="font-size:clamp(0.875rem, 2.5vw, 1rem);">No prepaid dues records</h3>
+              <p style="font-size:clamp(0.75rem, 2vw, 0.875rem);">This member has no prepaid dues for future years.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Member Debt Summary Card -->
+<div class="card">
+  <div class="card-header" style="padding:1rem 1.25rem;border-bottom:1px solid var(--oya-border);">
+    <div style="display:flex;align-items:center;gap:0.5rem;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--oya-primary)" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span style="font-weight:600;font-size:clamp(0.875rem, 2.5vw, 1rem);">Member Dues Summary</span>
+    </div>
+  </div>
+  <div class="card-body" style="padding:1.25rem;">
+    <div class="row g-4">
+      <div class="col-sm-6 col-lg-3">
+        <div style="font-size:clamp(0.6875rem, 1.5vw, 0.75rem);text-transform:uppercase;color:var(--oya-text-muted);letter-spacing:0.5px;margin-bottom:0.25rem;">Total Expected</div>
+        <div style="font-size:clamp(0.9375rem, 2.5vw, 1.1rem);font-weight:600;color:var(--oya-text);">&#8358;{{ debt_info.total_expected|floatformat:0|intcomma }}</div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div style="font-size:clamp(0.6875rem, 1.5vw, 0.75rem);text-transform:uppercase;color:var(--oya-text-muted);letter-spacing:0.5px;margin-bottom:0.25rem;">Total Paid</div>
+        <div style="font-size:clamp(0.9375rem, 2.5vw, 1.1rem);font-weight:600;color:var(--oya-success);">&#8358;{{ debt_info.total_paid|floatformat:0|intcomma }}</div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div style="font-size:clamp(0.6875rem, 1.5vw, 0.75rem);text-transform:uppercase;color:var(--oya-text-muted);letter-spacing:0.5px;margin-bottom:0.25rem;">Debt Owed</div>
+        <div style="font-size:clamp(0.9375rem, 2.5vw, 1.1rem);font-weight:600;color:var(--oya-danger);">&#8358;{{ debt_info.debt_owed|floatformat:0|intcomma }}</div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div style="font-size:clamp(0.6875rem, 1.5vw, 0.75rem);text-transform:uppercase;color:var(--oya-text-muted);letter-spacing:0.5px;margin-bottom:0.25rem;">Prepaid Amount</div>
+        <div style="font-size:clamp(0.9375rem, 2.5vw, 1.1rem);font-weight:600;color:var(--oya-info);">&#8358;{{ debt_info.prepaid_amount|default:0|floatformat:0|intcomma }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .badge-prepaid { background: var(--oya-info-bg); color: var(--oya-info); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  @media (max-width: 768px) {
+    .dashboard-grid-3 { grid-template-columns: 1fr !important; }
+  }
+  @media (max-width: 480px) {
+    .dashboard-grid-3 { grid-template-columns: 1fr !important; }
+  }
+</style>
+{% endblock %}

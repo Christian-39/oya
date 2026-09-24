@@ -1,27 +1,38 @@
+"""
+Admin configuration for accounts app.
+"""
 from django.contrib import admin
-from django.contrib.auth.hashers import make_password
-
-from .models import Member, Announcement, MeetingMinute
-import hashlib
-
-@admin.register(Member)
-class MemberAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'serial_number', 'role', 'status')
-
-    def save_model(self, request, obj, form, change):
-        if not obj.password.startswith('pbkdf2_sha256$'):
-            obj.password = make_password(obj.password)
-        super().save_model(request, obj, form, change)
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from .models import User
 
 
-@admin.register(Announcement)
-class AnnouncementAdmin(admin.ModelAdmin):
-    list_display = ('title', 'created_by', 'created_at', 'is_active')
-    list_filter = ('is_active',)
-    search_fields = ('title', 'message')
+@admin.register(User)
+class UserAdmin(BaseUserAdmin):
+    """Admin configuration for User model."""
 
+    list_display = [
+        "serial_number", "full_name", "role", "phone",
+        "state", "is_active", "date_joined"
+    ]
+    list_filter = ["role", "is_active", "state", "date_joined"]
+    search_fields = ["serial_number", "full_name", "phone", "state"]
+    ordering = ["-date_joined"]
 
-@admin.register(MeetingMinute)
-class MeetingMinuteAdmin(admin.ModelAdmin):
-    list_display = ('title', 'meeting_date', 'created_by', 'created_at')
-    search_fields = ('title', 'content')
+    fieldsets = [
+        (None, {"fields": ["serial_number", "password"]}),
+        ("Personal Info", {"fields": ["full_name", "phone", "state", "photo"]}),
+        ("Role & Permissions", {"fields": ["role", "is_active", "is_staff", "is_superuser", "groups", "user_permissions"]}),
+        ("Important Dates", {"fields": ["last_login", "date_joined"]}),
+    ]
+
+    add_fieldsets = [
+        (
+            None,
+            {
+                "classes": ["wide"],
+                "fields": ["serial_number", "full_name", "phone", "state", "role", "password1", "password2"],
+            },
+        ),
+    ]
+
+    readonly_fields = ["last_login", "date_joined"]

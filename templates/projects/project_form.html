@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title|default:"Create Project" }}{% endblock %}
+{% block page_title %}{{ title|default:"Create Project" }}{% endblock %}
+{% block breadcrumb %}Projects{% endblock %}
+
+{% block content %}
+
+<style>
+/* ─── Responsive Project Form ─── */
+@media (max-width: 768px) {
+  .page-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .page-header-left h1 { font-size: 1.25rem !important; }
+  .page-header-left p { font-size: 0.8125rem !important; }
+  .page-header-actions { width: 100%; }
+  .page-header-actions .btn { width: 100%; justify-content: center; }
+  .form-row { grid-template-columns: 1fr !important; gap: 0; }
+  .form-group { margin-bottom: 1rem; }
+  .form-label { font-size: 0.8125rem; }
+  .form-control { padding: 0.5rem 0.75rem; font-size: 0.8125rem; }
+  .card-header { padding: 1rem 1.25rem; }
+  .card-body { padding: 1.25rem; }
+  .btn { padding: 0.5rem 1rem; font-size: 0.8125rem; }
+}
+
+@media (max-width: 480px) {
+  .page-header-left h1 { font-size: 1.125rem !important; }
+  .page-header-left p { font-size: 0.75rem !important; }
+  .card-header-title { font-size: 0.9375rem; }
+  .form-label { font-size: 0.75rem; }
+  .form-control { padding: 0.375rem 0.625rem; font-size: 0.75rem; }
+  .card-body { padding: 1rem; }
+  .btn { padding: 0.375rem 0.75rem; font-size: 0.75rem; }
+}
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>{{ title|default:"Create Project" }}</h1>
+    <p>{% if project %}Update {{ project.title }}{% else %}Register a new community development project{% endif %}</p>
+  </div>
+</div>
+
+<div class="dashboard-grid dashboard-grid-1" style="max-width:900px;">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">Project Information</div>
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label for="{{ form.title.id_for_label }}" class="form-label">Project Title <span style="color:var(--oya-danger);">*</span></label>
+          {{ form.title }}
+          {% if form.title.errors %}
+            <div class="form-error">{{ form.title.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+          <div class="form-group">
+            <label for="{{ form.budget.id_for_label }}" class="form-label">Budget (₦) <span style="color:var(--oya-danger);">*</span></label>
+            {{ form.budget }}
+            {% if form.budget.errors %}
+              <div class="form-error">{{ form.budget.errors.0 }}</div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+            {{ form.status }}
+            {% if form.status.errors %}
+              <div class="form-error">{{ form.status.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label for="{{ form.progress_percentage.id_for_label }}" class="form-label">Progress Percentage (%)</label>
+          {{ form.progress_percentage }}
+          {% if form.progress_percentage.errors %}
+            <div class="form-error">{{ form.progress_percentage.errors.0 }}</div>
+          {% endif %}
+          <div style="font-size:0.75rem;color:var(--oya-text-muted);margin-top:0.25rem;">Enter a value between 0 and 100.</div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1.5rem;">
+          <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+          {{ form.description }}
+          {% if form.description.errors %}
+            <div class="form-error">{{ form.description.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Fundraising -->
+        <div style="border-top:1px solid var(--oya-border);padding-top:1.25rem;margin-top:1.5rem;">
+          <div class="form-group" style="margin-bottom:1rem;">
+            <div class="form-check" style="display:flex;align-items:center;gap:0.5rem;">
+              {{ form.enable_fundraising }}
+              <label for="{{ form.enable_fundraising.id_for_label }}" class="form-label" style="margin:0;">
+                Enable Fundraising Campaign
+              </label>
+            </div>
+            {% if form.enable_fundraising.errors %}
+              <div class="form-error">{{ form.enable_fundraising.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div id="fundraising-fields" style="display:{% if form.enable_fundraising.value %}block{% else %}none{% endif %};">
+            <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+              <div class="form-group">
+                <label for="{{ form.target_amount.id_for_label }}" class="form-label">Target Amount (₦) <span style="color:var(--oya-danger);">*</span></label>
+                {{ form.target_amount }}
+                {% if form.target_amount.errors %}<div class="form-error">{{ form.target_amount.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="form-group">
+                <label for="{{ form.fundraising_status.id_for_label }}" class="form-label">Fundraising Status</label>
+                {{ form.fundraising_status }}
+                {% if form.fundraising_status.errors %}<div class="form-error">{{ form.fundraising_status.errors.0 }}</div>{% endif %}
+              </div>
+            </div>
+            <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+              <div class="form-group">
+                <label for="{{ form.fundraising_start_date.id_for_label }}" class="form-label">Start Date</label>
+                {{ form.fundraising_start_date }}
+                {% if form.fundraising_start_date.errors %}<div class="form-error">{{ form.fundraising_start_date.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="form-group">
+                <label for="{{ form.fundraising_end_date.id_for_label }}" class="form-label">End Date</label>
+                {{ form.fundraising_end_date }}
+                {% if form.fundraising_end_date.errors %}<div class="form-error">{{ form.fundraising_end_date.errors.0 }}</div>{% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Donation Group Reporting -->
+        <div style="border-top:1px solid var(--oya-border);padding-top:1.25rem;margin-top:1.5rem;">
+          <div class="form-group" style="margin-bottom:0;">
+            <div class="form-check" style="display:flex;align-items:center;gap:0.5rem;">
+              {{ form.include_in_group_reports }}
+              <label for="{{ form.include_in_group_reports.id_for_label }}" class="form-label" style="margin:0;">
+                Include this project in Donation Group Reports
+              </label>
+            </div>
+            <p style="font-size:0.8125rem;color:var(--oya-text-muted);margin-top:0.35rem;">
+              Disabling this only hides this project's donations from Donation Group reports.
+              Treasury, finance, and project totals are unaffected.
+            </p>
+            {% if form.include_in_group_reports.errors %}
+              <div class="form-error">{{ form.include_in_group_reports.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div style="display:flex;gap:0.75rem;justify-content:flex-end;border-top:1px solid var(--oya-border);padding-top:1.25rem;">
+          <a href="{% url 'projects:project_list' %}" class="btn btn-secondary">Cancel</a>
+          <button type="submit" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            {{ action|default:"Create Project" }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const cb = document.getElementById('id_enable_fundraising');
+  const box = document.getElementById('fundraising-fields');
+  if(cb && box){
+    cb.addEventListener('change', function(){
+      box.style.display = this.checked ? 'block' : 'none';
+    });
+  }
+})();
+</script>
+
+{% endblock %}

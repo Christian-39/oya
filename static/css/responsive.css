@@ -1,0 +1,407 @@
+/* ==========================================================================
+   FILE 2 OF 4: responsive.css
+   OYA - Overflow Containment, Scroll Wrappers, Responsive Grid Behaviors
+   MUST be loaded AFTER base.css and layouts.css
+   ========================================================================== */
+
+/* ─── Root containment ─── */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* ─── Content Area Containment ─── */
+.content-area {
+  min-width: 0;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.main-content {
+  min-width: 0;
+  overflow-x: hidden;
+  flex: 1;
+}
+
+/* ─── Flex Container Overflow Fixes ─── */
+.topbar, .page-header, .card-header, .form-actions,
+.sidebar-header, .detail-header, .filters-bar,
+.profile-card, .directory-card, .activity-item,
+.notification-item, .urgent-case, .chart-card-header,
+.stat-card-header, .kpi-card, .form-card-header,
+.modal-header, .modal-footer, .table-toolbar,
+.page-header-actions, .topbar-left, .topbar-actions,
+.sidebar-footer .user-info, .mobile-profile-link,
+.detail-title-section, .filter-group, .location-toggle,
+.settings-row {
+  min-width: 0;
+}
+
+.topbar > *, .page-header > *, .card-header > *,
+.form-actions > *, .sidebar-header > *, .detail-header > *,
+.filters-bar > *, .profile-card > *, .directory-card > *,
+.activity-item > *, .notification-item > *, .urgent-case > *,
+.chart-card-header > *, .stat-card-header > *, .kpi-card > *,
+.form-card-header > *, .modal-header > *, .modal-footer > *,
+.table-toolbar > *, .page-header-actions > *, .topbar-left > *,
+.topbar-actions > *, .sidebar-footer .user-info > *,
+.mobile-profile-link > *, .detail-title-section > *,
+.filter-group > *, .location-toggle > *, .settings-row > * {
+  min-width: 0;
+}
+
+/* ─── Grid Container Overflow Fixes ─── */
+.dashboard-grid, .dashboard-grid-4, .dashboard-grid-3,
+.dashboard-grid-2, .form-row, .detail-meta-grid,
+.directory-grid, .quick-actions, .theme-options,
+.detail-grid, .user-detail-grid {
+  min-width: 0;
+}
+
+.dashboard-grid > *, .dashboard-grid-4 > *,
+.dashboard-grid-3 > *, .dashboard-grid-2 > *,
+.form-row > *, .detail-meta-grid > *,
+.directory-grid > *, .quick-actions > *,
+.theme-options > *, .detail-grid > *,
+.user-detail-grid > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* ─── Table Scroll Wrappers ─── */
+.table-responsive-wrapper,
+.table-container,
+.form-responsive-wrapper,
+.data-table-wrapper,
+.chart-responsive-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  border-radius: var(--radius-lg);
+  scrollbar-width: thin;
+  scrollbar-color: var(--oya-text-muted) transparent;
+}
+
+.table-responsive-wrapper .data-table,
+.table-container .data-table,
+.form-responsive-wrapper .data-table,
+.data-table-wrapper .data-table {
+  min-width: 600px;
+  width: 100%;
+}
+
+/* Standalone tables (no wrapper) should not force scroll */
+.data-table:not(.table-responsive-wrapper .data-table):not(.table-container .data-table):not(.form-responsive-wrapper .data-table):not(.data-table-wrapper .data-table) {
+  min-width: 0;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.data-table thead th,
+.data-table tbody td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Table Actions ─── */
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.table-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--oya-border);
+  background: var(--oya-bg-card);
+  color: var(--oya-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.table-action-btn:hover {
+  background: var(--oya-bg-hover);
+  border-color: var(--oya-primary);
+  color: var(--oya-primary);
+}
+
+.table-action-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ─── Cell Name Truncation ─── */
+.cell-name {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cell-muted {
+  font-size: 0.8125rem;
+  color: var(--oya-text-muted);
+}
+
+/* ─── Modal Scroll Containment ─── */
+.modal {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.modal-dialog {
+  max-width: min(600px, calc(100vw - 2rem));
+  width: 100%;
+  margin: auto;
+}
+
+.modal-body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
+  min-width: 0;
+}
+
+/* ─── Dropdown Scroll Containment ─── */
+.dropdown-menu {
+  max-width: min(320px, calc(100vw - 2rem));
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+/* ─── Image & Media Containment ─── */
+img, video, svg, iframe {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ─── Long Text Wrapping ─── */
+.long-text, .url, .code-label, .file-path,
+.email-text, .phone-text {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ─── Pre/Code Blocks ─── */
+pre, code {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ─── Prevent inline-block elements from breaking layout ─── */
+.badge, .kpi-badge, .table-action-btn, .status-dot {
+  flex-shrink: 0;
+}
+
+/* ─── Ensure all direct children of content-area respect bounds ─── */
+.content-area > * { max-width: 100%; }
+
+/* ─── Prevent text overflow in key elements ─── */
+.activity-text, .notification-title, .notification-desc,
+.urgent-case-title, .cell-name, .timeline-title, .timeline-desc,
+.settings-info h4, .settings-info p, .directory-info h4,
+.directory-info p, .profile-info h3, .profile-info p,
+.meta-value, .meta-label, .stat-card-label, .stat-card-value,
+.stat-card-change, .chart-card-title, .chart-card-subtitle,
+.quick-action-btn {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ─── Activity Feed Items ─── */
+.activity-item { min-width: 0; }
+.activity-content { min-width: 0; overflow: hidden; }
+
+/* ─── Notification Items ─── */
+.notification-item { min-width: 0; }
+.notification-body { min-width: 0; overflow: hidden; }
+
+/* ─── Urgent Cases ─── */
+.urgent-case { min-width: 0; }
+.urgent-case > div:first-child { min-width: 0; overflow: hidden; }
+
+/* ─── Profile & Directory cards ─── */
+.profile-card, .directory-card { min-width: 0; }
+.profile-info, .directory-info { min-width: 0; overflow: hidden; }
+
+/* ─── Meta Items ─── */
+.meta-item { min-width: 0; overflow: hidden; }
+
+/* ─── Timeline ─── */
+.timeline { min-width: 0; }
+.timeline-content { min-width: 0; overflow: hidden; }
+
+/* ─── Settings Rows ─── */
+.settings-row { flex-wrap: wrap; gap: 1rem; }
+
+/* ─── Theme Options ─── */
+.theme-options { flex-wrap: wrap; justify-content: center; }
+
+/* ─── Chart Containers ─── */
+.chart-container, .chart-container-sm {
+  max-width: 100%;
+  position: relative;
+}
+
+.chart-container canvas { max-width: 100% !important; }
+
+/* ─── Responsive Grid Behaviors ─── */
+.directory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 1rem;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr));
+  gap: 0.75rem;
+}
+
+.dashboard-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: 1.25rem;
+}
+
+.dashboard-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: 1.25rem;
+}
+
+.dashboard-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 1.25rem;
+}
+
+.detail-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+  gap: 1.25rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: 0 1.25rem;
+}
+
+/* ─── Custom Scrollbar for Touch ─── */
+@media (hover: none) {
+  .table-responsive-wrapper, .table-container,
+  .form-responsive-wrapper, .data-table-wrapper,
+  .modal-body, .dropdown-menu, .org-chart-container {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: auto;
+  }
+
+  .table-responsive-wrapper::-webkit-scrollbar,
+  .table-container::-webkit-scrollbar,
+  .form-responsive-wrapper::-webkit-scrollbar,
+  .data-table-wrapper::-webkit-scrollbar,
+  .modal-body::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  .table-responsive-wrapper::-webkit-scrollbar-track,
+  .table-container::-webkit-scrollbar-track,
+  .form-responsive-wrapper::-webkit-scrollbar-track,
+  .data-table-wrapper::-webkit-scrollbar-track,
+  .modal-body::-webkit-scrollbar-track {
+    background: var(--oya-border-light);
+    border-radius: 4px;
+  }
+
+  .table-responsive-wrapper::-webkit-scrollbar-thumb,
+  .table-container::-webkit-scrollbar-thumb,
+  .form-responsive-wrapper::-webkit-scrollbar-thumb,
+  .data-table-wrapper::-webkit-scrollbar-thumb,
+  .modal-body::-webkit-scrollbar-thumb {
+    background: var(--oya-border);
+    border-radius: 4px;
+  }
+}
+
+/* ==========================================================================
+   OYA SYSTEM - MOBILE DRAWER OVERLAY
+   ========================================================================== */
+
+@media screen and (max-width: 768px) {
+  /* The layout wraps vertically on mobile screen states */
+  .app-shell {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* The mobile sidebar behaves as an overlapping drawer layout */
+  .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 280px !important; /* Standardized drawer width */
+    height: 100vh !important;
+    z-index: 2000 !important; /* Slides *over* topbars and cards cleanly */
+  }
+
+  /* Mobile content occupies full viewport width with zero offsets */
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+}
+
+
+/* ─── Print Styles ─── */
+@media print {
+  .mobile-top-header, .mobile-bottom-nav, .mobile-sidebar,
+  .sidebar, .topbar, .menu-toggle, .sidebar-overlay,
+  .mobile-sidebar-overlay { display: none !important; }
+
+  .main-content {
+    margin-left: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  .content-area { padding: 0; overflow-x: visible; }
+  body { overflow-x: visible; }
+
+  .table-responsive-wrapper, .table-container,
+  .form-responsive-wrapper {
+    overflow: visible;
+    box-shadow: none;
+  }
+}

@@ -1,0 +1,24 @@
+{% comment %}
+DEPRECATED — do not use.
+
+This partial predates the project-wide member/user autocomplete component
+and was never wired into any page (nothing includes it), and it called a
+finance:search_members endpoint that does not exist in finance/urls.py.
+
+The single, live implementation for "search and select a member" anywhere
+in the project is now:
+  - Widget:   core.widgets.AutocompleteSelectWidget
+  - Template: templates/widgets/autocomplete_select.html
+  - JS:       static/js/autocomplete.js  (loaded globally in base.html)
+  - Endpoints: members:member_autocomplete_search / accounts:user_search_ajax
+
+Usage in a form's Meta.widgets:
+    "member": AutocompleteSelectWidget(
+        search_url_name="members:member_autocomplete_search",
+        placeholder="Search member by name, no. or phone…",
+    )
+
+See project_donations/forms.py or finance/forms.py for real examples.
+This file is kept only so any old reference doesn't hard-404; it renders
+nothing.
+{% endcomment %}

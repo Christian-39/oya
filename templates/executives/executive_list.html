@@ -1,0 +1,518 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Executives{% endblock %}
+{% block page_title %}Executive Directory{% endblock %}
+{% block breadcrumb %}Leadership{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Executive Directory</h1>
+    <p>Current OYA executives, committee heads, and their roles</p>
+  </div>
+  <div class="page-header-actions">
+    <button class="btn btn-secondary" data-export="executivesTable">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
+    </button>
+    {% if user.is_superuser %}
+    <a href="{% url 'executives:executive_create' %}" class="btn btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Executive
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="filters-bar">
+  <div class="filter-group">
+    <span class="filter-label">Filter:</span>
+    <form method="get" style="display:flex;gap:0.5rem;align-items:center;">
+      <select name="status" class="form-control" style="width:160px;" onchange="this.form.submit()">
+        <option value="" {% if not status_filter %}selected{% endif %}>All Executives</option>
+        <option value="current" {% if status_filter == "current" %}selected{% endif %}>Current Only</option>
+        <option value="past" {% if status_filter == "past" %}selected{% endif %}>Past Only</option>
+      </select>
+      {% if search_term %}
+        <input type="hidden" name="search" value="{{ search_term }}">
+      {% endif %}
+    </form>
+  </div>
+  <div style="margin-left:auto;font-size:0.875rem;color:var(--oya-text-secondary);">
+    <strong style="color:var(--oya-text-primary);">{{ total_executives }}</strong> executives &middot; 
+    <strong style="color:var(--oya-text-primary);">{{ current_count }}</strong> current
+  </div>
+</div>
+
+<!-- Executives Grid -->
+<div class="card">
+  <div class="table-toolbar">
+    <div class="toolbar-search">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <form method="get" style="width:100%;">
+        <input type="text" name="search" placeholder="Search executives..." 
+               value="{{ search_term }}" data-search-table="executivesTable"
+               onkeydown="if(event.key==='Enter') this.form.submit()">
+        {% if status_filter %}
+          <input type="hidden" name="status" value="{{ status_filter }}">
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <div class="table-container" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table class="data-table" id="executivesTable" data-sortable style="white-space:nowrap;">
+      <thead>
+        <tr>
+          <th style="width:50px;"></th>
+          <th data-sort="text">Name</th>
+          <th data-sort="text">Position</th>
+          <th data-sort="text">Phone</th>
+          <th data-sort="text">Tenure</th>
+          <th data-sort="text">Status</th>
+          <th style="width:120px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for exec in executives %}
+        <tr>
+          <td>
+    <div class="avatar avatar-sm"
+         style="{% if not exec.member.photo or not exec.member.photo.name %}background:{% cycle 'var(--oya-primary)' 'var(--oya-accent)' 'var(--oya-success)' 'var(--oya-warning)' %};color:#fff;{% endif %}overflow:hidden;{% if exec.member.photo and exec.member.photo.name %}cursor:pointer;{% endif %}"
+         {% if exec.member.photo and exec.member.photo.name %}
+         onclick="openImagePreview('{{ exec.member.photo.url }}', '{{ exec.member.full_name }}')"
+         {% endif %}>
+        {% if exec.member.photo and exec.member.photo.name %}
+            <img src="{{ exec.member.photo.url }}"
+                 alt="{{ exec.member.full_name }}"
+                 style="width:100%;height:100%;object-fit:cover;">
+        {% else %}
+            {{ exec.member.full_name|slice:":2"|upper }}
+        {% endif %}
+    </div>
+</td>
+          <td style="white-space:nowrap;"><span class="cell-name" style="white-space:nowrap;">{{ exec.member.full_name }}</span></td>
+          <td style="white-space:nowrap;">
+            {% if exec.post == "President" %}
+              <span class="badge badge-accent" style="white-space:nowrap;">{{ exec.post }}</span>
+            {% elif exec.post == "Vice President" or exec.post == "Deputy President" %}
+              <span class="badge badge-primary" style="white-space:nowrap;">{{ exec.post }}</span>
+            {% elif exec.post == "Treasurer" or exec.post == "Financial Secretary" %}
+              <span class="badge badge-success" style="white-space:nowrap;">{{ exec.post }}</span>
+            {% elif exec.post == "Secretary" or exec.post == "Assistant Secretary" %}
+              <span class="badge badge-warning" style="white-space:nowrap;">{{ exec.post }}</span>
+            {% else %}
+              <span class="badge badge-info" style="white-space:nowrap;">{{ exec.post }}</span>
+            {% endif %}
+          </td>
+          <td class="cell-muted" style="white-space:nowrap;">{{ exec.member.phone|default:"N/A" }}</td>
+          <td class="cell-muted" style="white-space:nowrap;">{{ exec.start_date|date:"Y" }}{% if exec.end_date %} - {{ exec.end_date|date:"Y" }}{% else %} - Present{% endif %}</td>
+          <td style="white-space:nowrap;">
+            {% if exec.is_current %}
+              <span class="badge badge-success" style="white-space:nowrap;">Active</span>
+            {% else %}
+              <span class="badge badge-secondary" style="white-space:nowrap;">Past</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap;">
+            <div class="table-actions" style="flex-wrap:nowrap;gap:0.25rem;">
+              <a href="{% url 'executives:executive_detail' pk=exec.pk %}" class="table-action-btn" title="View Details">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </a>
+              {% if user.is_superuser %}
+              <a href="{% url 'executives:executive_update' pk=exec.pk %}" class="table-action-btn" title="Edit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </a>
+              {% if exec.is_current %}
+                <form method="post" action="{% url 'executives:executive_end_tenure' pk=exec.pk %}" style="display:inline;" onsubmit="return confirm('End tenure for {{ exec.member.full_name }} as {{ exec.post }}?');">
+                  {% csrf_token %}
+                  <button type="submit" class="table-action-btn danger" title="End Tenure">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </form>
+              {% else %}
+                <button class="table-action-btn" style="opacity:0.3;cursor:default;" title="Tenure Ended" disabled>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              {% endif %}
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center;padding:3rem;">
+            <div class="empty-state" style="padding:0;">
+              <div class="empty-state-icon" style="width:60px;height:60px;margin-bottom:1rem;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <h3 style="font-size:1rem;">No executives found</h3>
+              <p style="font-size:0.875rem;">
+                {% if search_term or status_filter %}
+                  No results match your search/filter criteria.
+                {% else %}
+                  No executives have been assigned yet. Click "Add Executive" to get started.
+                {% endif %}
+              </p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if executives.has_other_pages %}
+  <div class="card-footer" style="justify-content:center;">
+    <div class="pagination">
+      {% if executives.has_previous %}
+        <a href="?page={{ executives.previous_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      {% endif %}
+
+      {% for num in executives.paginator.page_range %}
+        {% if executives.number == num %}
+          <button class="page-btn active">{{ num }}</button>
+        {% elif num > executives.number|add:'-3' and num < executives.number|add:'3' %}
+          <a href="?page={{ num }}{% if search_term %}&search={{ search_term }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">{{ num }}</a>
+        {% elif num == 1 or num == executives.paginator.num_pages %}
+          <a href="?page={{ num }}{% if search_term %}&search={{ search_term }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">{{ num }}</a>
+        {% elif num == executives.number|add:'-3' or num == executives.number|add:'3' %}
+          <span class="page-btn" style="cursor:default;border:none;background:transparent;">...</span>
+        {% endif %}
+      {% endfor %}
+
+      {% if executives.has_next %}
+        <a href="?page={{ executives.next_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      {% else %}
+        <button class="page-btn" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Organizational Chart -->
+{% if current_executives %}
+<div class="card" style="margin-top:1.5rem;">
+  <div class="card-header">
+    <div class="card-header-title">Organizational Structure</div>
+  </div>
+  <div class="card-body">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;max-width:100%;overflow-x:auto;padding:0.5rem;">
+
+      <!-- President -->
+      {% with president=current_executives|first %}
+      {% if president.post == "President" %}
+      <div style="text-align:center;padding:clamp(0.75rem,3vw,1.25rem) clamp(1rem,4vw,2rem);background:linear-gradient(135deg, var(--oya-accent-50), var(--oya-accent-50));border:2px solid var(--oya-accent);border-radius:var(--radius-lg);min-width:min(220px,90vw);max-width:100%;">
+        {% if president.member.photo %}
+          <img src="{{ president.member.photo.url }}" alt="" class="avatar avatar-lg" style="margin:0 auto 0.75rem;object-fit:cover;">
+        {% else %}
+          <div class="avatar avatar-lg" style="background:var(--oya-accent);color:#0F172A;margin:0 auto 0.75rem;">
+            {{ president.member.full_name|first }}{% if president.member.full_name.split|length > 1 %}{{ president.member.full_name.split|last|first }}{% endif %}
+          </div>
+        {% endif %}
+        <div style="font-weight:700;font-size:clamp(0.875rem,3vw,1rem);">{{ president.member.full_name }}</div>
+        <div style="font-size:clamp(0.6875rem,2.5vw,0.8125rem);color:var(--oya-accent-dark);font-weight:600;">{{ president.post }}</div>
+      </div>
+
+      <!-- Arrow -->
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--oya-border)" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="6 13 12 19 18 13"/></svg>
+      {% endif %}
+      {% endwith %}
+
+      <!-- Vice President & Secretary Row -->
+      <div style="display:flex;gap:clamp(0.5rem,2vw,2rem);flex-wrap:wrap;justify-content:center;max-width:100%;">
+        {% for exec in current_executives %}
+          {% if exec.post == "Deputy President" or exec.post == "Vice President" %}
+          <div style="text-align:center;padding:1rem 1.5rem;background:var(--oya-primary-50);border:2px solid var(--oya-primary);border-radius:var(--radius-lg);min-width:180px;">
+            {% if exec.member.photo %}
+              <img src="{{ exec.member.photo.url }}" alt="" class="avatar" style="margin:0 auto 0.5rem;object-fit:cover;width:40px;height:40px;border-radius:50%;">
+            {% else %}
+              <div class="avatar" style="background:var(--oya-primary);color:#fff;margin:0 auto 0.5rem;">
+                {{ exec.member.full_name|first }}{% if exec.member.full_name.split|length > 1 %}{{ exec.member.full_name.split|last|first }}{% endif %}
+              </div>
+            {% endif %}
+            <div style="font-weight:600;font-size:0.9375rem;">{{ exec.member.full_name }}</div>
+            <div style="font-size:0.75rem;color:var(--oya-primary);font-weight:600;">{{ exec.post }}</div>
+          </div>
+          {% elif exec.post == "Secretary" %}
+          <div style="text-align:center;padding:1rem 1.5rem;background:var(--oya-warning-bg);border:2px solid var(--oya-warning);border-radius:var(--radius-lg);min-width:180px;">
+            {% if exec.member.photo %}
+              <img src="{{ exec.member.photo.url }}" alt="" class="avatar" style="margin:0 auto 0.5rem;object-fit:cover;width:40px;height:40px;border-radius:50%;">
+            {% else %}
+              <div class="avatar" style="background:var(--oya-warning);color:#fff;margin:0 auto 0.5rem;">
+                {{ exec.member.full_name|first }}{% if exec.member.full_name.split|length > 1 %}{{ exec.member.full_name.split|last|first }}{% endif %}
+              </div>
+            {% endif %}
+            <div style="font-weight:600;font-size:0.9375rem;">{{ exec.member.full_name }}</div>
+            <div style="font-size:0.75rem;color:var(--oya-warning);font-weight:600;">{{ exec.post }}</div>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <!-- Arrow -->
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--oya-border)" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="6 13 12 19 18 13"/></svg>
+
+      <!-- Other Executives Row -->
+      <div style="display:flex;gap:clamp(0.5rem,2vw,1rem);flex-wrap:wrap;justify-content:center;max-width:100%;">
+        {% for exec in current_executives %}
+          {% if exec.post != "President" and exec.post != "Deputy President" and exec.post != "Vice President" and exec.post != "Secretary" %}
+          <div style="text-align:center;padding:0.875rem 1.25rem;background:var(--oya-bg);border:1.5px solid var(--oya-border);border-radius:var(--radius-md);min-width:140px;">
+            <div style="font-weight:600;font-size:0.875rem;">{{ exec.member.full_name }}</div>
+            <div style="font-size:0.6875rem;color:var(--oya-text-muted);font-weight:600;">{{ exec.post }}</div>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<style>
+/* ─── Mobile Responsive Overrides ─── */
+@media (max-width: 768px) {
+  .page-header-left h1 { font-size: 1.375rem !important; }
+  .page-header-left p { font-size: 0.9375rem !important; }
+  .form-control, .form-select, .form-input, .form-textarea { font-size: 0.9375rem !important; padding: 0.625rem 0.875rem !important; }
+  .form-label { font-size: 0.9375rem !important; }
+  .form-error, .form-help { font-size: 0.8125rem !important; }
+  .card-header-title { font-size: 1rem !important; }
+  .card-header-subtitle { font-size: 0.875rem !important; }
+  .card-body { padding: 1.25rem !important; }
+  .btn { font-size: 0.875rem !important; padding: 0.625rem 1rem !important; }
+  .btn-sm { font-size: 0.8125rem !important; padding: 0.5rem 0.875rem !important; }
+  .btn-lg { font-size: 0.9375rem !important; padding: 0.75rem 1.25rem !important; }
+  .badge { font-size: 0.8125rem !important; padding: 0.3rem 0.5rem !important; }
+  .data-table { font-size: 0.9375rem !important; }
+  .data-table thead th, .data-table tbody td { padding: 0.75rem 1rem !important; }
+  .cell-name { font-size: 0.9375rem !important; }
+  .cell-muted { font-size: 0.875rem !important; }
+  .table-action-btn { width: 36px !important; height: 36px !important; }
+  .avatar { width: 40px !important; height: 40px !important; font-size: 0.875rem !important; }
+  .avatar-sm { width: 32px !important; height: 32px !important; font-size: 0.8125rem !important; }
+  .avatar-lg { width: 52px !important; height: 52px !important; font-size: 1.125rem !important; }
+  .kpi-value { font-size: 1.5rem !important; }
+  .kpi-label { font-size: 0.9375rem !important; }
+  .kpi-icon { width: 44px !important; height: 44px !important; }
+  .kpi-icon svg { width: 22px !important; height: 22px !important; }
+  .activity-text { font-size: 0.9375rem !important; }
+  .activity-time { font-size: 0.8125rem !important; }
+  .timeline-title { font-size: 0.9375rem !important; }
+  .timeline-desc { font-size: 0.875rem !important; }
+  .timeline-time { font-size: 0.8125rem !important; }
+  .meta-label { font-size: 0.8125rem !important; }
+  .meta-value { font-size: 0.9375rem !important; }
+  .detail-label { font-size: 0.8125rem !important; }
+  .detail-value { font-size: 0.9375rem !important; }
+  .filter-label { font-size: 0.875rem !important; }
+  .page-btn { min-width: 36px !important; height: 36px !important; font-size: 0.875rem !important; }
+  .modal-title { font-size: 1.125rem !important; }
+  .modal-header, .modal-body { padding: 1.25rem !important; }
+  .modal-footer { padding: 1rem 1.25rem !important; }
+  .dropdown-item { font-size: 0.875rem !important; padding: 0.625rem 1rem !important; }
+  .notification-title { font-size: 0.9375rem !important; }
+  .notification-desc { font-size: 0.875rem !important; }
+  .notification-time { font-size: 0.8125rem !important; }
+  .urgent-case-title { font-size: 0.9375rem !important; }
+  .urgent-case-meta { font-size: 0.8125rem !important; }
+  .settings-info h4 { font-size: 1rem !important; }
+  .settings-info p { font-size: 0.875rem !important; }
+  .quick-action-btn { font-size: 0.875rem !important; padding: 1rem 0.75rem !important; }
+  .quick-action-btn svg { width: 24px !important; height: 24px !important; }
+  .chart-card-title { font-size: 1rem !important; }
+  .chart-card-subtitle { font-size: 0.875rem !important; }
+  .tab-btn { font-size: 0.9375rem !important; padding: 0.625rem 1rem !important; }
+  .alert { font-size: 0.9375rem !important; padding: 1rem 1.25rem !important; }
+  .toast { font-size: 0.9375rem !important; padding: 1rem 1.25rem !important; }
+  .empty-state h3 { font-size: 1.0625rem !important; }
+  .empty-state p { font-size: 0.875rem !important; }
+  .toolbar-search input { font-size: 0.9375rem !important; }
+  .pagination-info { font-size: 0.875rem !important; }
+  .progress-bar-label { font-size: 0.875rem !important; }
+  .progress-bar-value { font-size: 0.875rem !important; }
+  .directory-info h4 { font-size: 0.9375rem !important; }
+  .directory-info p { font-size: 0.875rem !important; }
+  .stat-card-value { font-size: 1.375rem !important; }
+  .stat-card-label { font-size: 0.875rem !important; }
+  .stat-card-change { font-size: 0.8125rem !important; }
+  .finance-hero-amount { font-size: 1.75rem !important; }
+  .receipt-dropzone div { font-size: 0.875rem !important; }
+  .category-card div { font-size: 0.8125rem !important; }
+  .export-btn-text { font-size: 0.875rem !important; }
+  .chart-legend { font-size: 0.8125rem !important; }
+  .chart-tooltip { font-size: 0.875rem !important; }
+  .detail-badge { font-size: 0.8125rem !important; }
+  .mobile-nav-link { font-size: 0.875rem !important; }
+  .mobile-bottom-nav-item { font-size: 0.625rem !important; }
+  .mobile-logo-text { font-size: 0.9375rem !important; }
+  .search-dropdown .dropdown-item { font-size: 0.875rem !important; }
+  .search-dropdown .dropdown-header { font-size: 0.75rem !important; }
+  .form-card-title { font-size: 1rem !important; }
+  .form-card-header { padding: 1rem 1.25rem !important; }
+  .form-card-body { padding: 1.25rem !important; }
+  .form-actions .btn { width: 100% !important; justify-content: center !important; }
+  .form-row { grid-template-columns: 1fr !important; gap: 0 !important; }
+  .dashboard-grid-4, .dashboard-grid-3, .dashboard-grid-2 { grid-template-columns: 1fr !important; }
+  .detail-meta-grid { grid-template-columns: 1fr 1fr !important; }
+  .user-detail-grid { grid-template-columns: 1fr !important; }
+  .quick-actions { grid-template-columns: repeat(2, 1fr) !important; }
+  .directory-grid { grid-template-columns: 1fr !important; }
+  .profile-card { flex-direction: column !important; text-align: center !important; }
+  .filters-bar { flex-direction: column !important; align-items: stretch !important; gap: 0.75rem !important; padding: 1rem !important; }
+  .filters-bar form { flex-direction: column !important; align-items: stretch !important; }
+  .filter-group { width: 100% !important; }
+  .filter-group .form-control { width: 100% !important; }
+  .table-toolbar { flex-direction: column !important; align-items: stretch !important; }
+  .toolbar-search { max-width: 100% !important; }
+  .page-header { flex-direction: column !important; align-items: flex-start !important; }
+  .page-header-actions { width: 100% !important; flex-wrap: wrap !important; }
+  .card-header { flex-direction: column !important; align-items: flex-start !important; gap: 0.75rem !important; }
+  .card-header .btn { width: 100% !important; justify-content: center !important; }
+  .detail-header { flex-direction: column !important; align-items: flex-start !important; gap: 1rem !important; }
+  .detail-header .page-header-actions { width: 100% !important; flex-wrap: wrap !important; }
+  .detail-header .page-header-actions .btn { flex: 1 !important; min-width: 120px !important; }
+  .modal-footer { flex-direction: column !important; gap: 0.5rem !important; }
+  .modal-footer .btn { width: 100% !important; justify-content: center !important; }
+  .settings-row { flex-direction: column !important; align-items: flex-start !important; gap: 0.875rem !important; padding: 1.125rem 0 !important; }
+  .radio-group { flex-direction: column !important; align-items: flex-start !important; gap: 0.75rem !important; }
+  .location-section { padding: 0.875rem 1rem !important; }
+  .photo-preview img { max-width: 90px !important; max-height: 90px !important; }
+  .content-area { padding: 1rem !important; padding-bottom: 80px !important; }
+  .app-footer { padding-bottom: 80px !important; font-size: 0.875rem !important; }
+  .hide-mobile { display: none !important; }
+}
+
+@media (max-width: 480px) {
+  .page-header-left h1 { font-size: 1.25rem !important; }
+  .page-header-left p { font-size: 0.875rem !important; }
+  .form-control, .form-select, .form-input, .form-textarea { font-size: 0.875rem !important; padding: 0.5rem 0.75rem !important; }
+  .form-label { font-size: 0.875rem !important; }
+  .form-error, .form-help { font-size: 0.75rem !important; }
+  .card-header-title { font-size: 0.9375rem !important; }
+  .card-header-subtitle { font-size: 0.8125rem !important; }
+  .card-body { padding: 1rem !important; }
+  .btn { font-size: 0.8125rem !important; padding: 0.5rem 0.875rem !important; }
+  .btn-sm { font-size: 0.75rem !important; padding: 0.375rem 0.75rem !important; }
+  .btn-lg { font-size: 0.875rem !important; padding: 0.625rem 1rem !important; }
+  .badge { font-size: 0.75rem !important; padding: 0.25rem 0.4rem !important; }
+  .data-table { font-size: 0.875rem !important; }
+  .data-table thead th, .data-table tbody td { padding: 0.625rem 0.75rem !important; }
+  .cell-name { font-size: 0.875rem !important; }
+  .cell-muted { font-size: 0.8125rem !important; }
+  .table-action-btn { width: 32px !important; height: 32px !important; }
+  .avatar { width: 36px !important; height: 36px !important; font-size: 0.8125rem !important; }
+  .avatar-sm { width: 28px !important; height: 28px !important; font-size: 0.75rem !important; }
+  .avatar-lg { width: 48px !important; height: 48px !important; font-size: 1rem !important; }
+  .kpi-value { font-size: 1.375rem !important; }
+  .kpi-label { font-size: 0.875rem !important; }
+  .kpi-icon { width: 40px !important; height: 40px !important; }
+  .kpi-icon svg { width: 20px !important; height: 20px !important; }
+  .activity-text { font-size: 0.875rem !important; }
+  .activity-time { font-size: 0.75rem !important; }
+  .timeline-title { font-size: 0.875rem !important; }
+  .timeline-desc { font-size: 0.8125rem !important; }
+  .timeline-time { font-size: 0.75rem !important; }
+  .meta-label { font-size: 0.75rem !important; }
+  .meta-value { font-size: 0.875rem !important; }
+  .detail-label { font-size: 0.75rem !important; }
+  .detail-value { font-size: 0.875rem !important; }
+  .filter-label { font-size: 0.8125rem !important; }
+  .page-btn { min-width: 32px !important; height: 32px !important; font-size: 0.8125rem !important; }
+  .modal-title { font-size: 1rem !important; }
+  .modal-header, .modal-body { padding: 1rem !important; }
+  .modal-footer { padding: 0.75rem 1rem !important; }
+  .dropdown-item { font-size: 0.8125rem !important; padding: 0.5rem 0.875rem !important; }
+  .notification-title { font-size: 0.875rem !important; }
+  .notification-desc { font-size: 0.8125rem !important; }
+  .notification-time { font-size: 0.75rem !important; }
+  .urgent-case-title { font-size: 0.875rem !important; }
+  .urgent-case-meta { font-size: 0.75rem !important; }
+  .settings-info h4 { font-size: 0.9375rem !important; }
+  .settings-info p { font-size: 0.8125rem !important; }
+  .quick-action-btn { font-size: 0.8125rem !important; padding: 0.875rem 0.5rem !important; }
+  .quick-action-btn svg { width: 22px !important; height: 22px !important; }
+  .chart-card-title { font-size: 0.9375rem !important; }
+  .chart-card-subtitle { font-size: 0.8125rem !important; }
+  .tab-btn { font-size: 0.875rem !important; padding: 0.5rem 0.75rem !important; }
+  .alert { font-size: 0.875rem !important; padding: 0.75rem 1rem !important; }
+  .toast { font-size: 0.875rem !important; padding: 0.75rem 1rem !important; }
+  .empty-state h3 { font-size: 0.9375rem !important; }
+  .empty-state p { font-size: 0.8125rem !important; }
+  .toolbar-search input { font-size: 0.875rem !important; }
+  .pagination-info { font-size: 0.8125rem !important; }
+  .progress-bar-label { font-size: 0.8125rem !important; }
+  .progress-bar-value { font-size: 0.8125rem !important; }
+  .directory-info h4 { font-size: 0.875rem !important; }
+  .directory-info p { font-size: 0.8125rem !important; }
+  .stat-card-value { font-size: 1.25rem !important; }
+  .stat-card-label { font-size: 0.8125rem !important; }
+  .stat-card-change { font-size: 0.75rem !important; }
+  .finance-hero-amount { font-size: 1.5rem !important; }
+  .receipt-dropzone div { font-size: 0.8125rem !important; }
+  .category-card div { font-size: 0.75rem !important; }
+  .export-btn-text { font-size: 0.8125rem !important; }
+  .chart-legend { font-size: 0.75rem !important; }
+  .chart-tooltip { font-size: 0.8125rem !important; }
+  .detail-badge { font-size: 0.75rem !important; }
+  .mobile-nav-link { font-size: 0.8125rem !important; }
+  .mobile-bottom-nav-item { font-size: 0.5625rem !important; }
+  .mobile-logo-text { font-size: 0.875rem !important; }
+  .search-dropdown .dropdown-item { font-size: 0.8125rem !important; }
+  .search-dropdown .dropdown-header { font-size: 0.6875rem !important; }
+  .form-card-title { font-size: 0.9375rem !important; }
+  .form-card-header { padding: 0.875rem 1rem !important; }
+  .form-card-body { padding: 1rem !important; }
+  .card-footer { padding: 0.75rem 1rem !important; }
+  .detail-meta-grid { grid-template-columns: 1fr !important; }
+  .content-area { padding: 0.75rem !important; padding-bottom: 72px !important; }
+  .app-footer { padding: 0.875rem 1rem !important; padding-bottom: 72px !important; }
+}
+
+@media (max-width: 360px) {
+  .page-header-left h1 { font-size: 1.125rem !important; }
+  .page-header-left p { font-size: 0.8125rem !important; }
+  .form-control, .form-select, .form-input, .form-textarea { font-size: 0.8125rem !important; padding: 0.375rem 0.625rem !important; }
+  .form-label { font-size: 0.8125rem !important; }
+  .card-header-title { font-size: 0.875rem !important; }
+  .card-header-subtitle { font-size: 0.75rem !important; }
+  .btn { font-size: 0.75rem !important; padding: 0.375rem 0.75rem !important; }
+  .btn-sm { font-size: 0.6875rem !important; padding: 0.25rem 0.625rem !important; }
+  .badge { font-size: 0.6875rem !important; padding: 0.2rem 0.35rem !important; }
+  .data-table { font-size: 0.8125rem !important; }
+  .data-table thead th, .data-table tbody td { padding: 0.5rem 0.625rem !important; }
+  .avatar { width: 32px !important; height: 32px !important; font-size: 0.75rem !important; }
+  .kpi-value { font-size: 1.25rem !important; }
+  .kpi-label { font-size: 0.8125rem !important; }
+  .activity-text { font-size: 0.8125rem !important; }
+  .activity-time { font-size: 0.6875rem !important; }
+  .page-btn { min-width: 28px !important; height: 28px !important; font-size: 0.75rem !important; }
+  .modal-title { font-size: 0.9375rem !important; }
+  .dropdown-item { font-size: 0.75rem !important; padding: 0.375rem 0.75rem !important; }
+  .notification-title { font-size: 0.8125rem !important; }
+  .notification-desc { font-size: 0.75rem !important; }
+  .quick-action-btn { font-size: 0.75rem !important; }
+  .tab-btn { font-size: 0.8125rem !important; padding: 0.4rem 0.625rem !important; }
+  .alert { font-size: 0.8125rem !important; }
+  .toast { font-size: 0.8125rem !important; }
+  .empty-state h3 { font-size: 0.875rem !important; }
+  .empty-state p { font-size: 0.75rem !important; }
+  .content-area { padding: 0.625rem !important; padding-bottom: 64px !important; }
+  .app-footer { padding: 0.75rem !important; padding-bottom: 64px !important; font-size: 0.75rem !important; }
+}
+</style>
+
+{% endblock %}

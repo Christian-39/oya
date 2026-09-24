@@ -1,0 +1,215 @@
+{% extends "base.html" %} {% load static %}
+<!-- prettier-ignore -->
+{% block title %}{{ title|default:"Add Outside Donor" }}{% endblock %}<!-- prettier-ignore -->
+{% block page_title %}{{ title|default:"Add Outside Donor" }}{% endblock %}<!-- prettier-ignore -->
+{% block breadcrumb %}Fundraising{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>{{ title|default:"Add Outside Donor" }}</h1>
+    <!-- prettier-ignore -->
+    <p>{% if donor %}Update outside donor profile{% else %}Register a new outside donor{% endif %}</p>
+  </div>
+  <div class="page-header-actions">
+    <a
+      href="{% url 'project_donations:donation_list' %}"
+      class="btn btn-secondary"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <line x1="12" y1="1" x2="12" y2="23" />
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+      </svg>
+      Donations
+    </a>
+  </div>
+</div>
+
+<div class="dashboard-grid dashboard-grid-1" style="max-width: 900px">
+  <!-- Contextual banner -->
+  <div
+    style="
+      margin-bottom: 1rem;
+      padding: 0.875rem 1rem;
+      background: var(--oya-success-bg);
+      border: 1px solid var(--oya-success);
+      border-radius: var(--oya-radius);
+      color: var(--oya-success);
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    "
+  >
+    <span
+      >After saving this donor, you can record a project donation for
+      them.</span
+    >
+    <a
+      href="{% url 'project_donations:donation_create' %}"
+      class="btn btn-sm btn-success"
+      >Record Donation</a
+    >
+  </div>
+
+  <div class="dashboard-grid dashboard-grid-1" style="max-width: 900px">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-title">Donor Information</div>
+      </div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+
+          <div class="form-group" style="margin-bottom: 1rem">
+            <label for="{{ form.full_name.id_for_label }}" class="form-label"
+              >Full Name <span style="color: var(--oya-danger)">*</span></label
+            ><!-- prettier-ignore -->
+            {{ form.full_name }} {% if form.full_name.errors %}
+            <div class="form-error">{{ form.full_name.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div
+            class="form-row"
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 1rem;
+              margin-bottom: 1rem;
+            "
+          >
+            <div class="form-group">
+              <label
+                for="{{ form.phone_number.id_for_label }}"
+                class="form-label"
+                >Phone Number</label
+              ><!-- prettier-ignore -->
+              {{ form.phone_number }} {% if form.phone_number.errors %}
+              <div class="form-error">{{ form.phone_number.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="form-group">
+              <label for="{{ form.gender.id_for_label }}" class="form-label"
+                >Gender</label
+              ><!-- prettier-ignore -->
+              {{ form.gender }} {% if form.gender.errors %}
+              <div class="form-error">{{ form.gender.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem">
+            <label for="{{ form.address.id_for_label }}" class="form-label"
+              >Address</label
+            ><!-- prettier-ignore -->
+            {{ form.address }} {% if form.address.errors %}
+            <div class="form-error">{{ form.address.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div
+            class="form-row"
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 1rem;
+              margin-bottom: 1rem;
+            "
+          >
+            <div class="form-group">
+              <label for="{{ form.occupation.id_for_label }}" class="form-label"
+                >Occupation</label
+              ><!-- prettier-ignore -->
+              {{ form.occupation }} {% if form.occupation.errors %}
+              <div class="form-error">{{ form.occupation.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="form-group">
+              <label for="{{ form.invited_by.id_for_label }}" class="form-label"
+                >Invited By
+                <span style="color: var(--oya-danger)">*</span></label
+              ><!-- prettier-ignore -->
+              {{ form.invited_by }} {% if form.invited_by.errors %}
+              <div class="form-error">{{ form.invited_by.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem">
+            <label
+              for="{{ form.profile_picture.id_for_label }}"
+              class="form-label"
+              >Profile Picture</label
+            ><!-- prettier-ignore -->
+            {{ form.profile_picture }}{% if form.profile_picture.errors %}
+            <div class="form-error">{{ form.profile_picture.errors.0 }}</div>
+            {% endif %} {% if donor and donor.profile_picture_url %}
+            <div style="margin-top: 0.5rem">
+              <img
+                src="{{ donor.profile_picture_url }}"
+                alt="Current photo"
+                style="
+                  width: 80px;
+                  height: 80px;
+                  border-radius: 50%;
+                  object-fit: cover;
+                "
+              />
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1.5rem">
+            <label for="{{ form.notes.id_for_label }}" class="form-label"
+              >Notes</label
+            ><!-- prettier-ignore -->
+            {{ form.notes }} {% if form.notes.errors %}
+            <div class="form-error">{{ form.notes.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div
+            style="
+              display: flex;
+              gap: 0.75rem;
+              justify-content: flex-end;
+              border-top: 1px solid var(--oya-border);
+              padding-top: 1.25rem;
+            "
+          >
+            <a
+              href="{% url 'project_donations:outside_donor_list' %}"
+              class="btn btn-secondary"
+              >Cancel</a
+            >
+            <button type="submit" class="btn btn-primary">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              {{ action|default:"Save Donor" }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% endblock %}
+</div>

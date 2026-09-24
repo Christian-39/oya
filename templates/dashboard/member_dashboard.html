@@ -1,0 +1,444 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+{% include "dashboard/_welcome_banner.html" %}
+
+<!-- KPI Cards for Member -->
+<div class="dashboard-grid dashboard-grid-3" style="margin-bottom:1.5rem;">
+
+  <!-- My Status -->
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value">{{ member_status|default:"Active" }}</div>
+    <div class="kpi-label">Membership Status</div>
+  </div>
+
+  <!-- Total Paid -->
+  <div class="kpi-card accent-success">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-success-bg);color:var(--oya-success);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-success);">&#x20A6;{{ total_paid|floatformat:0|intcomma|default:"0" }}</div>
+    <div class="kpi-label">Total Contributions</div>
+  </div>
+
+  <!-- Clan Info -->
+  <div class="kpi-card accent-gold">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:var(--oya-accent-50);color:var(--oya-accent-dark);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+    </div>
+    <div class="kpi-value" style="color:var(--oya-accent-dark);">{{ clan_name|default:"—" }}</div>
+    <div class="kpi-label">Umu Nna Clan</div>
+  </div>
+</div>
+
+<!-- Financial Trend Chart (Association-wide) -->
+<div class="dashboard-grid dashboard-grid-1" style="margin-bottom:1.5rem;">
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div>
+        <div class="chart-card-title">Financial Trend</div>
+        <div class="chart-card-subtitle">Income vs Expenses ({{ trend_data.year }})</div>
+      </div>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end;">
+        <span class="badge" style="background:var(--oya-success-bg);color:var(--oya-success);">Income: &#x20A6;{{ trend_data.total_income_ytd|floatformat:0|intcomma }}</span>
+        <span class="badge" style="background:var(--oya-danger-bg);color:var(--oya-danger);">Expenses: &#x20A6;{{ trend_data.total_expenses_ytd|floatformat:0|intcomma }}</span>
+        <span class="badge" style="background:var(--oya-primary-bg);color:var(--oya-primary);">Net: &#x20A6;{{ trend_data.net_ytd|floatformat:0|intcomma }}</span>
+      </div>
+    </div>
+    <div class="chart-container">
+      <canvas id="financialTrendChart"></canvas>
+    </div>
+  </div>
+</div>
+
+
+<!-- Charts Row -->
+<div class="dashboard-grid dashboard-grid-2" style="margin-bottom:1.5rem;">
+
+  <!-- Payment History Chart -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div>
+        <div class="chart-card-title">Payment History</div>
+        <div class="chart-card-subtitle">Your contributions over time</div>
+      </div>
+    </div>
+    <div class="chart-container">
+      <canvas id="paymentHistoryChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Member Distribution -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div>
+        <div class="chart-card-title">Member Distribution</div>
+        <div class="chart-card-subtitle">By membership status</div>
+      </div>
+    </div>
+    <div class="chart-container chart-container-sm" style="display:flex;align-items:center;">
+      <div style="flex:1;height:100%;">
+        <canvas id="memberDistributionChart"></canvas>
+      </div>
+      <div style="padding-left:1.5rem;min-width:140px;">
+        <div style="margin-bottom:0.875rem;">
+          <div style="font-size:clamp(1.25rem,4vw,1.75rem);font-weight:700;">{{ member_stats.total|default:0 }}</div>
+          <div style="font-size:0.8125rem;color:var(--oya-text-muted);">Total Members</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem;">
+          <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.8125rem;">
+            <span style="width:10px;height:10px;border-radius:50%;background:var(--oya-primary);display:inline-block;"></span>
+            Active ({{ member_stats.by_status.active|default:0 }})
+          </div>
+          <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.8125rem;">
+            <span style="width:10px;height:10px;border-radius:50%;background:var(--oya-warning);display:inline-block;"></span>
+            Past ({{ member_stats.by_status.past|default:0 }})
+          </div>
+          <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.8125rem;">
+            <span style="width:10px;height:10px;border-radius:50%;background:var(--oya-danger);display:inline-block;"></span>
+            Removed ({{ member_stats.by_status.removed|default:0 }})
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Second Row: My Dues & Upcoming Events -->
+<div class="dashboard-grid dashboard-grid-2" style="margin-bottom:1.5rem;">
+
+  <!-- My Dues & Payments - MONEY ONLY -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">My Dues & Payments</div>
+        <div class="card-header-subtitle">Your payment history and pending dues</div>
+      </div>
+      <a href="{% url 'accounts:profile' %}" class="btn btn-sm btn-ghost">View All</a>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <div class="activity-feed" style="padding:0 1.25rem;">
+        {% for payment in recent_payments|slice:":5" %}
+        <div class="activity-item" style="padding:0.75rem 0;">
+          <div class="activity-icon success">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="activity-content" style="min-width:0;">
+            <div class="activity-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(220px,50vw);" title="{{ payment.description|default:payment.purpose }}">
+              {{ payment.description|default:payment.purpose|truncatechars:45 }}
+            </div>
+            <div class="activity-time" style="display:flex;justify-content:space-between;align-items:center;">
+              <span>{{ payment.created_at|date:"M d, Y" }}</span>
+              <span style="font-weight:600;color:var(--oya-success);">&#x20A6;{{ payment.amount|floatformat:0 }}</span>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="activity-item" style="padding:0.75rem 0;">
+          <div class="activity-content">
+            <div class="activity-text">No payment records found</div>
+            <div class="activity-time">Make your first contribution to see it here</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Upcoming Events / Announcements -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Announcements & Events</div>
+        <div class="card-header-subtitle">Latest news and upcoming meetings</div>
+      </div>
+      <a href="{% url 'notifications:notification_list' %}" class="btn btn-sm btn-ghost">View All</a>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <div class="activity-feed" style="padding:0 1.25rem;">
+        {% for notif in recent_notifications|slice:":5" %}
+        <div class="activity-item" style="padding:0.75rem 0;{% if not forloop.last %}border-bottom:1px solid var(--oya-border);{% endif %}">
+          <div class="activity-icon {% if notif.is_urgent %}danger{% else %}primary{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              {% if notif.is_urgent %}
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              {% else %}
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              {% endif %}
+            </svg>
+          </div>
+          <div class="activity-content" style="min-width:0;">
+            <div class="activity-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(220px,50vw);" title="{{ notif.title }}">
+              {{ notif.title|truncatechars:50 }}
+            </div>
+            <div class="activity-time">{{ notif.created_at|timesince }} ago</div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="activity-item" style="padding:0.75rem 0;">
+          <div class="activity-content">
+            <div class="activity-text">No announcements yet</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions Row -->
+<div class="dashboard-grid dashboard-grid-2">
+
+  <!-- My Profile Quick Links -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">My Profile</div>
+        <div class="card-header-subtitle">Manage your account</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="quick-actions" style="display:grid;grid-template-columns:repeat(2, 1fr);gap:0.75rem;">
+        <a href="{% url 'accounts:profile' %}" class="quick-action-btn" style="display:flex;align-items:center;gap:0.75rem;padding:0.875rem;border:1px solid var(--oya-border);border-radius:var(--oya-radius);text-decoration:none;color:var(--oya-text-primary);transition:all 0.2s;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          View Profile
+        </a>
+        <a href="{% url 'accounts:profile' %}" class="quick-action-btn" style="display:flex;align-items:center;gap:0.75rem;padding:0.875rem;border:1px solid var(--oya-border);border-radius:var(--oya-radius);text-decoration:none;color:var(--oya-text-primary);transition:all 0.2s;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit Profile
+        </a>
+        <a href="{% url 'accounts:profile' %}" class="quick-action-btn" style="display:flex;align-items:center;gap:0.75rem;padding:0.875rem;border:1px solid var(--oya-border);border-radius:var(--oya-radius);text-decoration:none;color:var(--oya-text-primary);transition:all 0.2s;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Change PIN
+        </a>
+        <a href="{% url 'notifications:notification_list' %}" class="quick-action-btn" style="display:flex;align-items:center;gap:0.75rem;padding:0.875rem;border:1px solid var(--oya-border);border-radius:var(--oya-radius);text-decoration:none;color:var(--oya-text-primary);transition:all 0.2s;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          Notifications
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Association Info -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Association Info</div>
+        <div class="card-header-subtitle">About Okpo Youths Association</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <div style="width:48px;height:48px;border-radius:var(--oya-radius);background:var(--oya-primary-bg);display:flex;align-items:center;justify-content:center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--oya-primary)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div>
+            <div style="font-weight:600;color:var(--oya-text-primary);">{{ association_name|default:"Okpo Youths Association" }}</div>
+            <div style="font-size:0.8125rem;color:var(--oya-text-muted);">{{ motto|default:"PEACE & PROGRESS" }}</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div style="background:var(--oya-bg);padding:1rem;border-radius:var(--oya-radius);text-align:center;">
+            <div style="font-size:1.25rem;font-weight:700;color:var(--oya-primary);">{{ yearly_dues|default:"5,000" }}</div>
+            <div style="font-size:0.75rem;color:var(--oya-text-muted);">Annual Dues</div>
+          </div>
+          <div style="background:var(--oya-bg);padding:1rem;border-radius:var(--oya-radius);text-align:center;">
+            <div style="font-size:1.25rem;font-weight:700;color:var(--oya-primary);">{{ minimum_age|default:"18" }}+</div>
+            <div style="font-size:0.75rem;color:var(--oya-text-muted);">Min Age</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Payment History Chart
+const paymentStats = {
+  labels: {{ payment_labels|safe|default:"['Jan','Feb','Mar','Apr','May','Jun']" }},
+  data: {{ payment_data|safe|default:"[0,0,0,0,0,0]" }}
+};
+
+// Member Distribution Chart
+const memberStats = {
+  active: {{ member_stats.by_status.active|default:0 }},
+  past: {{ member_stats.by_status.past|default:0 }},
+  removed: {{ member_stats.by_status.removed|default:0 }}
+};
+
+// Financial Trend - REAL DATA from backend
+const trendData = {
+  labels: {{ trend_data.months|safe|default:"['Jan','Feb','Mar','Apr','May','Jun']" }},
+  income: {{ trend_data.income|safe|default:"[0,0,0,0,0,0]" }},
+  expenses: {{ trend_data.expenses|safe|default:"[0,0,0,0,0,0]" }}
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Financial Trend Chart - REAL DATA
+  const trendCtx = document.getElementById('financialTrendChart');
+  if (trendCtx) {
+    window.memberFinancialChart = new Chart(trendCtx, {
+      type: 'line',
+      data: {
+        labels: trendData.labels,
+        datasets: [
+          {
+            label: 'Income',
+            data: trendData.income,
+            borderColor: 'var(--oya-success)',
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4,
+            pointHoverRadius: 6
+          },
+          {
+            label: 'Expenses',
+            data: trendData.expenses,
+            borderColor: 'var(--oya-danger)',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4,
+            pointHoverRadius: 6
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            align: 'end',
+            labels: {
+              usePointStyle: true,
+              padding: 20,
+              font: { size: 12 }
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0,0,0,0.8)',
+            padding: 12,
+            cornerRadius: 8,
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                if (label) label += ': ';
+                label += '\u20A6' + context.parsed.y.toLocaleString('en-NG', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                });
+                return label;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                if (value >= 1000000) return '\u20A6' + (value/1000000).toFixed(1) + 'M';
+                if (value >= 1000) return '\u20A6' + (value/1000).toFixed(0) + 'K';
+                return '\u20A6' + value;
+              },
+              font: { size: 11 }
+            },
+            grid: { color: 'var(--oya-border)' }
+          },
+          x: {
+            ticks: { font: { size: 11 } },
+            grid: { display: false }
+          }
+        },
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        }
+      }
+    });
+  }
+
+  // Auto-refresh financial chart every 5 minutes
+  setInterval(function() {
+    fetch('{% url "dashboard:financial_trend_ajax" %}')
+      .then(response => response.json())
+      .then(data => {
+        if (window.memberFinancialChart) {
+          window.memberFinancialChart.data.labels = data.months;
+          window.memberFinancialChart.data.datasets[0].data = data.income;
+          window.memberFinancialChart.data.datasets[1].data = data.expenses;
+          window.memberFinancialChart.update('none');
+        }
+      })
+      .catch(error => console.error('Error fetching trend data:', error));
+  }, 300000);
+
+  // Payment History Chart
+  const paymentCtx = document.getElementById('paymentHistoryChart');
+  if (paymentCtx) {
+    new Chart(paymentCtx, {
+      type: 'bar',
+      data: {
+        labels: paymentStats.labels,
+        datasets: [{
+          label: 'Amount (\u20A6)',
+          data: paymentStats.data,
+          backgroundColor: 'var(--oya-success)',
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'var(--oya-border)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  // Member Distribution Chart
+  const memberCtx = document.getElementById('memberDistributionChart');
+  if (memberCtx) {
+    new Chart(memberCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Active', 'Past', 'Removed'],
+        datasets: [{
+          data: [memberStats.active, memberStats.past, memberStats.removed],
+          backgroundColor: ['var(--oya-primary)', 'var(--oya-warning)', 'var(--oya-danger)'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        cutout: '70%'
+      }
+    });
+  }
+});
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,371 @@
+{% extends "base.html" %} {% load static %}
+<!-- prettier-ignore -->
+{% load humanize %} {% block title %}<!-- prettier-ignore -->
+{{ donor.full_name }} — Outside Donor{% endblock %}
+<!-- prettier-ignore -->
+{% block page_title %}Outside Donor Profile{% endblock %}
+<!-- prettier-ignore -->
+{% block breadcrumb %}Fundraising /Donors{% endblock %} {% block content %}
+<div class="detail-header">
+  <div>
+    <div
+      style="
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+        flex-wrap: wrap;
+      "
+    >
+      {% if donor.profile_picture_url %}
+      <img
+        src="{{ donor.profile_picture_url }}"
+        alt=""
+        style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover"
+      />
+      {% else %}
+      <div
+        style="
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          background: var(--oya-primary-50);
+          color: var(--oya-primary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.25rem;
+          font-weight: 700;
+        "
+      >
+        {{ donor.full_name|make_list|first }}
+      </div>
+      {% endif %}
+      <h1 style="font-size: 1.5rem">{{ donor.full_name }}</h1>
+    </div>
+    <p style="color: var(--oya-text-secondary); font-size: 0.9375rem">
+      Outside donor invited by {{ donor.invited_by.full_name|default:"N/A" }}
+    </p>
+  </div>
+  <div class="page-header-actions">
+    <a
+      href="{% url 'project_donations:outside_donor_list' %}"
+      class="btn btn-secondary"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <line x1="19" y1="12" x2="5" y2="12" />
+        <polyline points="12 19 5 12 12 5" />
+      </svg>
+      All Donors
+    </a>
+    <a
+      href="{% url 'project_donations:donation_create' %}"
+      class="btn btn-primary"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+      Record Donation
+    </a>
+  </div>
+</div>
+
+<div class="dashboard-grid dashboard-grid-2" style="margin-bottom: 1.5rem">
+  <!-- Donor Info -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">Donor Information</div>
+    </div>
+    <div class="card-body">
+      <div class="detail-meta-grid">
+        <div class="meta-item">
+          <span class="meta-label">Full Name</span>
+          <span class="meta-value">{{ donor.full_name }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Phone</span>
+          <span class="meta-value">{{ donor.phone_number|default:"N/A" }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Gender</span>
+          <span class="meta-value"
+            >{{ donor.get_gender_display|default:"N/A" }}</span
+          >
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Occupation</span>
+          <span class="meta-value">{{ donor.occupation|default:"N/A" }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Invited By</span>
+          <span class="meta-value">
+            {% if donor.invited_by %}
+            <a
+              href="{% url 'members:member_detail' pk=donor.invited_by.pk %}"
+              class="cell-name"
+              >{{ donor.invited_by.full_name }}</a
+            >
+            {% else %}
+            <span class="cell-muted">N/A</span>
+            {% endif %}
+          </span>
+        </div>
+        <div class="meta-item" style="grid-column: 1 / -1">
+          <span class="meta-label">Address</span>
+          <span class="meta-value" style="font-weight: 400; line-height: 1.6"></span>
+            <!-- prettier-ignore -->{{ donor.address|default:"No address provided."|linebreaksbr }}</span
+          >
+        </div>
+        <div class="meta-item" style="grid-column: 1 / -1">
+          <span class="meta-label">Notes</span>
+          <span class="meta-value" style="font-weight: 400; line-height: 1.6"
+            >{{ donor.notes|default:"No notes."|linebreaksbr }}</span
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contribution Stats -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title">Contribution Summary</div>
+    </div>
+    <div class="card-body">
+      <div class="dashboard-grid dashboard-grid-2" style="margin-bottom: 1rem">
+        <div class="kpi-card">
+          <div class="kpi-value">
+            &#x20A6;{{ donor.total_donations|floatformat:0|intcomma }}
+          </div>
+          <div class="kpi-label">Total Donated</div>
+        </div>
+        <div class="kpi-card accent-success">
+          <div class="kpi-value" style="color: var(--oya-success)">
+            {{ donor.donation_count }}
+          </div>
+          <div class="kpi-label">Donations Made</div>
+        </div>
+        <div class="kpi-card accent-info">
+          <div class="kpi-value" style="color: var(--oya-info)">
+            {{ donor.projects_supported }}
+          </div>
+          <div class="kpi-label">Projects Supported</div>
+        </div>
+        <div class="kpi-card accent-warning">
+          <div class="kpi-value" style="color: var(--oya-warning)">
+            {{ donor.created_at|date:"M d, Y" }}
+          </div>
+          <div class="kpi-label">Registered</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap">
+        <a
+          href="{% url 'project_donations:outside_donor_statement' pk=donor.pk %}"
+          class="btn btn-secondary btn-sm"
+          target="_blank"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          PDF Statement
+        </a>
+        {% if user.has_executive_access %}
+        <a
+          href="{% url 'project_donations:outside_donor_update' pk=donor.pk %}"
+          class="btn btn-primary btn-sm"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+            />
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+          Edit Profile
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Donation History -->
+<div class="card" style="margin-bottom: 1.5rem">
+  <div class="card-header">
+    <div class="card-header-title">Donation History</div>
+    <div class="page-header-actions" style="padding: 0">
+      <a
+        href="{% url 'project_donations:donation_create' %}"
+        class="btn btn-primary btn-sm"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        Add Donation
+      </a>
+    </div>
+  </div>
+  <div class="card-body">
+    {% if donations %}
+    <div class="table-container" style="overflow-x: auto">
+      <table class="data-table" style="white-space: nowrap">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Project</th>
+            <th>Amount</th>
+            <th>Method</th>
+            <th>Status</th>
+            <th style="width: 80px">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in donations %}
+          <tr>
+            <td>{{ d.donation_date|date:"M d, Y" }}</td>
+            <td>
+              <a
+                href="{% url 'projects:project_detail' pk=d.project.pk %}"
+                class="cell-name"
+                >{{ d.project.title|truncatechars:30 }}</a
+              >
+            </td>
+            <td style="font-weight: 600">
+              {{ d.display_value }}
+            </td>
+            <td>
+              <span class="cell-muted">{{ d.get_payment_method_display }}</span>
+            </td>
+            <td>
+              {% if d.status == "CONFIRMED" %}
+              <span class="badge badge-success">Confirmed</span>
+              {% elif d.status == "PLEDGE" %}
+              <span class="badge badge-warning">Pledge</span>
+              {% else %}
+              <span class="badge badge-danger">Cancelled</span>
+              {% endif %}
+            </td>
+            <td>
+              <div
+                class="table-actions"
+                style="flex-wrap: nowrap; gap: 0.25rem"
+              >
+                <a
+                  href="{% url 'project_donations:donation_detail' pk=d.pk %}"
+                  class="table-action-btn"
+                  title="View"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </a>
+                {% if user.has_executive_access %}
+                <a
+                  href="{% url 'project_donations:donation_update' pk=d.pk %}"
+                  class="table-action-btn"
+                  title="Edit"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                    />
+                    <path
+                      d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                    />
+                  </svg>
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding: 2rem; text-align: center">
+      <div
+        class="empty-state-icon"
+        style="width: 60px; height: 60px; margin: 0 auto 1rem"
+      >
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <line x1="12" y1="1" x2="12" y2="23" />
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+      </div>
+      <h3 style="font-size: 1rem">No donations yet</h3>
+      <p style="font-size: 0.875rem; color: var(--oya-text-muted)">
+        This donor hasn't made any contributions yet.
+      </p>
+      <a
+        href="{% url 'project_donations:donation_create' %}"
+        class="btn btn-primary btn-sm"
+        style="margin-top: 0.75rem"
+        >Record First Donation</a
+      >
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

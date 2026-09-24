@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ action|default:"Donation Group" }}{% endblock %}
+{% block page_title %}{{ action|default:"Donation Group" }}{% endblock %}
+{% block breadcrumb %}Settings{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>{{ action|default:"Donation Group" }}</h1>
+    <p>Group names, ranges, and status are fully customizable — nothing is hardcoded.</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'settingsapp:donation_group_list' %}" class="btn btn-secondary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back to Groups
+    </a>
+  </div>
+</div>
+
+<div class="dashboard-grid dashboard-grid-1" style="max-width:720px;">
+  <div class="card">
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label for="{{ form.name.id_for_label }}" class="form-label">Group Name <span style="color:var(--oya-danger);">*</span></label>
+          {{ form.name }}
+          {% if form.name.errors %}<div class="form-error">{{ form.name.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+          {{ form.description }}
+          {% if form.description.errors %}<div class="form-error">{{ form.description.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+          <div class="form-group">
+            <label for="{{ form.minimum_amount.id_for_label }}" class="form-label">Minimum Donation Amount (&#x20A6;) <span style="color:var(--oya-danger);">*</span></label>
+            {{ form.minimum_amount }}
+            {% if form.minimum_amount.errors %}<div class="form-error">{{ form.minimum_amount.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="form-group">
+            <label for="{{ form.maximum_amount.id_for_label }}" class="form-label">Maximum Donation Amount (&#x20A6;)</label>
+            {{ form.maximum_amount }}
+            <span class="cell-muted" style="font-size:0.75rem;">Leave blank for unlimited.</span>
+            {% if form.maximum_amount.errors %}<div class="form-error">{{ form.maximum_amount.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1.5rem;">
+          <div class="form-check" style="display:flex;align-items:center;gap:0.5rem;">
+            {{ form.is_active }}
+            <label for="{{ form.is_active.id_for_label }}" class="form-label" style="margin:0;">Active</label>
+          </div>
+          {% if form.is_active.errors %}<div class="form-error">{{ form.is_active.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div style="display:flex;gap:0.75rem;justify-content:flex-end;border-top:1px solid var(--oya-border);padding-top:1.25rem;">
+          <a href="{% url 'settingsapp:donation_group_list' %}" class="btn btn-secondary">Cancel</a>
+          <button type="submit" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            {{ action|default:"Save Group" }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
